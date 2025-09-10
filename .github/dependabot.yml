@@ -1,0 +1,34 @@
+version: 2
+updates:
+
+  - package-ecosystem: "github-actions"
+    directory: ".github/workflows"
+    schedule:
+      interval: "daily"
+      time: "05:00"
+      timezone: "Europe/Paris"
+    rebase-strategy: auto
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "github-actions"
+      include: scope
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "05:00"
+      timezone: "Europe/Paris"
+    rebase-strategy: auto
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "gitsubmodule"
+      include: scope
+    groups:
+      submodules:
+        patterns:
+          - "*"

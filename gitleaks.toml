@@ -1,0 +1,12 @@
+title = "R-Type Gitleaks Config"
+version = 2
+
+[[allowlist]]
+description = "Ignore test files and directories"
+regexes = []
+paths = [
+    '**/tests/',
+    '*.md',
+    '*.toml',
+    '*.yml'
+]

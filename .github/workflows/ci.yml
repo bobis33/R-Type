@@ -1,0 +1,73 @@
+name: 'CI - R-Type'
+run-name: 'R-Type - "${{ github.ref_name }}"'
+on:
+  push:
+    branches:
+      - "main"
+
+  pull_request:
+    branches:
+      - "**"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ''
+    if: github.actor != 'dependabot[bot]'
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+
+          - os: ubuntu-24.04
+            shell: bash
+            build: scripts/unix/build.sh release
+            build_test: scripts/unix/build.sh release --tests
+            binary_test: ./cmake-build-release/bin/r-type_tests
+            deps: |
+              ./scripts/unix/install-cmake.sh
+              sudo apt update && sudo apt install -y cmake libxkbcommon-dev xorg-dev libwayland-dev libudev-dev
+
+          - os: macos-15
+            shell: bash
+            build: scripts/unix/build.sh release
+            build_test: scripts/unix/build.sh release --tests
+            binary_test: ./cmake-build-release/bin/r-type_tests
+            deps: echo "No dependencies to install"
+
+          - os: windows-2025
+            shell: cmd
+            build: |
+              cmake -S . -B cmake-build-release -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+              cmake --build cmake-build-release --config Release
+            build_test: |
+              cmake -S . -B cmake-build-tests -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Test
+              cmake --build cmake-build-tests
+            binary_test: .\cmake-build-tests\bin\Debug\r-type_tests.exe
+            deps: choco install cmake -y
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          ref: ${{ github.head_ref }}
+          repository: '${{ github.repository }}'
+          fetch-depth: 1
+          submodules: true
+
+      - name: install dependencies
+        run: ${{ matrix.deps }}
+
+      - name: Build release
+        run: ${{ matrix.build }}
+
+      - name: Build test
+        run: ${{ matrix.build_test }}
+
+      - name: Run tests
+        run: ${{ matrix.binary_test }}

@@ -1,0 +1,8 @@
+.git/
+.idea/
+.vs/
+
+cmake-build-*
+
+client/include/R-Type/Generated/
+server/include/R-Type/Generated/

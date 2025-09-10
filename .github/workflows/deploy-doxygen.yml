@@ -1,0 +1,78 @@
+name: 'CD - Doxygen documentation'
+run-name: 'Doxygen documentation - "${{ github.ref_name }}"'
+
+on:
+  push:
+    branches:
+      - 'main'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    timeout-minutes: 20
+    concurrency:
+      group: 'pages'
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          ref: ${{ github.head_ref }}
+          repository: '${{ github.repository }}'
+          fetch-depth: 1
+          submodules: true
+
+      - name: 'Initialize submodules'
+        run: git submodule update --init --recursive
+
+      - name: 'Install dependencies'
+        run: |
+          ./scripts/unix/ubuntu/install-dependencies.sh doc
+          ./scripts/unix/install-cmake.sh
+          sudo apt update && sudo apt install -y cmake libxkbcommon-dev xorg-dev libwayland-dev libudev-dev
+
+      - name: 'Generate documentation'
+        run: ./scripts/unix/build.sh release --doc
+
+      - name: 'Commit and push pdf documentation'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_user_name: "[Bot] doc generator"
+          commit_message: "[Docs]: Update docs"
+          commit_options: "--no-verify"
+          file_pattern: "./documentation/r-type.pdf"
+
+      - name: 'Setup for Github pages'
+        uses: actions/configure-pages@v5
+
+      - name: 'Build with Jekyll'
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./documentation/.doxygen/html
+          destination: ./_site
+
+      - name: 'Upload artifact'
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    needs: build
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: 'github-pages'
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 'Deploy to GitHub Pages'
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,13 @@
+{
+  "client": {
+    "server_ip": "0.0.0.0",
+    "server_port": 2560,
+    "player_name": "Player"
+  },
+  "window": {
+    "fullscreen": false,
+    "width": 920,
+    "height": 540,
+    "frame_limit": 240
+  }
+}
