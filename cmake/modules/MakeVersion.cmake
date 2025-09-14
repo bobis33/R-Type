@@ -26,5 +26,5 @@ string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+"
 )
 configure_file(
         "${CMAKE_SOURCE_DIR}/cmake/config/Version.hpp.in"
-        "${PROJECT_SOURCE_DIR}/include/R-Type/Generated/Version.hpp"
+        "${PATH_VERSION}"
 )

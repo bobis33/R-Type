@@ -1,11 +1,7 @@
 #include <iostream>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-#include "R-Type/ArgsHandler.hpp"
-#include "R-Type/Server.hpp"
+#include "Server/ArgsHandler.hpp"
+#include "Server/Server.hpp"
 #include "Utils/Logger.hpp"
 
 int main(const int argc, const char *const argv[], const char *const env[])
@@ -13,13 +9,13 @@ int main(const int argc, const char *const argv[], const char *const env[])
     utl::Logger::init();
     try
     {
-        const rtp::ArgsConfig argsConf = rtp::ArgsHandler::ParseArgs(argc, argv);
-        const rtp::EnvConfig envConf = rtp::ArgsHandler::ParseEnv(env);
+        const srv::ArgsConfig argsConf = srv::ArgsHandler::ParseArgs(argc, argv);
+        const srv::EnvConfig envConf = srv::ArgsHandler::ParseEnv(env);
         if (argsConf.exit)
         {
             return EXIT_SUCCESS;
         }
-        rtp::Server server(argsConf);
+        srv::Server server(argsConf);
     }
     catch (const std::exception &e)
     {

@@ -5,6 +5,4 @@
 
 cmake-build-*
 
-client/include/R-Type/Generated/
-server/include/R-Type/Generated/
 compile_commands.json
