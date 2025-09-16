@@ -1,8 +1,7 @@
 #include <iostream>
 
-#include "R-Type/ArgsHandler.hpp"
-#include "R-Type/Client.hpp"
-#include "R-Type/Generated/Version.hpp"
+#include "Client/ArgsHandler.hpp"
+#include "Client/Client.hpp"
 #include "Utils/Logger.hpp"
 
 int main(const int argc, const char *const argv[], const char *const env[])
@@ -11,13 +10,13 @@ int main(const int argc, const char *const argv[], const char *const env[])
 
     try
     {
-        const rtp::ArgsConfig argsConf = rtp::ArgsHandler::ParseArgs(argc, argv);
-        const rtp::EnvConfig envConf = rtp::ArgsHandler::ParseEnv(env);
+        const cli::ArgsConfig argsConf = cli::ArgsHandler::ParseArgs(argc, argv);
+        const cli::EnvConfig envConf = cli::ArgsHandler::ParseEnv(env);
         if (argsConf.exit)
         {
             return EXIT_SUCCESS;
         }
-        rtp::Client client(argsConf);
+        cli::Client client(argsConf);
     }
     catch (const std::exception &e)
     {

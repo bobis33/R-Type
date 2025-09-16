@@ -11,8 +11,8 @@ file(GLOB_RECURSE ALL_SOURCE_FILES
         "${CMAKE_SOURCE_DIR}/client/include/*.hpp"
         "${CMAKE_SOURCE_DIR}/server/src/*.cpp"
         "${CMAKE_SOURCE_DIR}/server/include/*.hpp"
-        "${CMAKE_SOURCE_DIR}/modules/Utils/src/*.cpp"
-        "${CMAKE_SOURCE_DIR}/modules/Utils/include/*.hpp"
+        "${CMAKE_SOURCE_DIR}/modules/*.cpp"
+        "${CMAKE_SOURCE_DIR}/modules/*.hpp"
 )
 add_custom_target(clang-format
         COMMAND ${CLANG_FORMAT_EXE} -style=file -i ${ALL_SOURCE_FILES}

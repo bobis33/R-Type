@@ -3,7 +3,7 @@ you can use a JSON file to configure your build and run options:
 ```bash
 ./r-type_client --config r-config-client.json
 ```
-
+Here is an example configuration file:
 ```json
 {
   "client": {

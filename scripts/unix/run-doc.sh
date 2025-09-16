@@ -23,7 +23,7 @@ case $1 in
         pythonServer
         ;;
     *)
-        echo "Usage $0 node | php | python"
+        echo "Usage $0 node | php | py"
         exit 1
         ;;
 esac

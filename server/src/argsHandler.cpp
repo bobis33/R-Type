@@ -9,8 +9,8 @@
 #define APP_EXTENSION ""
 #endif
 
-#include "R-Type/ArgsHandler.hpp"
-#include "R-Type/Generated/Version.hpp"
+#include "Server/ArgsHandler.hpp"
+#include "Server/Generated/Version.hpp"
 #include "Utils/Logger.hpp"
 
 static constexpr std::string_view HELP_MESSAGE = "Usage: " PROJECT_NAME APP_EXTENSION " [options]\n\n"
@@ -23,7 +23,7 @@ static constexpr std::string_view VERSION_MESSAGE = PROJECT_NAME " version " PRO
                                                                  "Git tag: " GIT_TAG "\n"
                                                                  "Git commit hash: " GIT_COMMIT_HASH "\n";
 
-rtp::ArgsConfig rtp::ArgsConfig::fromFile(const std::string &path)
+srv::ArgsConfig srv::ArgsConfig::fromFile(const std::string &path)
 {
     ArgsConfig cfg;
     std::ifstream file(path);
@@ -46,7 +46,7 @@ rtp::ArgsConfig rtp::ArgsConfig::fromFile(const std::string &path)
     return cfg;
 }
 
-rtp::ArgsConfig rtp::ArgsHandler::ParseArgs(const int argc, const char *const argv[])
+srv::ArgsConfig srv::ArgsHandler::ParseArgs(const int argc, const char *const argv[])
 {
     if (argc <= 1)
     {
@@ -99,4 +99,4 @@ rtp::ArgsConfig rtp::ArgsHandler::ParseArgs(const int argc, const char *const ar
     throw std::runtime_error("Unknown argument: " + std::string(key));
 }
 
-rtp::EnvConfig rtp::ArgsHandler::ParseEnv(const char *const env[]) { return {}; }
+srv::EnvConfig srv::ArgsHandler::ParseEnv(const char *const env[]) { return {}; }

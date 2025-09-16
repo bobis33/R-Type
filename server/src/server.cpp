@@ -1,8 +1,8 @@
-#include "R-Type/Server.hpp"
-#include "R-Type/Generated/Version.hpp"
+#include "Server/Server.hpp"
+#include "Server/Generated/Version.hpp"
 #include "Utils/Logger.hpp"
 
-rtp::Server::Server(const ArgsConfig &config)
+srv::Server::Server(const ArgsConfig &config)
 {
     (void)config;
     utl::Logger::log("PROJECT INFO:", utl::LogLevel::INFO);

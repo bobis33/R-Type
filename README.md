@@ -25,6 +25,29 @@ R-Type
 └─── third-party             # External libraries as submodules
 ```
 
+```mermaid
+flowchart LR
+    subgraph App
+        subgraph client [Client]
+            A[Client]
+            A -->|.a/.lib| E[IGameClient]
+            A -->|.a/.lib| B[Engine]
+            B -->|.a/.lib| D[IRenderer]
+            B -->|.a/.lib| F[INetworkClient]
+            B -->|.a/.lib| G[IAudio]
+            B -->|.a/.lib| K[ECS]
+        end
+    
+        subgraph server [Server]
+            H[Server]
+            H -->|.a/.lib| I[INetworkServer]
+            H -->|.a/.lib| J[IGameServer]
+        end
+    
+        A <==>|TCP/UDP| H
+    end
+```
+
 ## Prerequisites
 Make sure you have the following dependencies installed on your system:
 
@@ -66,13 +89,13 @@ cmake-build-release\bin\r-type_server.exe ## server
 ## Documentation
 
 API documentation is generated using Doxygen and deployed on [GitHub Pages](https://bobis33.github.io/R-Type/).
-You can find the same documentation as PDF [here](documentation/R-Type.pdf).
+You can find the same documentation as PDF [here](https://github.com/bobis33/R-Type/blob/main/documentation/R-Type.pdf).
 More specific documentation for each part of the project can be found in their respective directories:
-  - [Client documentation](client/README.md)
-  - [Server documentation](server/README.md)
+  - [Client documentation](https://github.com/bobis33/R-Type/blob/main/client/README.md)
+  - [Server documentation](https://github.com/bobis33/R-Type/blob/main/server/README.md)
 
 ## External Libraries
-All dependencies are included as submodules in the [third-party](third-party) directory.
+All dependencies are included as submodules in the [third-party](https://github.com/bobis33/R-Type/tree/main/third-party) directory.
 
 ## Commit Norms
 | Commit Type | Description                                                                                                               |
