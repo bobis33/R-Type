@@ -1,0 +1,38 @@
+name: 'CI - Mirror'
+run-name: 'Mirror - "${{ github.ref_name }}"'
+
+on:
+  push:
+    branches:
+      - "main"
+
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    name: ''
+    if: github.actor != 'dependabot[bot]'
+    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5.0.0
+        with:
+          ref: ${{ github.head_ref }}
+          repository: '${{ github.repository }}'
+          fetch-depth: 1
+          submodules: true
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "actions@github.com"
+
+      - name: Push to private repo
+        env:
+          PAT: ${{ secrets.PRIVATE_REPO_PAT }}
+        run: |
+          git remote add rtype_epitech https://x-access-token:$PAT@github.com/EpitechPGE3-2025/G-CPP-500-BDX-5-1-rtype-2.git
+          git push rtype_epitech main
