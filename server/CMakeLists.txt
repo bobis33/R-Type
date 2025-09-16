@@ -5,6 +5,8 @@ project(r-type_server
         LANGUAGES C CXX
 )
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+execute_process(COMMAND ln -s ${PROJECT_SOURCE_DIR}/cmake-build-release/compile_commands.json ${PROJECT_SOURCE_DIR})
 file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/R-Type/*.hpp")
 include(MakeVersion)
