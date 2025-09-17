@@ -112,7 +112,7 @@ namespace ecs
 
             template <typename T> Pool<T> &getPool()
             {
-                std::type_index ti(typeid(T));
+                const std::type_index ti(typeid(T));
                 if (!m_components.contains(ti))
                 {
                     m_components[ti] = std::make_unique<Pool<T>>();
