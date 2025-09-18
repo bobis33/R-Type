@@ -5,9 +5,9 @@
     "player_name": "Player"
   },
   "window": {
-    "fullscreen": true,
-    "width": 920,
-    "height": 540,
+    "fullscreen": false,
+    "width": 1920,
+    "height": 1080,
     "frame_limit": 10000
   }
 }

@@ -10,9 +10,12 @@
 
 struct eng::SFMLRenderer::Impl
 {
+    std::unordered_map<std::string, sf::Texture> textures;
+
         sf::RenderWindow window;
         std::unordered_map<std::string, sf::Font> fonts;
         std::unordered_map<std::string, sf::Text> texts;
+    std::unordered_map<std::string, sf::Sprite> sprites;
 };
 
 eng::SFMLRenderer::SFMLRenderer() : m_impl(std::make_unique<Impl>()) {}
@@ -235,4 +238,102 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
         return true;
     }
     return false;
+}
+
+void eng::SFMLRenderer::createSprite(const std::string &path, const int x, const int y, const std::string &name, float scale_x, float scale_y, int fx, int fy, int fnx, int fny) {
+    sf::Texture texture;
+    if (!texture.loadFromFile(path)) {
+        throw std::runtime_error("Failed to load texture: " + path);
+    }
+
+    m_impl->textures[name] = std::move(texture);
+    sf::Sprite sfSprite(m_impl->textures[name]);
+    sfSprite.setPosition({static_cast<float>(x), static_cast<float>(y)});
+    sfSprite.setScale({scale_x, scale_y});
+    if (fnx == -1) fnx = m_impl->textures[name].getSize().x;
+    if (fny == -1) fny = m_impl->textures[name].getSize().y;
+    sfSprite.setTextureRect(sf::IntRect({ fx, fy }, {fnx, fny}));
+
+    m_impl->sprites.emplace(name, std::move(sfSprite));
+}
+
+void eng::SFMLRenderer::drawSprite(const std::string &name) {
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
+    {
+        m_impl->window.draw(it->second);
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpritePosition(const std::string &name, const int x, const int y) {
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
+    {
+        it->second.setPosition({static_cast<float>(x), static_cast<float>(y)});
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpriteTexture(const std::string &name, const std::string &path) {
+    sf::Texture texture;
+    if (!texture.loadFromFile(path)) {
+        throw std::runtime_error("Failed to load texture: " + path);
+    }
+
+    m_impl->textures[name] = std::move(texture);
+
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end()) {
+        it->second.setTexture(m_impl->textures[name]);
+    } else {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpriteFrame(const std::string & name, int fx, int fy, int fnx, int fny) {
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end()) {
+        it->second.setTextureRect(sf::IntRect({fx, fy}, {fnx, fny}));
+    } else {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpriteScale(const std::string &name, const int x, const int y) {
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end()) {
+        it->second.setScale({static_cast<float>(x), static_cast<float>(y)});
+    } else {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::drawPoint(const int x, const int y, const Color color) {
+    const sf::Vertex point(
+        sf::Vector2f(static_cast<float>(x), static_cast<float>(y)),
+        sf::Color(color.r, color.g, color.b, color.a)
+    );
+    m_impl->window.draw(&point, 1, sf::PrimitiveType::Points);
+}
+
+void eng::SFMLRenderer::drawLine(const int x1, const int y1, const int x2, const int y2, const Color color) {
+    const sf::Vertex line[] = {
+        sf::Vertex(
+            sf::Vector2f(static_cast<float>(x1), static_cast<float>(y1)),
+            sf::Color(color.r, color.g, color.b, color.a)
+        ),
+        sf::Vertex(
+            sf::Vector2f(static_cast<float>(x2), static_cast<float>(y2)),
+            sf::Color(color.r, color.g, color.b, color.a)
+        )
+    };
+    m_impl->window.draw(line, 2, sf::PrimitiveType::Lines);
+}
+
+
+eng::WindowSize eng::SFMLRenderer::getWindowSize() {
+    const sf::Vector2u size = m_impl->window.getSize();
+    return {static_cast<int>(size.x), static_cast<int>(size.y)};
 }

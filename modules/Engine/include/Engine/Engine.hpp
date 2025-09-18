@@ -42,7 +42,7 @@ namespace eng
             std::unique_ptr<INetworkClient> &getNetworkClient() { return m_networkClient; }
             std::unique_ptr<IRenderer> &getRenderer() { return m_renderer; }
             std::unique_ptr<utl::Clock> &getClock() { return m_clock; }
-            std::unique_ptr<ecs::Registry> &getRegistry() { return m_registry; } // to remove, maybe one registry per scene
+            std::unique_ptr<ecs::Registry> &getRegistry() { return m_registry; } // TODO(bobis33): to remove, maybe one registry per scene
 
             void addSystem(std::unique_ptr<ISystem> system) { m_systems.emplace_back(std::move(system)); }
             void updateSystems(const float dt) const
@@ -69,7 +69,7 @@ namespace eng
             std::unique_ptr<IRenderer> m_renderer;
 
             std::unique_ptr<utl::Clock> m_clock;
-            std::unique_ptr<ecs::Registry> m_registry; // to remove, maybe one registry per scene
+            std::unique_ptr<ecs::Registry> m_registry; // TODO(bobis33): to remove, maybe one registry per scene
             std::vector<std::unique_ptr<ISystem>> m_systems;
     }; // class Engine
 

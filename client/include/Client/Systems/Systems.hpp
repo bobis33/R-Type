@@ -20,7 +20,7 @@ namespace cli
     /// @brief Class for managing entities and their components
     /// @namespace ecs
     ///
-    class TextSyStem final : public eng::ISystem
+    class TextSyStem final : public eng::ASystem
     {
         public:
             explicit TextSyStem(eng::IRenderer &renderer) : m_renderer(renderer) {}
@@ -38,8 +38,8 @@ namespace cli
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
                     const auto *color     = registry.getComponent<ecs::Color>(entity);
 
-                    int x = transform ? static_cast<int>(transform->x) : 0;
-                    int y = transform ? static_cast<int>(transform->y) : 0;
+                    int x = (transform != nullptr) ? static_cast<int>(transform->x) : 0;
+                    int y = (transform != nullptr) ? static_cast<int>(transform->y) : 0;
 
                     std::uint8_t r = color ? static_cast<std::uint8_t>(color->r) : 255;
                     std::uint8_t g = color ? static_cast<std::uint8_t>(color->g) : 255;
@@ -53,12 +53,8 @@ namespace cli
                 }
             }
 
-            bool isEnable() override { return m_isEnable; }
-            void setEnable(const bool enable) override { m_isEnable = enable; }
-
         private:
             eng::IRenderer &m_renderer;
-            bool m_isEnable = true;
     }; // class TextRenderSystem
 
     ///
@@ -66,7 +62,7 @@ namespace cli
     /// @brief Class for managing entities and their components
     /// @namespace ecs
     ///
-    class FontSystem final : public eng::ISystem
+    class FontSystem final : public eng::ASystem
     {
         public:
             explicit FontSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
@@ -78,12 +74,9 @@ namespace cli
             FontSystem &operator=(FontSystem &&) = delete;
 
             void update(ecs::Registry &registry, const float dt) override {}
-            bool isEnable() override { return m_isEnable; }
-            void setEnable(const bool enable) override { m_isEnable = enable; }
 
         private:
             eng::IRenderer &m_renderer;
-            bool m_isEnable = true;
     }; // class FontSystem
 
     ///
@@ -91,7 +84,7 @@ namespace cli
     /// @brief Class for managing entities and their components
     /// @namespace ecs
     ///
-    class AudioSystem final : public eng::ISystem
+    class AudioSystem final : public eng::ASystem
     {
         public:
             explicit AudioSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
@@ -103,12 +96,72 @@ namespace cli
             AudioSystem &operator=(AudioSystem &&) = delete;
 
             void update(ecs::Registry &registry, float dt) override {}
-            bool isEnable() override { return m_isEnable; }
-            void setEnable(const bool enable) override { m_isEnable = enable; }
 
         private:
             eng::IRenderer &m_renderer;
-            bool m_isEnable = true;
     }; // class AudioSystem
+
+    class SpriteSystem final : public eng::ASystem
+    {
+    public:
+        explicit SpriteSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+        ~SpriteSystem() override = default;
+
+        SpriteSystem(const SpriteSystem &) = delete;
+        SpriteSystem &operator=(const SpriteSystem &) = delete;
+        SpriteSystem(SpriteSystem &&) = delete;
+        SpriteSystem &operator=(SpriteSystem &&) = delete;
+
+        void update(ecs::Registry &registry, float dt) override
+        {
+            for (auto &[entity, sprite] : registry.getAll<ecs::Sprite>())
+            {
+                const auto *transform = registry.getComponent<ecs::Transform>(entity);
+                const auto *color     = registry.getComponent<ecs::Color>(entity);
+                const auto *velocity  = registry.getComponent<ecs::Velocity>(entity);
+
+                int x = (transform != nullptr) ? static_cast<int>(transform->x) : 0;
+                int y = (transform != nullptr) ? static_cast<int>(transform->y) : 0;
+
+                //std::uint8_t r = color ? static_cast<std::uint8_t>(color->r) : 255;
+                //std::uint8_t g = color ? static_cast<std::uint8_t>(color->g) : 255;
+                //std::uint8_t b = color ? static_cast<std::uint8_t>(color->b) : 255;
+                //std::uint8_t a = color ? static_cast<std::uint8_t>(color->a) : 255;
+
+                // int xv = velocity ? static_cast<int>(velocity->x) : 0;
+                // int yv = velocity ? static_cast<int>(velocity->y) : 0;
+                // x *= xv;
+                // y *= yv;
+                // Met à jour les infos dans le renderer
+                m_renderer.setSpriteTexture(sprite.id, sprite.path);
+                m_renderer.setSpritePosition(sprite.id, x, y);
+                //m_renderer.setSpriteColor(sprite.id, {r, g, b, a});
+
+                m_renderer.drawSprite(sprite.id);
+            }
+        }
+    private:
+        eng::IRenderer &m_renderer;
+    }; // class SpriteSystem
+
+    class PointSystem final : public eng::ASystem {
+    public:
+        explicit PointSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+        ~PointSystem() override = default;
+
+        explicit PointSystem(const SpriteSystem &) = delete;
+        PointSystem &operator=(const SpriteSystem &) = delete;
+        explicit PointSystem(SpriteSystem &&) = delete;
+        PointSystem &operator=(SpriteSystem &&) = delete;
+
+        void update(ecs::Registry& registry, float dt) override {
+            for (const auto &point: registry.getAll<ecs::Point>() | std::views::values) {
+                m_renderer.drawPoint(point.x, point.y, {.r=static_cast<uint8_t>(point.color.r), .g=static_cast<uint8_t>(point.color.g), .b=static_cast<uint8_t>(point.color.b), .a=static_cast<uint8_t>(point.color.a)});
+            }
+        }
+    private:
+        eng::IRenderer& m_renderer;
+    };
+
 
 } // namespace eng

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "Client/ArgsHandler.hpp"
 #include "Engine/Engine.hpp"
 #include "Interfaces/IGameClient.hpp"
@@ -31,9 +33,13 @@ namespace cli
             Client(Client &&) = delete;
             Client &operator=(Client &&) = delete;
 
+            void syncEntitiesToECS();
+
         private:
+            ecs::Entity m_entity = 0;
             std::unique_ptr<gme::IGameClient> m_game;
             std::unique_ptr<eng::Engine> m_engine;
+            std::unordered_map<std::string, ecs::Entity> m_entityMap;
     }; // class Client
 
 } // namespace cli

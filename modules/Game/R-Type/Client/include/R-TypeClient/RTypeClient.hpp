@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include "Interfaces/IGameClient.hpp"
+#include <memory>
+
+#include "Interfaces/AGameClient.hpp"
 
 namespace gme
 {
@@ -16,10 +18,10 @@ namespace gme
     /// @brief Class for the R-Type game
     /// @namespace gme
     ///
-    class RTypeClient final : public IGameClient
+    class RTypeClient final : public AGameClient
     {
         public:
-            RTypeClient() = default;
+            RTypeClient();
             ~RTypeClient() override = default;
 
             RTypeClient(const RTypeClient &) = delete;
@@ -27,6 +29,11 @@ namespace gme
             RTypeClient(RTypeClient &&) = delete;
             RTypeClient &operator=(RTypeClient &&) = delete;
 
+            void update(float deltaTime, int width, int height) override;
+            [[nodiscard]] const IScene& getCurrentScene() const override { return *m_currentScene; }
+
         private:
+            std::unique_ptr<IScene> m_currentScene;
     }; // class RTypeClient
+
 } // namespace gme

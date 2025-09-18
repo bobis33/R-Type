@@ -14,7 +14,7 @@ namespace eng
     SFMLAudio::SFMLAudio() : pImpl(std::make_unique<Impl>()) {}
     SFMLAudio::~SFMLAudio() = default;
 
-    void SFMLAudio::createAudio(const std::string &path, float volume, bool loop, const std::string &name)
+    void SFMLAudio::createAudio(const std::string &path, const float volume, const bool loop, const std::string &name)
     {
         auto music = std::make_unique<sf::Music>();
         if (!music->openFromFile(path))
@@ -34,14 +34,14 @@ namespace eng
             it->second->play();
     }
 
-    void SFMLAudio::setVolume(const std::string &name, float volume)
+    void SFMLAudio::setVolume(const std::string &name, const float volume)
     {
         auto it = pImpl->musics.find(name);
         if (it != pImpl->musics.end())
             it->second->setVolume(volume);
     }
 
-    void SFMLAudio::setLoop(const std::string &name, bool loop)
+    void SFMLAudio::setLoop(const std::string &name, const bool loop)
     {
         auto it = pImpl->musics.find(name);
         if (it != pImpl->musics.end())
