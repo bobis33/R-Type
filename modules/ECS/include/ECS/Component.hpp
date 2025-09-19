@@ -52,19 +52,21 @@ namespace ecs
             std::string id;
             float x, y;
     };
-        struct Point // TODO(bobis33): to remove, but have a better handle for components
-        {
-                std::string id;
-                int x, y;
-                Color color;
-        };
-        struct Rect {
-                std::string id;
-                int pos_x, pos_y;
-                int size_x, size_y;
-        };
-        struct Scale {
-                std::string id;
-                int x, y;
-        };
+    struct Point // TODO(bobis33): to remove, but have a better handle for components
+    {
+            std::string id;
+            int x, y;
+            Color color;
+    };
+    struct Rect
+    {
+            std::string id;
+            int pos_x, pos_y;
+            int size_x, size_y;
+    };
+    struct Scale
+    {
+            std::string id;
+            int x, y;
+    };
 } // namespace ecs

@@ -20,15 +20,14 @@ namespace eng
             virtual void setEnable(bool enable) = 0;
     };
 
-    class ASystem : public ISystem {
+    class ASystem : public ISystem
+    {
         public:
-
-        bool isEnable() override { return m_isEnable; }
-        void setEnable(const bool enable) override { m_isEnable = enable; }
+            bool isEnable() override { return m_isEnable; }
+            void setEnable(const bool enable) override { m_isEnable = enable; }
 
         private:
-        bool m_isEnable = true;
-
+            bool m_isEnable = true;
     };
 
 } // namespace eng

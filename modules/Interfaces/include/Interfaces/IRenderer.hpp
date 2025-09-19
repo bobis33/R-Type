@@ -100,9 +100,10 @@ namespace eng
             Key key = Key::Unknown;
     };
 
-    struct WindowSize {
-        int width;
-        int height;
+    struct WindowSize
+    {
+            int width;
+            int height;
     };
 
     ///
@@ -123,7 +124,8 @@ namespace eng
 
             virtual void createFont(Font font) = 0;
             virtual void createText(Text text) = 0;
-            virtual void createSprite(const std::string &path, int x, int y, const std::string &name, float scale_x = 1, float scale_y = 1, int fx = 0, int fy = 0, int fnx = -1, int fny = -1) = 0;
+            virtual void createSprite(const std::string &path, int x, int y, const std::string &name, float scale_x = 1,
+                                      float scale_y = 1, int fx = 0, int fy = 0, int fnx = -1, int fny = -1) = 0;
             virtual void drawText(const std::string &name) = 0;
             virtual void drawSprite(const std::string &name) = 0;
             virtual void setTextContent(const std::string &name, const std::string &content) = 0;
@@ -132,7 +134,7 @@ namespace eng
             virtual void setSpritePosition(const std::string &name, int x, int y) = 0;
             virtual void setSpriteTexture(const std::string &name, const std::string &path) = 0;
             virtual void setSpriteScale(const std::string &name, int x, int y) = 0;
-            virtual void setSpriteFrame(const std::string & name, int fx, int fy, int fnx, int fny) = 0;
+            virtual void setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny) = 0;
             virtual void setFrameLimit(unsigned int frameLimit) = 0;
 
             virtual void clearWindow(Color color) = 0;

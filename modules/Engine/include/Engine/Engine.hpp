@@ -42,7 +42,10 @@ namespace eng
             std::unique_ptr<INetworkClient> &getNetworkClient() { return m_networkClient; }
             std::unique_ptr<IRenderer> &getRenderer() { return m_renderer; }
             std::unique_ptr<utl::Clock> &getClock() { return m_clock; }
-            std::unique_ptr<ecs::Registry> &getRegistry() { return m_registry; } // TODO(bobis33): to remove, maybe one registry per scene
+            std::unique_ptr<ecs::Registry> &getRegistry()
+            {
+                return m_registry;
+            } // TODO(bobis33): to remove, maybe one registry per scene
 
             void addSystem(std::unique_ptr<ISystem> system) { m_systems.emplace_back(std::move(system)); }
             void updateSystems(const float dt) const
@@ -53,7 +56,8 @@ namespace eng
                 }
             }
 
-            template <typename T, typename... Args> T &addComponent(ecs::Registry &registry, ecs::Entity e, Args &&...args)
+            template <typename T, typename... Args>
+            T &addComponent(ecs::Registry &registry, ecs::Entity e, Args &&...args)
             {
                 return registry.addComponent<T>(e, std::forward<Args>(args)...);
             }
@@ -62,8 +66,6 @@ namespace eng
             void stop() const;
 
         private:
-
-
             std::unique_ptr<IAudio> m_audio;
             std::unique_ptr<INetworkClient> m_networkClient;
             std::unique_ptr<IRenderer> m_renderer;

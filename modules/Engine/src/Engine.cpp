@@ -16,8 +16,4 @@ void eng::Engine::render(const Color clearColor, const float dt) const
     m_renderer->displayWindow();
 }
 
-void eng::Engine::stop() const
-{
-    m_renderer->closeWindow();
-}
-
+void eng::Engine::stop() const { m_renderer->closeWindow(); }

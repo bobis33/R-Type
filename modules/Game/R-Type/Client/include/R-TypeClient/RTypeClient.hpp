@@ -30,7 +30,7 @@ namespace gme
             RTypeClient &operator=(RTypeClient &&) = delete;
 
             void update(float deltaTime, int width, int height) override;
-            [[nodiscard]] const IScene& getCurrentScene() const override { return *m_currentScene; }
+            [[nodiscard]] const IScene &getCurrentScene() const override { return *m_currentScene; }
 
         private:
             std::unique_ptr<IScene> m_currentScene;

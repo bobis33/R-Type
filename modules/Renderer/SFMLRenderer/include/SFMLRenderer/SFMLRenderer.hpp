@@ -42,7 +42,8 @@ namespace eng
             void setTextPosition(const std::string &name, int x, int y) override;
             void setTextColor(const std::string &name, Color color) override;
             void drawText(const std::string &name) override;
-            void createSprite(const std::string &path, int x, int y, const std::string &name, float scale_x, float scale_y, int fx, int fy, int fnx, int fny) override;
+            void createSprite(const std::string &path, int x, int y, const std::string &name, float scale_x,
+                              float scale_y, int fx, int fy, int fnx, int fny) override;
             void drawSprite(const std::string &name) override;
 
             void drawPoint(int x, int y, Color color) override;
@@ -50,7 +51,7 @@ namespace eng
 
             void setSpritePosition(const std::string &name, int x, int y) override;
             void setSpriteTexture(const std::string &name, const std::string &path) override;
-            void setSpriteFrame(const std::string & name, int fx, int fy, int fnx, int fny) override;
+            void setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny) override;
             void setSpriteScale(const std::string &name, int x, int y) override;
             void clearWindow(Color color) override;
             void displayWindow() override;

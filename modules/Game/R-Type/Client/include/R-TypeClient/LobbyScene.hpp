@@ -11,23 +11,24 @@
 
 #include "Interfaces/IGameClient.hpp"
 
-namespace gme {
+namespace gme
+{
 
     ///
     /// @class LobbyScene
     /// @brief Class for the Lobby scene
     /// @namespace gme
     ///
-    class LobbyScene final : public IScene {
+    class LobbyScene final : public IScene
+    {
         public:
             LobbyScene() : m_name("Lobby") {}
 
-            [[nodiscard]] const std::string& getName() const override { return m_name; }
-            [[nodiscard]] const std::vector<Sprite>& getEntities() const override { return m_entities; }
+            [[nodiscard]] const std::string &getName() const override { return m_name; }
+            [[nodiscard]] const std::vector<Sprite> &getEntities() const override { return m_entities; }
 
-            void addEntity(const Sprite& e) { m_entities.push_back(e); }
-            std::vector<Sprite>& getEntitiesMutable() override { return m_entities; }
-
+            void addEntity(const Sprite &e) { m_entities.push_back(e); }
+            std::vector<Sprite> &getEntitiesMutable() override { return m_entities; }
 
         private:
             std::string m_name;
