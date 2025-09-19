@@ -61,6 +61,7 @@ namespace cli
         namespace Texture
         {
             inline constexpr auto TEXTURE_PLAYER = "assets/sprites/r-typesheet42.gif";
+            inline constexpr auto TEXTURE_LOGO = "assets/icons/icon.png";
         } // namespace Texture
     } // namespace Path
 } // namespace cli

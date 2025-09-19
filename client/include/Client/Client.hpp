@@ -7,15 +7,14 @@
 #pragma once
 
 #include <unordered_map>
-
+#include <memory>
 #include "Client/ArgsHandler.hpp"
 #include "Engine/Engine.hpp"
 #include "Interfaces/IGameClient.hpp"
 #include "Utils/PluginLoader.hpp"
 
 namespace cli
-{
-
+{   
     ///
     /// @class Client
     /// @brief Class for the client
@@ -23,17 +22,19 @@ namespace cli
     ///
     class Client
     {
+    public:
+        explicit Client(const ArgsConfig &cfg);
+        ~Client() = default;
 
-        public:
-            explicit Client(const ArgsConfig &cfg);
-            ~Client() = default;
+        Client(const Client &) = delete;
+        Client &operator=(const Client &) = delete;
+        Client(Client &&) = delete;
+        Client &operator=(Client &&) = delete;
 
-            Client(const Client &) = delete;
-            Client &operator=(const Client &) = delete;
-            Client(Client &&) = delete;
-            Client &operator=(Client &&) = delete;
+        void run();
 
-            void run();
+    private:
+        void handleEvents(eng::Event &event);
 
         private:
             void handleEvents(eng::Event &event);
@@ -43,5 +44,4 @@ namespace cli
             std::unique_ptr<gme::IGameClient> m_game;
             std::unordered_map<eng::Key, bool> m_keysPressed;
     }; // class Client
-
 } // namespace cli

@@ -8,8 +8,8 @@
 
 #include <memory>
 #include <unordered_map>
-
 #include "Engine/IScene.hpp"
+#include "Engine/SettingsManager.hpp"
 
 namespace eng
 {
@@ -52,8 +52,12 @@ namespace eng
             //     return ref;
             // }
 
+            void setSettingsManager(std::shared_ptr<SettingsManager> settings) { m_settings = std::move(settings); }
+            std::shared_ptr<SettingsManager> getSettingsManager() { return m_settings; }
+
         private:
             std::unordered_map<id, std::unique_ptr<IScene>> m_scenes;
             id m_currentSceneId = 1;
+            std::shared_ptr<SettingsManager> m_settings;
     }; // class SceneManager
 } // namespace eng

@@ -1,18 +1,21 @@
 ///
 /// @file LobbyScene.hpp
 /// @brief This file contains the lobby scene
-/// @namespace eng
+/// @namespace cli
 ///
 
 #pragma once
 
-#include <unordered_map>
-
 #include "Engine/IScene.hpp"
+#include "Engine/SceneManager.hpp"
+#include "Interfaces/IRenderer.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <vector>
+#include <string>
+#include <memory>
 
 namespace cli
-{
+{   
     ///
     /// @class Lobby
     /// @brief Lobby scene
@@ -20,22 +23,33 @@ namespace cli
     ///
     class Lobby final : public eng::AScene
     {
-        public:
-            Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
-            ~Lobby() override = default;
+    public:
+        Lobby(const std::shared_ptr<eng::IRenderer> &renderer,
+              const std::shared_ptr<eng::IAudio> &audio,
+              eng::SceneManager *sceneManager);
+        ~Lobby() override = default;
 
-            Lobby(const Lobby &other) = delete;
-            Lobby &operator=(const Lobby &other) = delete;
-            Lobby(Lobby &&other) = delete;
-            Lobby &operator=(Lobby &&other) = delete;
+        Lobby(const Lobby &) = delete;
+        Lobby &operator=(const Lobby &) = delete;
+        Lobby(Lobby &&) = delete;
+        Lobby &operator=(Lobby &&) = delete;
 
-            void update(float dt, const eng::WindowSize &size) override;
-            void event(const eng::Event &event) override;
+        void update(float dt, const eng::WindowSize &size) override;
+        void event(const eng::Event &event) override;
 
-        private:
-            std::unordered_map<eng::Key, bool> m_keysPressed;
+    private:
+        struct RoomOption {
+            ecs::Entity entity;
+            std::string id;
+        };
 
-            ecs::Entity m_playerEntity;
-            ecs::Entity m_fpsEntity;
+        void createLobbyEntities();
+        void updateHighlight();
+
+        std::vector<RoomOption> m_rooms;
+        int m_selectedIndex = 0;
+
+        eng::SceneManager *m_sceneManager = nullptr;
+        ecs::Entity m_titleEntity{};
     }; // class Lobby
 } // namespace cli
