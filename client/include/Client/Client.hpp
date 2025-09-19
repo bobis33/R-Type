@@ -9,7 +9,6 @@
 #include "Client/ArgsHandler.hpp"
 #include "Engine/Engine.hpp"
 #include "Interfaces/IGameClient.hpp"
-#include "Interfaces/IRenderer.hpp"
 #include "Utils/Clock.hpp"
 
 namespace cli
@@ -33,7 +32,7 @@ namespace cli
             Client &operator=(Client &&) = delete;
 
         private:
-            std::unique_ptr<IGameClient> m_game;
+            std::unique_ptr<gme::IGameClient> m_game;
             std::unique_ptr<eng::Engine> m_engine;
     }; // class Client
 

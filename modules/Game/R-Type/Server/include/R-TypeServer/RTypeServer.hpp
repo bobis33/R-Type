@@ -1,22 +1,22 @@
 ///
 /// @file RTypeServer.hpp
 /// @brief RType client class declaration
-/// @namespace rtp
+/// @namespace gme
 ///
 
 #pragma once
 
 #include "Interfaces/IGameServer.hpp"
 
-namespace rtp
+namespace gme
 {
 
     ///
     /// @class RTypeServer
     /// @brief Class for the R-Type game
-    /// @namespace rtp
+    /// @namespace gme
     ///
-    class RTypeServer final : public srv::IGameServer
+    class RTypeServer final : public IGameServer
     {
         public:
             RTypeServer() = default;
@@ -29,4 +29,4 @@ namespace rtp
 
         private:
     };
-} // namespace rtp
+} // namespace gme

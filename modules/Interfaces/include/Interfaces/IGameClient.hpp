@@ -1,18 +1,20 @@
 ///
 /// @file IGameClient.hpp
 /// @brief This file contains the Game interface
-/// @namespace cli
+/// @namespace gme
 ///
 
 #pragma once
 
-namespace cli
+#include <string>
+
+namespace gme
 {
 
     ///
     /// @class IGameClient
     /// @brief Interface for the games
-    /// @namespace cli
+    /// @namespace gme
     ///
     class IGameClient
     {
@@ -25,4 +27,4 @@ namespace cli
         private:
     }; // class IGameClient
 
-} // namespace cli
+} // namespace gme

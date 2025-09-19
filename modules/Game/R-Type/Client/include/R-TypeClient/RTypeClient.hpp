@@ -1,22 +1,22 @@
 ///
 /// @file RTypeClient.hpp
 /// @brief RType client class declaration
-/// @namespace rtp
+/// @namespace gme
 ///
 
 #pragma once
 
 #include "Interfaces/IGameClient.hpp"
 
-namespace rtp
+namespace gme
 {
 
     ///
     /// @class RTypeClient
     /// @brief Class for the R-Type game
-    /// @namespace rtp
+    /// @namespace gme
     ///
-    class RTypeClient final : public cli::IGameClient
+    class RTypeClient final : public IGameClient
     {
         public:
             RTypeClient() = default;
@@ -28,5 +28,5 @@ namespace rtp
             RTypeClient &operator=(RTypeClient &&) = delete;
 
         private:
-    };
-} // namespace rtp
+    }; // class RTypeClient
+} // namespace gme

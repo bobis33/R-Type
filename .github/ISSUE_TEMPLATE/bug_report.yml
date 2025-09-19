@@ -19,8 +19,8 @@ body:
   - type: textarea
     id: version
     attributes:
-      label: What version of VEngine are you using?
-      description: Please include the output of `git rev-parse HEAD` or the VEngine release version number that you are using.
+      label: What version of R-Type are you using?
+      description: Please include the output of `git rev-parse HEAD` or the R-Type release version number that you are using.
     validations:
       required: true
   - type: textarea
@@ -28,20 +28,6 @@ body:
     attributes:
       label: What operating system and version are you using?
       description: If you are using a Linux distribution please include the name and version of the distribution as well.
-    validations:
-      required: true
-  - type: textarea
-    id: compiler
-    attributes:
-      label: What compiler and version are you using?
-      description: Please include the output of `gcc -v` or `clang -v`, or the equivalent for your compiler.
-    validations:
-      required: true
-  - type: textarea
-    id: buildsystem
-    attributes:
-      label: What build system are you using?
-      description: Please include the output of `cmake --version`, or the equivalent for your build system.
     validations:
       required: true
   - type: textarea
