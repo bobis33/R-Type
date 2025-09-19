@@ -12,6 +12,7 @@
    - `ecs::` → ECS
    - `cli::` → Client
    - `gme::` → Game logic
+   - `utl::` → Utils library
 
 #### Naming Convention 
 - Classes / Structs / Enums: `PascalCase`

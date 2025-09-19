@@ -1,22 +1,20 @@
 ///
 /// @file AGameServer.hpp
 /// @brief This file contains the game abstract class
-/// @namespace srv
+/// @namespace gme
 ///
 
 #pragma once
 
-#include <string>
-
 #include "Interfaces/IGameServer.hpp"
 
-namespace srv
+namespace gme
 {
 
     ///
     /// @class AGameServer
     /// @brief Abstraction for the games
-    /// @namespace srv
+    /// @namespace gme
     ///
     class AGameServer : public IGameServer
     {
@@ -30,4 +28,4 @@ namespace srv
             std::string m_name = "default_name";
     }; // class AGameServer
 
-} // namespace srv
+} // namespace gme

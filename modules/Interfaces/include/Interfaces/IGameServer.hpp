@@ -1,18 +1,20 @@
 ///
 /// @file IGameServer.hpp
 /// @brief This file contains the Game interface
-/// @namespace srv
+/// @namespace gme
 ///
 
 #pragma once
 
-namespace srv
+#include <string>
+
+namespace gme
 {
 
     ///
     /// @class IGameServer
     /// @brief Interface for the games
-    /// @namespace srv
+    /// @namespace gme
     ///
     class IGameServer
     {
@@ -25,4 +27,4 @@ namespace srv
         private:
     }; // class IGameServer
 
-} // namespace srv
+} // namespace gme

@@ -1,22 +1,20 @@
 ///
 /// @file AGameClient.hpp
 /// @brief This file contains the game abstract class
-/// @namespace cli
+/// @namespace gme
 ///
 
 #pragma once
 
-#include <string>
-
 #include "Interfaces/IGameClient.hpp"
 
-namespace cli
+namespace gme
 {
 
     ///
     /// @class AGameClient
     /// @brief Abstraction for the games
-    /// @namespace cli
+    /// @namespace gme
     ///
     class AGameClient : public IGameClient
     {
@@ -30,4 +28,4 @@ namespace cli
             std::string m_name = "default_name";
     }; // class AGameClient
 
-} // namespace cli
+} // namespace cligme
