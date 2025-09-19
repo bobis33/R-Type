@@ -3,14 +3,19 @@
 </p>
 
 # R-Type
+[![CI - Gitleaks](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml)
+[![CI - R-Type](https://github.com/bobis33/R-Type/actions/workflows/ci.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/ci.yml)
+[![CD - Doxygen documentation](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml)
+[![CD - Mirror](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml)
+
 The Goal of this project is to implement a multithreaded server and a graphical client for a game called R-Type, using an engine of your own design.
 
 ## Supported Platforms
-| Platform   | Compiler | Status                                                                                |
-|------------|----------|---------------------------------------------------------------------------------------|
-| Linux      | g++      | ![Linux](https://img.shields.io/badge/Linux-green?style=flat-square&logo=linux)       |
-| macOS      | g++      | ![macOS](https://img.shields.io/badge/macOS-green?style=flat-square&logo=apple)       |
-| Windows    | MSVC     | ![Windows](https://img.shields.io/badge/Windows-green?style=flat-square&logo=windows) |
+| Platform | Compiler | Status |
+|----------|----------|--------|
+| Linux    | g++      | ✅      |
+| macOS    | g++      | ✅      |
+| Windows  | MSVC     | ✅      |
 
 ## Project Structure
 ```
