@@ -37,6 +37,7 @@ namespace eng
         Down,
         Left,
         Right,
+        Enter,
         A,
         B,
         C,
