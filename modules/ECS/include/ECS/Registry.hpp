@@ -11,6 +11,7 @@
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 
 #include "ECS/Entity.hpp"
 
@@ -39,6 +40,13 @@ namespace ecs
                 for (auto &cb : m_onEntityCreatedCallbacks)
                     cb(entity);
                 return entity;
+            }
+
+            void destroyEntity(Entity e)
+            {
+                m_entities.erase(std::remove(m_entities.begin(), m_entities.end(), e), m_entities.end());
+                for (auto &[_, pool] : m_components)
+                    pool->remove(e);
             }
 
             template <typename T, typename... Args> T &addComponent(Entity e, Args &&...args)
