@@ -15,14 +15,15 @@ The Goal of this project is to implement a multithreaded server and a graphical 
 ## Project Structure
 ```
 R-Type
-│├── assets                  # Game assets (images, sounds, etc.)
-│├── client                  # Client source code
-│├── documentation           # Project documentation
-│├── modules                 # Static libraries for the project
-│├── scripts                 # Build and utility scripts
-│├── server                  # Server source code
-│├── tests                   # Unit and integration tests
-└─── third-party             # External libraries as submodules
+├── assets                  # Game assets (images, sounds, etc.)
+├── cmake                   # Cmake configs
+├── client                  # Client source code
+├── documentation           # Project documentation
+├── modules                 # Static libraries for the project
+├── scripts                 # Build and utility scripts
+├── server                  # Server source code
+├── tests                   # Unit and integration tests
+└─── third-party            # External libraries as submodules
 ```
 
 ```mermaid
@@ -97,15 +98,5 @@ More specific documentation for each part of the project can be found in their r
 ## External Libraries
 All dependencies are included as submodules in the [third-party](https://github.com/bobis33/R-Type/tree/main/third-party) directory.
 
-## Commit Norms
-| Commit Type | Description                                                                                                               |
-|:------------|:--------------------------------------------------------------------------------------------------------------------------|
-| build       | Changes that affect the build system or external dependencies (npm, make, etc.)                                           |
-| ci          | Changes related to integration files and scripts or configuration (Travis, Ansible, BrowserStack, etc.)                   |
-| feat        | Addition of a new feature                                                                                                 |
-| fix         | Bug fix                                                                                                                   |
-| perf        | Performance improvements                                                                                                  |
-| refactor    | Modification that neither adds a new feature nor improves performance                                                     |
-| style       | Change that does not affect functionality or semantics (indentation, formatting, adding space, renaming a variable, etc.) |
-| docs        | Writing or updating documentation                                                                                         |
-| test        | Addition or modification of tests                                                                                         |
+
+➡️ Want to contribute? See [CONTRIBUTING.md](https://github.com/bobis33/R-Type/blob/main/CONTRIBUTING.md).
