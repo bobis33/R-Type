@@ -33,10 +33,12 @@ namespace cli
             Client(Client &&) = delete;
             Client &operator=(Client &&) = delete;
 
-            void syncEntitiesToECS();
+            void run();
 
         private:
-            ecs::Entity m_entity = 0;
+            void syncEntitiesToECS();
+
+            ecs::Entity m_fpsEntity = 0;
             std::unique_ptr<gme::IGameClient> m_game;
             std::unique_ptr<eng::Engine> m_engine;
             std::unordered_map<std::string, ecs::Entity> m_entityMap;

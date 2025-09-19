@@ -1,6 +1,5 @@
-#include "R-TypeClient/LobbyScene.hpp"
-
 #include "R-TypeClient/RTypeClient.hpp"
+#include "R-TypeClient/LobbyScene.hpp"
 
 gme::RTypeClient::RTypeClient() : m_currentScene(std::make_unique<LobbyScene>())
 {
@@ -12,26 +11,22 @@ gme::RTypeClient::RTypeClient() : m_currentScene(std::make_unique<LobbyScene>())
                               .v_x = 0.0F,
                               .v_y = 0.0F,
                               .texture_path = "assets/sprites/r-typesheet42.gif",
-                              .text_rect_x = 0,
-                              .text_rect_y = 0,
+                              .text_rect_x = 0.0F,
+                              .text_rect_y = 0.0F,
                               .text_rect_fx = 33,
                               .text_rect_fy = 20,
                               .id = "player_0"});
     for (int i = 0; i < 100; i++)
     {
         entities.push_back(Sprite{.type = "star",
-                                  .pos_x = 0,
-                                  .pos_y = 0,
+                                  .pos_x = 0.0F,
+                                  .pos_y = 0.0F,
                                   .v_x = -20.0F - static_cast<float>(std::rand() % 30),
-                                  .r = 255,
-                                  .g = 255,
-                                  .b = 255,
-                                  .a = 255,
                                   .id = "star_" + std::to_string(i)});
     }
 }
 
-void gme::RTypeClient::update(const float deltaTime, const int width, const int height)
+void gme::RTypeClient::update(const float deltaTime, const unsigned int width, const unsigned int height)
 {
     for (auto &entities = m_currentScene->getEntitiesMutable(); auto &e : entities)
     {

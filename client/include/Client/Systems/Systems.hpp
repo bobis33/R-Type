@@ -39,13 +39,13 @@ namespace cli
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
                     const auto *color = registry.getComponent<ecs::Color>(entity);
 
-                    int x = (transform != nullptr) ? static_cast<int>(transform->x) : 0;
-                    int y = (transform != nullptr) ? static_cast<int>(transform->y) : 0;
+                    const float x = (transform != nullptr) ? transform->x : 0.F;
+                    const float y = (transform != nullptr) ? transform->y : 0.F;
 
-                    std::uint8_t r = color ? static_cast<std::uint8_t>(color->r) : 255;
-                    std::uint8_t g = color ? static_cast<std::uint8_t>(color->g) : 255;
-                    std::uint8_t b = color ? static_cast<std::uint8_t>(color->b) : 255;
-                    std::uint8_t a = color ? static_cast<std::uint8_t>(color->a) : 255;
+                    const std::uint8_t r = color ? color->r : 255u;
+                    const std::uint8_t g = color ? color->g : 255u;
+                    const std::uint8_t b = color ? color->b : 255u;
+                    const std::uint8_t a = color ? color->a : 255u;
 
                     m_renderer.setTextContent(text.id, text.content);
                     m_renderer.setTextPosition(text.id, x, y);
@@ -57,28 +57,6 @@ namespace cli
         private:
             eng::IRenderer &m_renderer;
     }; // class TextRenderSystem
-
-    ///
-    /// @class FontSystem
-    /// @brief Class for managing entities and their components
-    /// @namespace ecs
-    ///
-    class FontSystem final : public eng::ASystem
-    {
-        public:
-            explicit FontSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
-            ~FontSystem() override = default;
-
-            FontSystem(const FontSystem &) = delete;
-            FontSystem &operator=(const FontSystem &) = delete;
-            FontSystem(FontSystem &&) = delete;
-            FontSystem &operator=(FontSystem &&) = delete;
-
-            void update(ecs::Registry &registry, const float dt) override {}
-
-        private:
-            eng::IRenderer &m_renderer;
-    }; // class FontSystem
 
     ///
     /// @class AudioSystem
@@ -115,14 +93,14 @@ namespace cli
 
             void update(ecs::Registry &registry, float dt) override
             {
-                for (auto &[entity, sprite] : registry.getAll<ecs::Sprite>())
+                for (auto &[entity, sprite] : registry.getAll<ecs::Texture>())
                 {
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
                     const auto *color = registry.getComponent<ecs::Color>(entity);
                     const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
 
-                    int x = (transform != nullptr) ? static_cast<int>(transform->x) : 0;
-                    int y = (transform != nullptr) ? static_cast<int>(transform->y) : 0;
+                    const float x = (transform != nullptr) ? transform->x : 0.F;
+                    const float y = (transform != nullptr) ? transform->y : 0.F;
 
                     // std::uint8_t r = color ? static_cast<std::uint8_t>(color->r) : 255;
                     // std::uint8_t g = color ? static_cast<std::uint8_t>(color->g) : 255;
@@ -161,11 +139,9 @@ namespace cli
             {
                 for (const auto &point : registry.getAll<ecs::Point>() | std::views::values)
                 {
-                    m_renderer.drawPoint(point.x, point.y,
-                                         {.r = static_cast<uint8_t>(point.color.r),
-                                          .g = static_cast<uint8_t>(point.color.g),
-                                          .b = static_cast<uint8_t>(point.color.b),
-                                          .a = static_cast<uint8_t>(point.color.a)});
+                    m_renderer.drawPoint(
+                        point.x, point.y,
+                        {.r = point.color.r, .g = point.color.g, .b = point.color.b, .a = point.color.a});
                 }
             }
 

@@ -20,26 +20,43 @@ namespace ecs
     struct Color
     {
             std::string id;
-            int r;
-            int g;
-            int b;
-            int a;
+            unsigned char r;
+            unsigned char g;
+            unsigned char b;
+            unsigned char a;
     };
     struct Font
     {
             std::string id;
             std::string path;
     };
-    struct Sprite
+    struct Point
     {
             std::string id;
-            std::string path;
+            float x, y;
+            Color color; // TODO(bobis33): to remove
+    };
+    struct Rect
+    {
+            std::string id;
+            float pos_x, pos_y;
+            int size_x, size_y;
+    };
+    struct Scale
+    {
+            std::string id;
+            float x, y;
     };
     struct Text
     {
             std::string id;
             std::string content;
-            int fontSize;
+            unsigned int fontSize;
+    };
+    struct Texture
+    {
+            std::string id;
+            std::string path;
     };
     struct Transform
     {
@@ -51,22 +68,5 @@ namespace ecs
     {
             std::string id;
             float x, y;
-    };
-    struct Point // TODO(bobis33): to remove, but have a better handle for components
-    {
-            std::string id;
-            int x, y;
-            Color color;
-    };
-    struct Rect
-    {
-            std::string id;
-            int pos_x, pos_y;
-            int size_x, size_y;
-    };
-    struct Scale
-    {
-            std::string id;
-            int x, y;
     };
 } // namespace ecs

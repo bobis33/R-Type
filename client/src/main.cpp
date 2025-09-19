@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "Client/ArgsHandler.hpp"
 #include "Client/Client.hpp"
 #include "Utils/Logger.hpp"
@@ -17,6 +15,7 @@ int main(const int argc, const char *const argv[], const char *const env[])
             return EXIT_SUCCESS;
         }
         cli::Client client(argsConf);
+        client.run();
     }
     catch (const std::exception &e)
     {

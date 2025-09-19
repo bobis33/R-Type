@@ -1,12 +1,10 @@
-#include <memory>
+#include <iostream>
 #include <stdexcept>
 #include <unordered_map>
 
 #include <SFML/Graphics.hpp>
 
 #include "SFMLRenderer/SFMLRenderer.hpp"
-
-#include <iostream>
 
 struct eng::SFMLRenderer::Impl
 {
@@ -34,7 +32,7 @@ bool eng::SFMLRenderer::windowIsOpen() const { return m_impl->window.isOpen(); }
 
 void eng::SFMLRenderer::closeWindow() { m_impl->window.close(); }
 
-void eng::SFMLRenderer::setFrameLimit(unsigned int frameLimit) { m_impl->window.setFramerateLimit(frameLimit); }
+void eng::SFMLRenderer::setFrameLimit(const unsigned int frameLimit) { m_impl->window.setFramerateLimit(frameLimit); }
 
 void eng::SFMLRenderer::createFont(Font font)
 {
@@ -52,7 +50,7 @@ void eng::SFMLRenderer::createText(Text text)
     sf::Text sfText(font);
     sfText.setString(text.content);
     sfText.setCharacterSize(text.size);
-    sfText.setPosition({static_cast<float>(text.x), static_cast<float>(text.y)});
+    sfText.setPosition({(text.x), text.y});
     sfText.setFillColor(sf::Color(text.color.r, text.color.g, text.color.b, text.color.a));
     m_impl->texts.emplace(text.name, std::move(sfText));
 }
@@ -69,11 +67,11 @@ void eng::SFMLRenderer::setTextContent(const std::string &name, const std::strin
     }
 }
 
-void eng::SFMLRenderer::setTextPosition(const std::string &name, int x, int y)
+void eng::SFMLRenderer::setTextPosition(const std::string &name, const float x, const float y)
 {
     if (const auto it = m_impl->texts.find(name); it != m_impl->texts.end())
     {
-        it->second.setPosition({static_cast<float>(x), static_cast<float>(y)});
+        it->second.setPosition({x, y});
     }
     else
     {
@@ -240,7 +238,7 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
     return false;
 }
 
-void eng::SFMLRenderer::createSprite(const std::string &path, const int x, const int y, const std::string &name,
+void eng::SFMLRenderer::createSprite(const std::string &path, const float x, const float y, const std::string &name,
                                      float scale_x, float scale_y, int fx, int fy, int fnx, int fny)
 {
     sf::Texture texture;
@@ -251,15 +249,30 @@ void eng::SFMLRenderer::createSprite(const std::string &path, const int x, const
 
     m_impl->textures[name] = std::move(texture);
     sf::Sprite sfSprite(m_impl->textures[name]);
-    sfSprite.setPosition({static_cast<float>(x), static_cast<float>(y)});
+    sfSprite.setPosition({x, y});
     sfSprite.setScale({scale_x, scale_y});
     if (fnx == -1)
-        fnx = m_impl->textures[name].getSize().x;
+    {
+        fnx = static_cast<int>(m_impl->textures[name].getSize().x);
+    }
     if (fny == -1)
-        fny = m_impl->textures[name].getSize().y;
+    {
+        fny = static_cast<int>(m_impl->textures[name].getSize().y);
+    }
     sfSprite.setTextureRect(sf::IntRect({fx, fy}, {fnx, fny}));
 
     m_impl->sprites.emplace(name, std::move(sfSprite));
+}
+
+void eng::SFMLRenderer::createTexture(const std::string &path, const std::string &name)
+{
+    sf::Texture texture;
+    if (!texture.loadFromFile(path))
+    {
+        throw std::runtime_error("Failed to load texture: " + path);
+    }
+
+    m_impl->textures[name] = std::move(texture);
 }
 
 void eng::SFMLRenderer::drawSprite(const std::string &name)
@@ -274,11 +287,11 @@ void eng::SFMLRenderer::drawSprite(const std::string &name)
     }
 }
 
-void eng::SFMLRenderer::setSpritePosition(const std::string &name, const int x, const int y)
+void eng::SFMLRenderer::setSpritePosition(const std::string &name, const float x, const float y)
 {
     if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
     {
-        it->second.setPosition({static_cast<float>(x), static_cast<float>(y)});
+        it->second.setPosition({x, y});
     }
     else
     {
@@ -330,24 +343,14 @@ void eng::SFMLRenderer::setSpriteScale(const std::string &name, const int x, con
     }
 }
 
-void eng::SFMLRenderer::drawPoint(const int x, const int y, const Color color)
+void eng::SFMLRenderer::drawPoint(const float x, const float y, const Color color)
 {
-    const sf::Vertex point(sf::Vector2f(static_cast<float>(x), static_cast<float>(y)),
-                           sf::Color(color.r, color.g, color.b, color.a));
+    const sf::Vertex point(sf::Vector2f(x, y), sf::Color(color.r, color.g, color.b, color.a));
     m_impl->window.draw(&point, 1, sf::PrimitiveType::Points);
-}
-
-void eng::SFMLRenderer::drawLine(const int x1, const int y1, const int x2, const int y2, const Color color)
-{
-    const sf::Vertex line[] = {sf::Vertex(sf::Vector2f(static_cast<float>(x1), static_cast<float>(y1)),
-                                          sf::Color(color.r, color.g, color.b, color.a)),
-                               sf::Vertex(sf::Vector2f(static_cast<float>(x2), static_cast<float>(y2)),
-                                          sf::Color(color.r, color.g, color.b, color.a))};
-    m_impl->window.draw(line, 2, sf::PrimitiveType::Lines);
 }
 
 eng::WindowSize eng::SFMLRenderer::getWindowSize()
 {
     const sf::Vector2u size = m_impl->window.getSize();
-    return {static_cast<int>(size.x), static_cast<int>(size.y)};
+    return {.width = size.x, .height = size.y};
 }

@@ -29,7 +29,7 @@ namespace gme
             RTypeClient(RTypeClient &&) = delete;
             RTypeClient &operator=(RTypeClient &&) = delete;
 
-            void update(float deltaTime, int width, int height) override;
+            void update(float deltaTime, unsigned int width, unsigned int height) override;
             [[nodiscard]] const IScene &getCurrentScene() const override { return *m_currentScene; }
 
         private:
