@@ -34,7 +34,6 @@ namespace ecs
     {
             std::string id;
             float x, y;
-            Color color; // TODO(bobis33): to remove
     };
     struct Rect
     {

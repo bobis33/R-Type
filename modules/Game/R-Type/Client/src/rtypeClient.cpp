@@ -22,6 +22,10 @@ gme::RTypeClient::RTypeClient() : m_currentScene(std::make_unique<LobbyScene>())
                                   .pos_x = 0.0F,
                                   .pos_y = 0.0F,
                                   .v_x = -20.0F - static_cast<float>(std::rand() % 30),
+                                  .r = 100U,
+                                  .g = 100U,
+                                  .b = 200U,
+                                  .a = 255U,
                                   .id = "star_" + std::to_string(i)});
     }
 }

@@ -137,11 +137,11 @@ namespace cli
 
             void update(ecs::Registry &registry, float dt) override
             {
-                for (const auto &point : registry.getAll<ecs::Point>() | std::views::values)
+                for (auto &[entity, point] : registry.getAll<ecs::Point>())
                 {
-                    m_renderer.drawPoint(
-                        point.x, point.y,
-                        {.r = point.color.r, .g = point.color.g, .b = point.color.b, .a = point.color.a});
+                    const auto *color = registry.getComponent<ecs::Color>(entity);
+                    m_renderer.drawPoint(point.x, point.y,
+                                         {.r = color->r, .g = color->g, .b = color->b, .a = color->a});
                 }
             }
 

@@ -44,7 +44,7 @@ cli::Client::Client(const ArgsConfig &cfg)
                     const eng::Color color =
                         colorComp
                             ? eng::Color{.r = colorComp->r, .g = colorComp->g, .b = colorComp->b, .a = colorComp->a}
-                            : eng::Color{.r = 255u, .g = 255u, .b = 255u, .a = 255u};
+                            : eng::Color{.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 
                     m_engine->getRenderer()->createText(eng::Text{.fontName = "main_font",
                                                                   .color = color,
@@ -87,13 +87,15 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->addComponent<ecs::Transform>(*m_engine->getRegistry(), titleEntity,
                                            "entity_" + std::to_string(titleEntity), 10.F, 10.F, 0.F);
     m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), titleEntity, "entity_" + std::to_string(titleEntity),
-                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U), static_cast<unsigned char>(255U), static_cast<unsigned char>(255U));
+                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U),
+                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U));
     m_engine->addComponent<ecs::Text>(*m_engine->getRegistry(), titleEntity, "entity_" + std::to_string(titleEntity),
                                       std::string("RType Client"), 50U);
     m_engine->addComponent<ecs::Transform>(*m_engine->getRegistry(), fpsEntity, "entity_" + std::to_string(fpsEntity),
                                            10.F, 70.F, 0.F);
-    m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), fpsEntity, "entity_" + std::to_string(fpsEntity), static_cast<unsigned char>(255U),
-                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U), static_cast<unsigned char>(255U));
+    m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), fpsEntity, "entity_" + std::to_string(fpsEntity),
+                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U),
+                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U));
     m_engine->addComponent<ecs::Text>(*m_engine->getRegistry(), fpsEntity, "entity_" + std::to_string(fpsEntity),
                                       std::string("FPS 0"), 20U);
     m_fpsEntity = fpsEntity;
@@ -150,8 +152,8 @@ void cli::Client::syncEntitiesToECS()
 
             if (type == "star")
             {
-                m_engine->addComponent<ecs::Point>(*m_engine->getRegistry(), ecsEntity, id, pos_x, pos_y,
-                                                   ecs::Color{.id = "color_" + id, .r = r, .g = g, .b = b, .a = a});
+                m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), ecsEntity, id, r, g, b, a);
+                m_engine->addComponent<ecs::Point>(*m_engine->getRegistry(), ecsEntity, id, pos_x, pos_y);
             }
             else
             {
