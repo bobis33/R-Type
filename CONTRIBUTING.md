@@ -5,7 +5,7 @@
 ### C++
  - Use **clang-format** with the provided configuration
  - Follow RAII principles
- - Use `std::unique_ptr`/`std::shared_ptr` instead of raw pointers.
+ - Use `std::unique_ptr`/`std::shared_ptr` instead of raw pointers
  - Header files: `.hpp` - Implementation : `.cpp`
  - Namespace prefixes:
    - `eng::` → Engine

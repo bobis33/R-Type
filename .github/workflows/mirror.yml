@@ -1,4 +1,4 @@
-name: 'CI - Mirror'
+name: 'CD - Mirror'
 run-name: 'Mirror - "${{ github.ref_name }}"'
 
 on:

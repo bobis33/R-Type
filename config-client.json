@@ -6,8 +6,8 @@
   },
   "window": {
     "fullscreen": false,
-    "width": 920,
-    "height": 540,
-    "frame_limit": 240
+    "width": 1920,
+    "height": 1080,
+    "frame_limit": 10000
   }
 }
