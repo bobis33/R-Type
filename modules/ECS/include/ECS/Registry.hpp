@@ -105,7 +105,7 @@ namespace ecs
                         return nullptr;
                     }
 
-                    bool has(Entity e) { return data.find(e) != data.end(); }
+                    bool has(Entity e) { return data.contains(e); }
 
                     void remove(Entity e) override { data.erase(e); }
             };

@@ -23,9 +23,7 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_game = std::make_unique<gme::RTypeClient>();
     m_engine->getRenderer()->createWindow("R-Type Client", cfg.height, cfg.width, cfg.frameLimit, cfg.fullscreen);
     m_engine->getRenderer()->createFont(eng::Font{.path = Paths::Fonts::FONTS_RTYPE, .name = "main_font"});
-    m_engine->getAudio()->createAudio(Paths::Audio::AUDIO_TITLE, 5.F, true, "title_music");
-    m_engine->getAudio()->playAudio("title_music");
-    m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
     m_engine->addSystem(std::make_unique<PointSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<TextSyStem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<SpriteSystem>(*m_engine->getRenderer()));
@@ -80,10 +78,18 @@ cli::Client::Client(const ArgsConfig &cfg)
                     }
                 }
             }
+            else if (type == typeid(ecs::Audio))
+            {
+                const auto *audioComp = m_engine->getRegistry()->getComponent<ecs::Audio>(e);
+                m_engine->getAudio()->createAudio(audioComp->path, audioComp->volume, audioComp->loop, audioComp->id);
+            }
         });
 
     const auto titleEntity = m_engine->getRegistry()->createEntity();
     const auto fpsEntity = m_engine->getRegistry()->createEntity();
+    const auto audioEntity = m_engine->getRegistry()->createEntity();
+    m_engine->addComponent<ecs::Audio>(*m_engine->getRegistry(), audioEntity, "entity_" + std::to_string(audioEntity),
+                                       Paths::Audio::AUDIO_TITLE, 5.F, true, true);
     m_engine->addComponent<ecs::Transform>(*m_engine->getRegistry(), titleEntity,
                                            "entity_" + std::to_string(titleEntity), 10.F, 10.F, 0.F);
     m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), titleEntity, "entity_" + std::to_string(titleEntity),
@@ -127,7 +133,7 @@ void cli::Client::run()
             fpsText->content = "FPS " + std::to_string(static_cast<int>(1 / dt));
         }
 
-        m_engine->render({.r = 0u, .g = 0u, .b = 0u, .a = 255u}, dt);
+        m_engine->render({.r = 0U, .g = 0U, .b = 0U, .a = 255U}, dt);
     }
 }
 

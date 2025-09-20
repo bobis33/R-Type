@@ -29,22 +29,46 @@ namespace eng
 
     void SFMLAudio::playAudio(const std::string &name)
     {
-        auto it = pImpl->musics.find(name);
-        if (it != pImpl->musics.end())
+        if (const auto it = pImpl->musics.find(name); it != pImpl->musics.end())
             it->second->play();
     }
 
     void SFMLAudio::setVolume(const std::string &name, const float volume)
     {
-        auto it = pImpl->musics.find(name);
-        if (it != pImpl->musics.end())
+        if (const auto it = pImpl->musics.find(name); it != pImpl->musics.end())
             it->second->setVolume(volume);
     }
 
     void SFMLAudio::setLoop(const std::string &name, const bool loop)
     {
-        auto it = pImpl->musics.find(name);
-        if (it != pImpl->musics.end())
+        if (const auto it = pImpl->musics.find(name); it != pImpl->musics.end())
             it->second->setLooping(loop);
+    }
+
+    void SFMLAudio::stopAudio(const std::string &name)
+    {
+        if (const auto it = pImpl->musics.find(name); it != pImpl->musics.end())
+        {
+            it->second->stop();
+        }
+    }
+
+    Status SFMLAudio::isPlaying(const std::string &name)
+    {
+        if (const auto it = pImpl->musics.find(name); it != pImpl->musics.end())
+        {
+            switch (it->second->getStatus())
+            {
+                case sf::Music::Status::Playing:
+                    return Status::Playing;
+                case sf::Music::Status::Paused:
+                    return Status::Paused;
+                case sf::Music::Status::Stopped:
+                    return Status::Stopped;
+                default:
+                    return Status::Stopped;
+            }
+        }
+        return Status::Stopped;
     }
 } // namespace eng

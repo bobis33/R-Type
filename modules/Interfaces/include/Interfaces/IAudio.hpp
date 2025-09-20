@@ -11,6 +11,13 @@
 namespace eng
 {
 
+    enum class Status
+    {
+        Stopped,
+        Paused,
+        Playing
+    };
+
     ///
     /// @class IAudio
     /// @brief Interface for the audio
@@ -26,6 +33,8 @@ namespace eng
 
             virtual void setVolume(const std::string &name, float volume) = 0;
             virtual void setLoop(const std::string &name, bool loop) = 0;
+            virtual void stopAudio(const std::string &name) = 0;
+            virtual Status isPlaying(const std::string &name) = 0;
 
         private:
     }; // class IAudio

@@ -16,6 +16,7 @@ namespace ecs
             std::string path;
             float volume;
             bool loop;
+            bool play;
     };
     struct Color
     {

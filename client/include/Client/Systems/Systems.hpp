@@ -8,6 +8,7 @@
 
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
+#include "Interfaces/IAudio.hpp"
 #include "Interfaces/IRenderer.hpp"
 
 #include "Engine/Systems.hpp"
@@ -66,7 +67,7 @@ namespace cli
     class AudioSystem final : public eng::ASystem
     {
         public:
-            explicit AudioSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit AudioSystem(eng::IAudio &audio) : m_audio(audio) {}
             ~AudioSystem() override = default;
 
             AudioSystem(const AudioSystem &) = delete;
@@ -74,10 +75,25 @@ namespace cli
             AudioSystem(AudioSystem &&) = delete;
             AudioSystem &operator=(AudioSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override {}
+            void update(ecs::Registry &registry, float dt) override
+            {
+                for (auto &audio : registry.getAll<ecs::Audio>() | std::views::values)
+                {
+                    m_audio.setVolume(audio.id, audio.volume);
+                    m_audio.setLoop(audio.id, audio.loop);
+                    if (audio.play && m_audio.isPlaying(audio.id) != eng::Status::Playing)
+                    {
+                        m_audio.playAudio(audio.id);
+                    }
+                    else if (!audio.play && m_audio.isPlaying(audio.id) != eng::Status::Stopped)
+                    {
+                        m_audio.stopAudio(audio.id);
+                    }
+                }
+            }
 
         private:
-            eng::IRenderer &m_renderer;
+            eng::IAudio &m_audio;
     }; // class AudioSystem
 
     class SpriteSystem final : public eng::ASystem
@@ -111,7 +127,6 @@ namespace cli
                     // int yv = velocity ? static_cast<int>(velocity->y) : 0;
                     // x *= xv;
                     // y *= yv;
-                    // Met à jour les infos dans le renderer
                     m_renderer.setSpriteTexture(sprite.id, sprite.path);
                     m_renderer.setSpritePosition(sprite.id, x, y);
                     // m_renderer.setSpriteColor(sprite.id, {r, g, b, a});

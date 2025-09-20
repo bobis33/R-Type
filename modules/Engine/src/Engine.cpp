@@ -1,5 +1,4 @@
 #include "Engine/Engine.hpp"
-#include "ECS/Systems.hpp"
 
 eng::Engine::Engine(const std::function<std::unique_ptr<IAudio>()> &audioFactory,
                     const std::function<std::unique_ptr<INetworkClient>()> &networkFactory,
