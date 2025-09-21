@@ -32,13 +32,29 @@ namespace ecs
             Registry(Registry &&) = delete;
             Registry &operator=(Registry &&) = delete;
 
-            Entity createEntity()
+            class EntityBuilder
+            {
+                public:
+                    EntityBuilder(Registry &reg, Entity e) : m_registry(reg), m_entity(e) {}
+
+                    template <typename T, typename... Args> EntityBuilder &with(Args &&...args)
+                    {
+                        m_registry.addComponent<T>(m_entity, std::forward<Args>(args)...);
+                        return *this;
+                    }
+
+                    Entity build() const { return m_entity; }
+
+                private:
+                    Registry &m_registry;
+                    Entity m_entity;
+            };
+
+            EntityBuilder createEntity()
             {
                 const Entity entity = ++m_lastEntity;
                 m_entities.push_back(entity);
-                for (auto &cb : m_onEntityCreatedCallbacks)
-                    cb(entity);
-                return entity;
+                return EntityBuilder(*this, entity);
             }
 
             template <typename T, typename... Args> T &addComponent(Entity e, Args &&...args)
@@ -68,10 +84,6 @@ namespace ecs
             {
                 auto &pool = getPool<T>();
                 pool.remove(e);
-            }
-            void onEntityCreated(std::function<void(Entity)> cb)
-            {
-                m_onEntityCreatedCallbacks.push_back(std::move(cb));
             }
 
             void onComponentAdded(std::function<void(Entity, const std::type_info &)> cb)
@@ -122,7 +134,6 @@ namespace ecs
             Entity m_lastEntity = INVALID_ENTITY;
             std::vector<Entity> m_entities;
             std::unordered_map<std::type_index, std::unique_ptr<IPool>> m_components;
-            std::vector<std::function<void(Entity)>> m_onEntityCreatedCallbacks;
             std::vector<std::function<void(Entity, const std::type_info &)>> m_onComponentAddedCallbacks;
 
     }; // class Registry

@@ -36,12 +36,13 @@ namespace cli
             void run();
 
         private:
-            void syncEntitiesToECS();
+            void handleEvents(eng::Event &event, float dt);
 
             ecs::Entity m_fpsEntity = 0;
+            ecs::Entity m_playerEntity = 0;
             std::unique_ptr<gme::IGameClient> m_game;
             std::unique_ptr<eng::Engine> m_engine;
-            std::unordered_map<std::string, ecs::Entity> m_entityMap;
+            std::unordered_map<eng::Key, bool> m_keysPressed;
     }; // class Client
 
 } // namespace cli

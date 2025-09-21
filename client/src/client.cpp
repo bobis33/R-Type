@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "Client/Generated/Version.hpp"
@@ -85,26 +87,73 @@ cli::Client::Client(const ArgsConfig &cfg)
             }
         });
 
-    const auto titleEntity = m_engine->getRegistry()->createEntity();
-    const auto fpsEntity = m_engine->getRegistry()->createEntity();
-    const auto audioEntity = m_engine->getRegistry()->createEntity();
-    m_engine->addComponent<ecs::Audio>(*m_engine->getRegistry(), audioEntity, "entity_" + std::to_string(audioEntity),
-                                       Paths::Audio::AUDIO_TITLE, 5.F, true, true);
-    m_engine->addComponent<ecs::Transform>(*m_engine->getRegistry(), titleEntity,
-                                           "entity_" + std::to_string(titleEntity), 10.F, 10.F, 0.F);
-    m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), titleEntity, "entity_" + std::to_string(titleEntity),
-                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U),
-                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U));
-    m_engine->addComponent<ecs::Text>(*m_engine->getRegistry(), titleEntity, "entity_" + std::to_string(titleEntity),
-                                      std::string("RType Client"), 50U);
-    m_engine->addComponent<ecs::Transform>(*m_engine->getRegistry(), fpsEntity, "entity_" + std::to_string(fpsEntity),
-                                           10.F, 70.F, 0.F);
-    m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), fpsEntity, "entity_" + std::to_string(fpsEntity),
-                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U),
-                                       static_cast<unsigned char>(255U), static_cast<unsigned char>(255U));
-    m_engine->addComponent<ecs::Text>(*m_engine->getRegistry(), fpsEntity, "entity_" + std::to_string(fpsEntity),
-                                      std::string("FPS 0"), 20U);
-    m_fpsEntity = fpsEntity;
+    const auto titleEntity =
+        m_engine->getRegistry()
+            ->createEntity()
+            .with<ecs::Transform>("transform_title", 10.F, 10.F, 0.F)
+            .with<ecs::Color>("color_title", static_cast<unsigned char>(255U), static_cast<unsigned char>(255U),
+                              static_cast<unsigned char>(255U), static_cast<unsigned char>(255U))
+            .with<ecs::Text>("id", std::string("RType Client"), 50U)
+            .build();
+    const auto audioEntity = m_engine->getRegistry()
+                                 ->createEntity()
+                                 .with<ecs::Audio>("id_audio", Paths::Audio::AUDIO_TITLE, 5.F, true, true)
+                                 .build();
+    m_fpsEntity = m_engine->getRegistry()
+                      ->createEntity()
+                      .with<ecs::Transform>("transform_fps", 10.F, 70.F, 0.F)
+                      .with<ecs::Color>("color_fps", static_cast<unsigned char>(255U), static_cast<unsigned char>(255U),
+                                        static_cast<unsigned char>(255U), static_cast<unsigned char>(255U))
+                      .with<ecs::Text>("id_text", std::string("RType Client"), 20U)
+                      .build();
+    m_playerEntity = m_engine->getRegistry()
+                         ->createEntity()
+                         .with<ecs::Transform>("player_transform", 200.F, 100.F, 0.F)
+                         .with<ecs::Velocity>("player_velocity", 500.F, 500.F)
+                         .with<ecs::Rect>("player_rect", 0.F, 0.F, 33, 20)
+                         .with<ecs::Scale>("player_scale", 2.F, 2.F)
+                         .with<ecs::Texture>("player_tex", "assets/sprites/r-typesheet42.gif")
+                         .build();
+    for (int i = 0; i < 100; i++)
+    {
+        auto star = m_engine->getRegistry()
+                        ->createEntity()
+                        .with<ecs::Point>("star_point_" + std::to_string(i), 0.F, 0.F)
+                        .with<ecs::Velocity>("star_vel", -20.F - static_cast<float>(std::rand() % 30), 0.F)
+                        .with<ecs::Color>("star_color", 100U, 100U, 200U, 255U)
+                        .build();
+    }
+}
+
+void cli::Client::handleEvents(eng::Event &event, const float dt)
+{
+    while (m_engine->getRenderer()->pollEvent(event))
+    {
+        switch (event.type)
+        {
+            case eng::EventType::Closed:
+                m_engine->stop();
+                break;
+
+            case eng::EventType::KeyPressed:
+                if (event.key == eng::Key::Escape)
+                {
+                    m_engine->stop();
+                }
+                else
+                {
+                    m_keysPressed[event.key] = true;
+                }
+                break;
+
+            case eng::EventType::KeyReleased:
+                m_keysPressed[event.key] = false;
+                break;
+
+            default:
+                break;
+        }
+    }
 }
 
 void cli::Client::run()
@@ -116,87 +165,54 @@ void cli::Client::run()
         const float dt = m_engine->getClock()->getDeltaSeconds();
         m_engine->getClock()->restart();
 
-        m_game->update(dt, m_engine->getRenderer()->getWindowSize().width,
-                       m_engine->getRenderer()->getWindowSize().height);
-        syncEntitiesToECS();
-
-        while (m_engine->getRenderer()->pollEvent(event))
+        for (auto &[entity, velocity] : m_engine->getRegistry()->getAll<ecs::Velocity>())
         {
-            if (event.type == eng::EventType::Closed ||
-                (event.type == eng::EventType::KeyPressed && event.key == eng::Key::Escape))
+            if (auto *point = m_engine->getRegistry()->getComponent<ecs::Point>(entity))
             {
-                m_engine->stop();
+                point->x += velocity.x * dt;
+                point->y += velocity.y * dt;
+
+                if (point->x < 2.F || point->y < 2.F)
+                {
+                    point->x = static_cast<float>(std::rand() % m_engine->getRenderer()->getWindowSize().width);
+                    point->y = static_cast<float>(std::rand() % m_engine->getRenderer()->getWindowSize().height);
+                }
             }
         }
         if (auto *fpsText = m_engine->getRegistry()->getComponent<ecs::Text>(m_fpsEntity))
         {
             fpsText->content = "FPS " + std::to_string(static_cast<int>(1 / dt));
         }
+        auto *playerTransform = m_engine->getRegistry()->getComponent<ecs::Transform>(m_playerEntity);
+        const auto *playerVelocity = m_engine->getRegistry()->getComponent<ecs::Velocity>(m_playerEntity);
+        // if ((playerTransform == nullptr) || (playerVelocity == nullptr)) {
+        //     return;
+        // }
 
+        if (m_keysPressed[eng::Key::Up])
+        {
+            playerTransform->y -= playerVelocity->y * dt;
+        }
+        if (m_keysPressed[eng::Key::Down])
+        {
+            playerTransform->y += playerVelocity->y * dt;
+        }
+        if (m_keysPressed[eng::Key::Left])
+        {
+            playerTransform->x -= playerVelocity->x * dt;
+        }
+        if (m_keysPressed[eng::Key::Right])
+        {
+            playerTransform->x += playerVelocity->x * dt;
+        }
+        const auto [width, height] = m_engine->getRenderer()->getWindowSize();
+
+        playerTransform->x = std::max(playerTransform->x, 0.f);
+        playerTransform->y = std::max(playerTransform->y, 0.f);
+        playerTransform->x = std::min(playerTransform->x, static_cast<float>(width) - 66.f);
+        playerTransform->y = std::min(playerTransform->y, static_cast<float>(height) - 40.f);
+
+        handleEvents(event, dt);
         m_engine->render({.r = 0U, .g = 0U, .b = 0U, .a = 255U}, dt);
-    }
-}
-
-void cli::Client::syncEntitiesToECS()
-{ // TODO(bobis33): to remove/refactor, better handle from game
-    for (const auto &entities = m_game->getCurrentScene().getEntities();
-         const auto &[type, pos_x, pos_y, v_x, v_y, scale_x, scale_y, r, g, b, a, texture_path, text_rect_x,
-                      text_rect_y, text_rect_fx, text_rect_fy, id] : entities)
-    {
-        ecs::Entity ecsEntity = 0;
-
-        if (auto it = m_entityMap.find(id); it == m_entityMap.end())
-        {
-            ecsEntity = m_engine->getRegistry()->createEntity();
-            m_entityMap[id] = ecsEntity;
-
-            m_engine->addComponent<ecs::Transform>(*m_engine->getRegistry(), ecsEntity,
-                                                   "entity_" + std::to_string(ecsEntity), pos_x, pos_y, 0.F);
-
-            m_engine->addComponent<ecs::Velocity>(*m_engine->getRegistry(), ecsEntity,
-                                                  "entity_" + std::to_string(ecsEntity), v_x, v_y);
-
-            if (type == "star")
-            {
-                m_engine->addComponent<ecs::Color>(*m_engine->getRegistry(), ecsEntity, id, r, g, b, a);
-                m_engine->addComponent<ecs::Point>(*m_engine->getRegistry(), ecsEntity, id, pos_x, pos_y);
-            }
-            else
-            {
-                m_engine->addComponent<ecs::Scale>(*m_engine->getRegistry(), ecsEntity,
-                                                   "entity_" + std::to_string(ecsEntity), scale_x, scale_y);
-                m_engine->addComponent<ecs::Rect>(*m_engine->getRegistry(), ecsEntity,
-                                                  "entity_" + std::to_string(ecsEntity), text_rect_x, text_rect_y,
-                                                  text_rect_fx, text_rect_fy);
-                m_engine->addComponent<ecs::Transform>(*m_engine->getRegistry(), ecsEntity,
-                                                       "entity_" + std::to_string(ecsEntity), pos_x, pos_y, 0.F);
-                m_engine->addComponent<ecs::Texture>(*m_engine->getRegistry(), ecsEntity,
-                                                     "entity_" + std::to_string(ecsEntity), texture_path);
-            }
-        }
-        else
-        {
-            ecsEntity = it->second;
-
-            if (auto *transform = m_engine->getRegistry()->getComponent<ecs::Transform>(ecsEntity))
-            {
-                transform->x = pos_x;
-                transform->y = pos_y;
-            }
-            if (auto *velocity = m_engine->getRegistry()->getComponent<ecs::Velocity>(ecsEntity))
-            {
-                velocity->x = v_x;
-                velocity->y = v_y;
-            }
-
-            if (type == "star")
-            {
-                if (auto *point = m_engine->getRegistry()->getComponent<ecs::Point>(ecsEntity))
-                {
-                    point->x = pos_x;
-                    point->y = pos_y;
-                }
-            }
-        }
     }
 }

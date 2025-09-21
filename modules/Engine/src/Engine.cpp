@@ -8,6 +8,14 @@ eng::Engine::Engine(const std::function<std::unique_ptr<IAudio>()> &audioFactory
 {
 }
 
+void eng::Engine::updateSystems(const float dt) const
+{
+    for (const auto &system : m_systems)
+    {
+        system->update(*m_registry, dt);
+    }
+}
+
 void eng::Engine::render(const Color clearColor, const float dt) const
 {
     m_renderer->clearWindow(clearColor);

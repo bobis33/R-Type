@@ -42,25 +42,11 @@ namespace eng
             std::unique_ptr<INetworkClient> &getNetworkClient() { return m_networkClient; }
             std::unique_ptr<IRenderer> &getRenderer() { return m_renderer; }
             std::unique_ptr<utl::Clock> &getClock() { return m_clock; }
-            std::unique_ptr<ecs::Registry> &getRegistry()
-            {
-                return m_registry;
-            } // TODO(bobis33): to remove, maybe one registry per scene
+            // TODO(bobis33): to remove, maybe one registry per scene
+            std::unique_ptr<ecs::Registry> &getRegistry() { return m_registry; }
 
             void addSystem(std::unique_ptr<ISystem> system) { m_systems.emplace_back(std::move(system)); }
-            void updateSystems(const float dt) const
-            {
-                for (auto &system : m_systems)
-                {
-                    system->update(*m_registry, dt);
-                }
-            }
-
-            template <typename T, typename... Args>
-            T &addComponent(ecs::Registry &registry, ecs::Entity e, Args &&...args)
-            {
-                return registry.addComponent<T>(e, std::forward<Args>(args)...);
-            }
+            void updateSystems(float dt) const;
 
             void render(Color clearColor, float dt) const;
             void stop() const;
