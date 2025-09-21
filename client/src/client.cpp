@@ -120,7 +120,7 @@ cli::Client::Client(const ArgsConfig &cfg)
                         ->createEntity()
                         .with<ecs::Point>("star_point_" + std::to_string(i), 0.F, 0.F)
                         .with<ecs::Velocity>("star_vel", -20.F - static_cast<float>(std::rand() % 30), 0.F)
-                        .with<ecs::Color>("star_color", 100U, 100U, 200U, 255U)
+                        .with<ecs::Color>("star_color", static_cast<unsigned char>(100U), static_cast<unsigned char>(100U), static_cast<unsigned char>(200U), static_cast<unsigned char>(255U))
                         .build();
     }
 }
@@ -156,15 +156,8 @@ void cli::Client::handleEvents(eng::Event &event, const float dt)
     }
 }
 
-void cli::Client::run()
+void cli::Client::update(const float dt)
 {
-    eng::Event event;
-
-    while (m_engine->getRenderer()->windowIsOpen())
-    {
-        const float dt = m_engine->getClock()->getDeltaSeconds();
-        m_engine->getClock()->restart();
-
         for (auto &[entity, velocity] : m_engine->getRegistry()->getAll<ecs::Velocity>())
         {
             if (auto *point = m_engine->getRegistry()->getComponent<ecs::Point>(entity))
@@ -207,11 +200,22 @@ void cli::Client::run()
         }
         const auto [width, height] = m_engine->getRenderer()->getWindowSize();
 
-        playerTransform->x = std::max(playerTransform->x, 0.f);
-        playerTransform->y = std::max(playerTransform->y, 0.f);
-        playerTransform->x = std::min(playerTransform->x, static_cast<float>(width) - 66.f);
-        playerTransform->y = std::min(playerTransform->y, static_cast<float>(height) - 40.f);
+        playerTransform->x = std::max(playerTransform->x, 0.F);
+        playerTransform->y = std::max(playerTransform->y, 0.F);
+        playerTransform->x = std::min(playerTransform->x, static_cast<float>(width) - 66.F);
+        playerTransform->y = std::min(playerTransform->y, static_cast<float>(height) - 40.F);
+}
 
+void cli::Client::run()
+{
+    eng::Event event;
+
+    while (m_engine->getRenderer()->windowIsOpen())
+    {
+        const float dt = m_engine->getClock()->getDeltaSeconds();
+        m_engine->getClock()->restart();
+
+        update(dt);
         handleEvents(event, dt);
         m_engine->render({.r = 0U, .g = 0U, .b = 0U, .a = 255U}, dt);
     }

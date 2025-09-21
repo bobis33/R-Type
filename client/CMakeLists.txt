@@ -10,6 +10,7 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/R-Type/*.hpp")
 include(MakeVersion)
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+include(CopyAssets)
 add_dependencies(${PROJECT_NAME}
         r-type_third-party
         r-type_modules_client

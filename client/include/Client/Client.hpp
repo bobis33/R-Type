@@ -37,6 +37,7 @@ namespace cli
 
         private:
             void handleEvents(eng::Event &event, float dt);
+            void update(float dt);
 
             ecs::Entity m_fpsEntity = 0;
             ecs::Entity m_playerEntity = 0;
