@@ -19,6 +19,12 @@
 namespace eng
 {
 
+    enum State: unsigned char {
+        STOP = 0,
+        RUN = 1,
+        DEFAULT = 2,
+    };
+
     ///
     /// @class Engine
     /// @brief Class for the game engine
@@ -48,10 +54,15 @@ namespace eng
             void addSystem(std::unique_ptr<ISystem> system) { m_systems.emplace_back(std::move(system)); }
             void updateSystems(float dt) const;
 
+            State getState() const { return m_state; }
+            void setState(const State newState) { m_state = newState; }
+
             void render(Color clearColor, float dt) const;
             void stop() const;
 
         private:
+            State m_state = RUN;
+
             std::unique_ptr<IAudio> m_audio;
             std::unique_ptr<INetworkClient> m_networkClient;
             std::unique_ptr<IRenderer> m_renderer;

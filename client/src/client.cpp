@@ -132,13 +132,13 @@ void cli::Client::handleEvents(eng::Event &event, const float dt)
         switch (event.type)
         {
             case eng::EventType::Closed:
-                m_engine->stop();
+                m_engine->setState(eng::State::STOP);
                 break;
 
             case eng::EventType::KeyPressed:
                 if (event.key == eng::Key::Escape)
                 {
-                    m_engine->stop();
+                    m_engine->setState(eng::State::STOP);
                 }
                 else
                 {
@@ -210,7 +210,7 @@ void cli::Client::run()
 {
     eng::Event event;
 
-    while (m_engine->getRenderer()->windowIsOpen())
+    while (m_engine->getState() == eng::State::RUN && m_engine->getRenderer()->windowIsOpen())
     {
         const float dt = m_engine->getClock()->getDeltaSeconds();
         m_engine->getClock()->restart();
@@ -219,4 +219,5 @@ void cli::Client::run()
         handleEvents(event, dt);
         m_engine->render({.r = 0U, .g = 0U, .b = 0U, .a = 255U}, dt);
     }
+    m_engine->stop();
 }
