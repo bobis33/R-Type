@@ -238,26 +238,20 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
     return false;
 }
 
-void eng::SFMLRenderer::createSprite(const std::string &path, const float x, const float y, const std::string &name,
-                                     float scale_x, float scale_y, int fx, int fy, int fnx, int fny)
+void eng::SFMLRenderer::createSprite(const std::string &textureName, const float x, const float y,
+                                     const std::string &name, float scale_x, float scale_y, int fx, int fy, int fnx,
+                                     int fny)
 {
-    sf::Texture texture;
-    if (!texture.loadFromFile(path))
-    {
-        throw std::runtime_error("Failed to load texture: " + path);
-    }
-
-    m_impl->textures[name] = std::move(texture);
-    sf::Sprite sfSprite(m_impl->textures[name]);
+    sf::Sprite sfSprite(m_impl->textures[textureName]);
     sfSprite.setPosition({x, y});
     sfSprite.setScale({scale_x, scale_y});
     if (fnx == -1)
     {
-        fnx = static_cast<int>(m_impl->textures[name].getSize().x);
+        fnx = static_cast<int>(m_impl->textures[textureName].getSize().x);
     }
     if (fny == -1)
     {
-        fny = static_cast<int>(m_impl->textures[name].getSize().y);
+        fny = static_cast<int>(m_impl->textures[textureName].getSize().y);
     }
     sfSprite.setTextureRect(sf::IntRect({fx, fy}, {fnx, fny}));
 
@@ -266,12 +260,16 @@ void eng::SFMLRenderer::createSprite(const std::string &path, const float x, con
 
 void eng::SFMLRenderer::createTexture(const std::string &path, const std::string &name)
 {
+    if (m_impl->textures.contains(name))
+    {
+        return;
+    }
+
     sf::Texture texture;
     if (!texture.loadFromFile(path))
     {
         throw std::runtime_error("Failed to load texture: " + path);
     }
-
     m_impl->textures[name] = std::move(texture);
 }
 

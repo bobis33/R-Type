@@ -36,8 +36,9 @@ namespace cli
             void run();
 
         private:
-            void handleEvents(eng::Event &event, float dt);
-            void update(float dt);
+            void handleEvents(eng::Event &event);
+            void update(float dt, const std::unique_ptr<eng::IScene> &scene);
+            eng::IScene& lobbyScene();
 
             ecs::Entity m_fpsEntity = 0;
             ecs::Entity m_playerEntity = 0;

@@ -50,7 +50,7 @@ namespace cli
 
                     m_renderer.setTextContent(text.id, text.content);
                     m_renderer.setTextPosition(text.id, x, y);
-                    m_renderer.setTextColor(text.id, {r, g, b, a});
+                    m_renderer.setTextColor(text.id, {.r = r, .g = g, .b = b, .a = a});
                     m_renderer.drawText(text.id);
                 }
             }
@@ -77,17 +77,18 @@ namespace cli
 
             void update(ecs::Registry &registry, float dt) override
             {
-                for (auto &audio : registry.getAll<ecs::Audio>() | std::views::values)
+                for (auto &[entity, audio] : registry.getAll<ecs::Audio>())
                 {
-                    m_audio.setVolume(audio.id, audio.volume);
-                    m_audio.setLoop(audio.id, audio.loop);
-                    if (audio.play && m_audio.isPlaying(audio.id) != eng::Status::Playing)
+                    m_audio.setVolume(audio.id + std::to_string(entity), audio.volume);
+                    m_audio.setLoop(audio.id + std::to_string(entity), audio.loop);
+                    if (audio.play && m_audio.isPlaying(audio.id + std::to_string(entity)) != eng::Status::Playing)
                     {
-                        m_audio.playAudio(audio.id);
+                        m_audio.playAudio(audio.id + std::to_string(entity));
                     }
-                    else if (!audio.play && m_audio.isPlaying(audio.id) != eng::Status::Stopped)
+                    else if (!audio.play &&
+                             m_audio.isPlaying(audio.id + std::to_string(entity)) != eng::Status::Stopped)
                     {
-                        m_audio.stopAudio(audio.id);
+                        m_audio.stopAudio(audio.id + std::to_string(entity));
                     }
                 }
             }
@@ -127,11 +128,11 @@ namespace cli
                     // int yv = velocity ? static_cast<int>(velocity->y) : 0;
                     // x *= xv;
                     // y *= yv;
-                    m_renderer.setSpriteTexture(sprite.id, sprite.path);
-                    m_renderer.setSpritePosition(sprite.id, x, y);
+                    m_renderer.setSpriteTexture(sprite.id + std::to_string(entity), sprite.path);
+                    m_renderer.setSpritePosition(sprite.id + std::to_string(entity), x, y);
                     // m_renderer.setSpriteColor(sprite.id, {r, g, b, a});
 
-                    m_renderer.drawSprite(sprite.id);
+                    m_renderer.drawSprite(sprite.id + std::to_string(entity));
                 }
             }
 
@@ -139,29 +140,30 @@ namespace cli
             eng::IRenderer &m_renderer;
     }; // class SpriteSystem
 
-    class PointSystem final : public eng::ASystem
+    class PixelSystem final : public eng::ASystem
     {
         public:
-            explicit PointSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
-            ~PointSystem() override = default;
+            explicit PixelSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            ~PixelSystem() override = default;
 
-            explicit PointSystem(const SpriteSystem &) = delete;
-            PointSystem &operator=(const SpriteSystem &) = delete;
-            explicit PointSystem(SpriteSystem &&) = delete;
-            PointSystem &operator=(SpriteSystem &&) = delete;
+            explicit PixelSystem(const SpriteSystem &) = delete;
+            PixelSystem &operator=(const SpriteSystem &) = delete;
+            explicit PixelSystem(SpriteSystem &&) = delete;
+            PixelSystem &operator=(SpriteSystem &&) = delete;
 
             void update(ecs::Registry &registry, float dt) override
             {
-                for (auto &[entity, point] : registry.getAll<ecs::Point>())
+                for (const auto &entity : registry.getAll<ecs::Pixel>() | std::views::keys)
                 {
                     const auto *color = registry.getComponent<ecs::Color>(entity);
-                    m_renderer.drawPoint(point.x, point.y,
+                    const auto *transform = registry.getComponent<ecs::Transform>(entity);
+                    m_renderer.drawPoint(transform->x, transform->y,
                                          {.r = color->r, .g = color->g, .b = color->b, .a = color->a});
                 }
             }
 
         private:
             eng::IRenderer &m_renderer;
-    };
+    }; // class PixelSystem
 
 } // namespace cli

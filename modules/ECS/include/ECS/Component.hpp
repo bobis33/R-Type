@@ -10,63 +10,67 @@
 
 namespace ecs
 {
-    struct Audio
+    struct IComponent
     {
             std::string id;
+    };
+    struct Audio final : IComponent
+    {
             std::string path;
             float volume;
             bool loop;
             bool play;
     };
-    struct Color
+    struct Color final : IComponent
     {
-            std::string id;
-            unsigned char r;
-            unsigned char g;
-            unsigned char b;
-            unsigned char a;
+            unsigned char r{};
+            unsigned char g{};
+            unsigned char b{};
+            unsigned char a{};
     };
-    struct Font
+    struct Font final : IComponent
     {
-            std::string id;
             std::string path;
     };
-    struct Point
+    struct Mob final : IComponent
     {
-            std::string id;
-            float x, y;
+            // bool is_alive{};
     };
-    struct Rect
+    struct Player final : IComponent
     {
-            std::string id;
-            float pos_x, pos_y;
-            int size_x, size_y;
+            bool is_cli{};
+            // bool is_alive{};
     };
-    struct Scale
+    struct Pixel final : IComponent
     {
-            std::string id;
-            float x, y;
     };
-    struct Text
+    struct Rect final : IComponent
+    { // TODO(bobis33): remove, only used for texture actually
+            float pos_x{}, pos_y{};
+            int size_x{}, size_y{};
+    };
+    struct Scale final : IComponent
     {
-            std::string id;
+            float x{}, y{};
+    };
+    struct Text final : IComponent
+    {
             std::string content;
-            unsigned int fontSize;
+            unsigned int font_size;
     };
-    struct Texture
+    struct Texture final : IComponent
     {
-            std::string id;
             std::string path;
+            // float rect_pos_x{}, rect_pos_y{};
+            // int rect_size_x{}, rect_size_y{};
     };
-    struct Transform
+    struct Transform final : IComponent
     {
-            std::string id;
-            float x, y;
-            float rotation;
+            float x{}, y{};
+            float rotation{};
     };
-    struct Velocity
+    struct Velocity final : IComponent
     {
-            std::string id;
-            float x, y;
+            float x{}, y{};
     };
 } // namespace ecs

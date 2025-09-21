@@ -48,7 +48,7 @@ namespace eng
 
             void drawText(const std::string &name) override;
             void createTexture(const std::string &path, const std::string &name) override;
-            void createSprite(const std::string &path, float x, float y, const std::string &name, float scale_x,
+            void createSprite(const std::string &textureName, float x, float y, const std::string &name, float scale_x,
                               float scale_y, int fx, int fy, int fnx, int fny) override;
             void setSpritePosition(const std::string &name, float x, float y) override;
             void setSpriteTexture(const std::string &name, const std::string &path) override;

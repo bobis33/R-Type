@@ -136,7 +136,7 @@ namespace eng
             virtual void setTextColor(const std::string &name, Color color) = 0;
 
             virtual void createTexture(const std::string &path, const std::string &name) = 0;
-            virtual void createSprite(const std::string &path, float x, float y, const std::string &name,
+            virtual void createSprite(const std::string &textureName, float x, float y, const std::string &name,
                                       float scale_x = 1, float scale_y = 1, int fx = 0, int fy = 0, int fnx = -1,
                                       int fny = -1) = 0;
             virtual void drawSprite(const std::string &name) = 0;

@@ -62,7 +62,9 @@ namespace ecs
                 auto &pool = getPool<T>();
                 T &comp = pool.add(e, std::forward<Args>(args)...);
                 for (auto &cb : m_onComponentAddedCallbacks)
+                {
                     cb(e, typeid(T));
+                }
                 return comp;
             }
 
@@ -113,7 +115,9 @@ namespace ecs
                     {
                         auto it = data.find(e);
                         if (it != data.end())
+                        {
                             return &it->second;
+                        }
                         return nullptr;
                     }
 
