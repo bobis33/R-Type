@@ -34,6 +34,8 @@ namespace eng
             void playAudio(const std::string &name) override;
             void setVolume(const std::string &name, float volume) override;
             void setLoop(const std::string &name, bool loop) override;
+            void stopAudio(const std::string &name) override;
+            Status isPlaying(const std::string &name) override;
 
         private:
             struct Impl;

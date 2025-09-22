@@ -8,19 +8,6 @@
 
 namespace cli
 {
-    namespace Paths
-    {
-        namespace Audio
-        {
-            inline constexpr auto AUDIO_TITLE = "assets/audio/title.mp3";
-            inline constexpr auto AUDIO_COIN = "assets/audio/coin.mp3";
-            inline constexpr auto AUDIO_BATTLE_THEME = "assets/audio/battle_theme.mp3";
-        } // namespace Audio
-        namespace Fonts
-        {
-            inline constexpr auto FONTS_RTYPE = "assets/fonts/r-type.otf";
-        } // namespace Fonts
-    } // namespace Paths
     namespace Config
     {
         namespace Window
@@ -36,4 +23,21 @@ namespace cli
             inline constexpr auto DEFAULT_AUDIO_MUTED = false; // unused
         } // namespace Audio
     } // namespace Config
+    namespace Path
+    {
+        namespace Audio
+        {
+            inline constexpr auto AUDIO_TITLE = "assets/audio/title.mp3";
+            inline constexpr auto AUDIO_COIN = "assets/audio/coin.mp3";
+            inline constexpr auto AUDIO_BATTLE_THEME = "assets/audio/battle_theme.mp3";
+        } // namespace Audio
+        namespace Font
+        {
+            inline constexpr auto FONTS_RTYPE = "assets/fonts/r-type.otf";
+        } // namespace Font
+        namespace Texture
+        {
+            inline constexpr auto TEXTURE_PLAYER = "assets/sprites/r-typesheet42.gif";
+        } // namespace Texture
+    } // namespace Path
 } // namespace cli

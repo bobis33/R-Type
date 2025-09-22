@@ -1,4 +1,4 @@
-#include <memory>
+#include <iostream>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -6,13 +6,14 @@
 
 #include "SFMLRenderer/SFMLRenderer.hpp"
 
-#include <iostream>
-
 struct eng::SFMLRenderer::Impl
 {
+        std::unordered_map<std::string, sf::Texture> textures;
+
         sf::RenderWindow window;
         std::unordered_map<std::string, sf::Font> fonts;
         std::unordered_map<std::string, sf::Text> texts;
+        std::unordered_map<std::string, sf::Sprite> sprites;
 };
 
 eng::SFMLRenderer::SFMLRenderer() : m_impl(std::make_unique<Impl>()) {}
@@ -31,7 +32,7 @@ bool eng::SFMLRenderer::windowIsOpen() const { return m_impl->window.isOpen(); }
 
 void eng::SFMLRenderer::closeWindow() { m_impl->window.close(); }
 
-void eng::SFMLRenderer::setFrameLimit(unsigned int frameLimit) { m_impl->window.setFramerateLimit(frameLimit); }
+void eng::SFMLRenderer::setFrameLimit(const unsigned int frameLimit) { m_impl->window.setFramerateLimit(frameLimit); }
 
 void eng::SFMLRenderer::createFont(Font font)
 {
@@ -49,7 +50,7 @@ void eng::SFMLRenderer::createText(Text text)
     sf::Text sfText(font);
     sfText.setString(text.content);
     sfText.setCharacterSize(text.size);
-    sfText.setPosition({static_cast<float>(text.x), static_cast<float>(text.y)});
+    sfText.setPosition({(text.x), text.y});
     sfText.setFillColor(sf::Color(text.color.r, text.color.g, text.color.b, text.color.a));
     m_impl->texts.emplace(text.name, std::move(sfText));
 }
@@ -66,11 +67,11 @@ void eng::SFMLRenderer::setTextContent(const std::string &name, const std::strin
     }
 }
 
-void eng::SFMLRenderer::setTextPosition(const std::string &name, int x, int y)
+void eng::SFMLRenderer::setTextPosition(const std::string &name, const float x, const float y)
 {
     if (const auto it = m_impl->texts.find(name); it != m_impl->texts.end())
     {
-        it->second.setPosition({static_cast<float>(x), static_cast<float>(y)});
+        it->second.setPosition({x, y});
     }
     else
     {
@@ -235,4 +236,119 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
         return true;
     }
     return false;
+}
+
+void eng::SFMLRenderer::createSprite(const std::string &textureName, const float x, const float y,
+                                     const std::string &name, float scale_x, float scale_y, int fx, int fy, int fnx,
+                                     int fny)
+{
+    sf::Sprite sfSprite(m_impl->textures[textureName]);
+    sfSprite.setPosition({x, y});
+    sfSprite.setScale({scale_x, scale_y});
+    if (fnx == -1)
+    {
+        fnx = static_cast<int>(m_impl->textures[textureName].getSize().x);
+    }
+    if (fny == -1)
+    {
+        fny = static_cast<int>(m_impl->textures[textureName].getSize().y);
+    }
+    sfSprite.setTextureRect(sf::IntRect({fx, fy}, {fnx, fny}));
+
+    m_impl->sprites.emplace(name, std::move(sfSprite));
+}
+
+void eng::SFMLRenderer::createTexture(const std::string &path, const std::string &name)
+{
+    if (m_impl->textures.contains(name))
+    {
+        return;
+    }
+
+    sf::Texture texture;
+    if (!texture.loadFromFile(path))
+    {
+        throw std::runtime_error("Failed to load texture: " + path);
+    }
+    m_impl->textures[name] = std::move(texture);
+}
+
+void eng::SFMLRenderer::drawSprite(const std::string &name)
+{
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
+    {
+        m_impl->window.draw(it->second);
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpritePosition(const std::string &name, const float x, const float y)
+{
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
+    {
+        it->second.setPosition({x, y});
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpriteTexture(const std::string &name, const std::string &path)
+{
+    sf::Texture texture;
+    if (!texture.loadFromFile(path))
+    {
+        throw std::runtime_error("Failed to load texture: " + path);
+    }
+
+    m_impl->textures[name] = std::move(texture);
+
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
+    {
+        it->second.setTexture(m_impl->textures[name]);
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny)
+{
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
+    {
+        it->second.setTextureRect(sf::IntRect({fx, fy}, {fnx, fny}));
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpriteScale(const std::string &name, const int x, const int y)
+{
+    if (const auto it = m_impl->sprites.find(name); it != m_impl->sprites.end())
+    {
+        it->second.setScale({static_cast<float>(x), static_cast<float>(y)});
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::drawPoint(const float x, const float y, const Color color)
+{
+    const sf::Vertex point(sf::Vector2f(x, y), sf::Color(color.r, color.g, color.b, color.a));
+    m_impl->window.draw(&point, 1, sf::PrimitiveType::Points);
+}
+
+eng::WindowSize eng::SFMLRenderer::getWindowSize()
+{
+    const sf::Vector2u size = m_impl->window.getSize();
+    return {.width = size.x, .height = size.y};
 }

@@ -9,7 +9,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "Engine/Scene.hpp"
+#include "Engine/IScene.hpp"
 
 namespace eng
 {
@@ -31,15 +31,27 @@ namespace eng
             SceneManager(SceneManager &&) = delete;
             SceneManager &operator=(SceneManager &&) = delete;
 
-            std::unique_ptr<Scene> &getScene(scene_id_t sceneId);
-            std::unique_ptr<Scene> &getCurrentScene();
-            scene_id_t addScene(std::unique_ptr<Scene> scene);
-            void switchToScene(scene_id_t sceneId);
+            std::unique_ptr<IScene> &getScene(const id sceneId) { return m_scenes.at(sceneId); }
+            std::unique_ptr<IScene> &getCurrentScene() { return m_scenes.at(m_currentSceneId); }
+            void switchToScene(const id sceneId) { m_currentSceneId = sceneId; }
+
+            template <typename... EntityDefs>
+            IScene &createScene(const std::string &name, const std::function<void(const Event&)> eventHandler, const std::function<void(float)> updateHandler,
+                               EntityDefs&&... defs) {
+                auto scene = std::make_unique<Scene>();
+                scene->setName(name);
+                scene->setEventHandler(eventHandler);
+                scene->setUpdateHandler(updateHandler);
+
+                Scene &ref = *scene;
+                (defs(ref.getRegistry()), ...);
+
+                m_scenes[ref.getId()] = std::move(scene);
+                return ref;
+            }
 
         private:
-            std::unordered_map<scene_id_t, std::unique_ptr<Scene>> m_scenes;
-            scene_id_t m_currentSceneId = 0;
-
+            std::unordered_map<id, std::unique_ptr<IScene>> m_scenes;
+            id m_currentSceneId = 1;
     }; // class SceneManager
-
 } // namespace eng

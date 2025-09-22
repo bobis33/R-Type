@@ -7,7 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
 #include "Interfaces/IRenderer.hpp"
 
@@ -32,21 +31,32 @@ namespace eng
 
             void createWindow(const std::string &title, unsigned int height, unsigned int width,
                               unsigned int frameLimit, bool fullscreen) override;
-            void setFrameLimit(unsigned int frameLimit) override;
             bool windowIsOpen() const override;
             void closeWindow() override;
-
-            void createText(Text text) override;
-            void createFont(Font font) override;
-            void setTextContent(const std::string &name, const std::string &content) override;
-            void setTextPosition(const std::string &name, int x, int y) override;
-            void setTextColor(const std::string &name, Color color) override;
-            void drawText(const std::string &name) override;
-
             void clearWindow(Color color) override;
             void displayWindow() override;
+            WindowSize getWindowSize() override;
 
             bool pollEvent(Event &event) override;
+            void setFrameLimit(unsigned int frameLimit) override;
+
+            void createFont(Font font) override;
+            void createText(Text text) override;
+            void setTextContent(const std::string &name, const std::string &content) override;
+            void setTextPosition(const std::string &name, float x, float y) override;
+            void setTextColor(const std::string &name, Color color) override;
+
+            void drawText(const std::string &name) override;
+            void createTexture(const std::string &path, const std::string &name) override;
+            void createSprite(const std::string &textureName, float x, float y, const std::string &name, float scale_x,
+                              float scale_y, int fx, int fy, int fnx, int fny) override;
+            void setSpritePosition(const std::string &name, float x, float y) override;
+            void setSpriteTexture(const std::string &name, const std::string &path) override;
+            void setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny) override;
+            void setSpriteScale(const std::string &name, int x, int y) override;
+            void drawSprite(const std::string &name) override;
+
+            void drawPoint(float x, float y, Color color) override;
 
         private:
             struct Impl;

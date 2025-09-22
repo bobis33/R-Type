@@ -7,7 +7,7 @@
   "window": {
     "fullscreen": false,
     "width": 920,
-    "height": 540,
-    "frame_limit": 240
+    "height": 580,
+    "frame_limit": 10000
   }
 }

@@ -10,46 +10,67 @@
 
 namespace ecs
 {
-    struct Audio
+    struct IComponent
     {
             std::string id;
+    };
+    struct Audio final : IComponent
+    {
             std::string path;
             float volume;
             bool loop;
+            bool play;
     };
-    struct Color
+    struct Color final : IComponent
     {
-            std::string id;
-            int r;
-            int g;
-            int b;
-            int a;
+            unsigned char r{};
+            unsigned char g{};
+            unsigned char b{};
+            unsigned char a{};
     };
-    struct Font
+    struct Font final : IComponent
     {
-            std::string id;
             std::string path;
     };
-    struct Sprite
+    struct Mob final : IComponent
     {
-            std::string id;
-            std::string path;
+            // bool is_alive{};
     };
-    struct Text
+    struct Player final : IComponent
     {
-            std::string id;
+            bool is_cli{};
+            // bool is_alive{};
+    };
+    struct Pixel final : IComponent
+    {
+    };
+    struct Rect final : IComponent
+    { // TODO(bobis33): remove, only used for texture actually
+            float pos_x{}, pos_y{};
+            int size_x{}, size_y{};
+    };
+    struct Scale final : IComponent
+    {
+            float x{}, y{};
+    };
+    struct Text final : IComponent
+    {
             std::string content;
-            int fontSize;
+            unsigned int font_size;
     };
-    struct Transform
+    struct Texture final : IComponent
     {
-            std::string id;
-            float x, y;
-            float rotation;
+            std::string path;
+            // float rect_pos_x{}, rect_pos_y{};
+            // int rect_size_x{}, rect_size_y{};
     };
-    struct Velocity
+    struct Transform final : IComponent
     {
-            std::string id;
-            float x, y;
+            float x{}, y{};
+            float rotation{};
+    };
+    struct Velocity final : IComponent
+    {
+            float x{}, y{};
     };
 } // namespace ecs

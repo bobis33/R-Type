@@ -10,6 +10,7 @@ file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/R-Type/*.hpp")
 include(MakeVersion)
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+include(CopyAssets)
 add_dependencies(${PROJECT_NAME}
         r-type_third-party
         r-type_modules_client
@@ -19,6 +20,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_SOURCE_DIR}/third-party/json/single_include"
         "${CMAKE_SOURCE_DIR}/modules/Renderer/SFMLRenderer/include"
         "${CMAKE_SOURCE_DIR}/modules/Audio/SFMLAudio/include"
+        "${CMAKE_SOURCE_DIR}/modules/Game/R-Type/Client/include"
         "${CMAKE_SOURCE_DIR}/modules/ECS/include" ## to remove
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE

@@ -3,29 +3,21 @@
 </p>
 
 # R-Type
+[![CI - Gitleaks](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml)
+[![CI - R-Type](https://github.com/bobis33/R-Type/actions/workflows/ci.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/ci.yml)
+[![CD - Doxygen documentation](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml)
+[![CD - Mirror](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml)
+
 The Goal of this project is to implement a multithreaded server and a graphical client for a game called R-Type, using an engine of your own design.
 
 ## Supported Platforms
-| Platform   | Compiler | Status                                                                                |
-|------------|----------|---------------------------------------------------------------------------------------|
-| Linux      | g++      | ![Linux](https://img.shields.io/badge/Linux-green?style=flat-square&logo=linux)       |
-| macOS      | g++      | ![macOS](https://img.shields.io/badge/macOS-green?style=flat-square&logo=apple)       |
-| Windows    | MSVC     | ![Windows](https://img.shields.io/badge/Windows-green?style=flat-square&logo=windows) |
+| Platform | Compiler | Status |
+|----------|----------|--------|
+| Linux    | g++      | ✅      |
+| macOS    | g++      | ✅      |
+| Windows  | MSVC     | ✅      |
 
 ## Project Structure
-```
-R-Type
-├── assets                  # Game assets (images, sounds, etc.)
-├── cmake                   # Cmake configs
-├── client                  # Client source code
-├── documentation           # Project documentation
-├── modules                 # Static libraries for the project
-├── scripts                 # Build and utility scripts
-├── server                  # Server source code
-├── tests                   # Unit and integration tests
-└─── third-party            # External libraries as submodules
-```
-
 ```mermaid
 flowchart LR
     subgraph App
@@ -48,14 +40,20 @@ flowchart LR
         A <==>|TCP/UDP| H
     end
 ```
+```text
+R-Type
+├── assets                  # Game assets (images, sounds, etc.)
+├── cmake                   # Cmake configs
+├── client                  # Client source code
+├── documentation           # Project documentation
+├── modules                 # Static libraries for the project
+├── scripts                 # Build and utility scripts
+├── server                  # Server source code
+├── tests                   # Unit and integration tests
+└─── third-party            # External libraries as submodules
+```
 
-## Prerequisites
-Make sure you have the following dependencies installed on your system:
-
-- [CMake 4.0.0](https://cmake.org/)
-- [C++23](https://en.cppreference.com/w/cpp/23)
-
-## Clone the project
+## Build and Run
 > [!IMPORTANT]
 > When cloning the project, you should also initialize the submodules:
 > ```bash
@@ -65,8 +63,11 @@ Make sure you have the following dependencies installed on your system:
 > ```bash
 > git submodule update --init --recursive
 > ```
+### Prerequisites
+Make sure you have the following dependencies installed on your system:
 
-## Build and Run
+- [CMake 4.0.0](https://cmake.org/)
+- [C++23](https://en.cppreference.com/w/cpp/23)
 ### Unix (Linux, macOS)
 ```bash
 ./scripts/unix/build.sh release
@@ -98,5 +99,5 @@ More specific documentation for each part of the project can be found in their r
 ## External Libraries
 All dependencies are included as submodules in the [third-party](https://github.com/bobis33/R-Type/tree/main/third-party) directory.
 
-
+## Contributing
 ➡️ Want to contribute? See [CONTRIBUTING.md](https://github.com/bobis33/R-Type/blob/main/CONTRIBUTING.md).

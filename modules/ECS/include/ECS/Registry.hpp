@@ -32,13 +32,29 @@ namespace ecs
             Registry(Registry &&) = delete;
             Registry &operator=(Registry &&) = delete;
 
-            Entity createEntity()
+            class EntityBuilder
+            {
+                public:
+                    EntityBuilder(Registry &reg, Entity e) : m_registry(reg), m_entity(e) {}
+
+                    template <typename T, typename... Args> EntityBuilder &with(Args &&...args)
+                    {
+                        m_registry.addComponent<T>(m_entity, std::forward<Args>(args)...);
+                        return *this;
+                    }
+
+                    Entity build() const { return m_entity; }
+
+                private:
+                    Registry &m_registry;
+                    Entity m_entity;
+            };
+
+            EntityBuilder createEntity()
             {
                 const Entity entity = ++m_lastEntity;
                 m_entities.push_back(entity);
-                for (auto &cb : m_onEntityCreatedCallbacks)
-                    cb(entity);
-                return entity;
+                return EntityBuilder(*this, entity);
             }
 
             template <typename T, typename... Args> T &addComponent(Entity e, Args &&...args)
@@ -46,7 +62,9 @@ namespace ecs
                 auto &pool = getPool<T>();
                 T &comp = pool.add(e, std::forward<Args>(args)...);
                 for (auto &cb : m_onComponentAddedCallbacks)
+                {
                     cb(e, typeid(T));
+                }
                 return comp;
             }
 
@@ -68,10 +86,6 @@ namespace ecs
             {
                 auto &pool = getPool<T>();
                 pool.remove(e);
-            }
-            void onEntityCreated(std::function<void(Entity)> cb)
-            {
-                m_onEntityCreatedCallbacks.push_back(std::move(cb));
             }
 
             void onComponentAdded(std::function<void(Entity, const std::type_info &)> cb)
@@ -101,18 +115,20 @@ namespace ecs
                     {
                         auto it = data.find(e);
                         if (it != data.end())
+                        {
                             return &it->second;
+                        }
                         return nullptr;
                     }
 
-                    bool has(Entity e) { return data.find(e) != data.end(); }
+                    bool has(Entity e) { return data.contains(e); }
 
                     void remove(Entity e) override { data.erase(e); }
             };
 
             template <typename T> Pool<T> &getPool()
             {
-                std::type_index ti(typeid(T));
+                const std::type_index ti(typeid(T));
                 if (!m_components.contains(ti))
                 {
                     m_components[ti] = std::make_unique<Pool<T>>();
@@ -122,7 +138,6 @@ namespace ecs
             Entity m_lastEntity = INVALID_ENTITY;
             std::vector<Entity> m_entities;
             std::unordered_map<std::type_index, std::unique_ptr<IPool>> m_components;
-            std::vector<std::function<void(Entity)>> m_onEntityCreatedCallbacks;
             std::vector<std::function<void(Entity, const std::type_info &)>> m_onComponentAddedCallbacks;
 
     }; // class Registry

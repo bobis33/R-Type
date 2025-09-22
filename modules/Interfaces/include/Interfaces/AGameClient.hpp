@@ -28,4 +28,4 @@ namespace gme
             std::string m_name = "default_name";
     }; // class AGameClient
 
-} // namespace cligme
+} // namespace gme

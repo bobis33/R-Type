@@ -10,7 +10,8 @@
 #include <memory>
 
 #include "ECS/Registry.hpp"
-#include "Engine//Systems.hpp"
+#include "Engine/SceneManager.hpp"
+#include "Engine/Systems.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Interfaces/INetworkClient.hpp"
 #include "Interfaces/IRenderer.hpp"
@@ -18,6 +19,13 @@
 
 namespace eng
 {
+
+    enum State : unsigned char
+    {
+        STOP = 0,
+        RUN = 1,
+        DEFAULT = 2,
+    };
 
     ///
     /// @class Engine
@@ -39,28 +47,28 @@ namespace eng
             Engine &operator=(Engine &&) = delete;
 
             std::unique_ptr<IAudio> &getAudio() { return m_audio; }
-            std::unique_ptr<INetworkClient> &getNetworkClient() { return m_networkClient; }
+            std::unique_ptr<INetworkClient> &getNetwork() { return m_network; }
             std::unique_ptr<IRenderer> &getRenderer() { return m_renderer; }
             std::unique_ptr<utl::Clock> &getClock() { return m_clock; }
-            std::unique_ptr<ecs::Registry> &getRegistry() { return m_registry; } // to remove
+            std::unique_ptr<SceneManager> &getSceneManager() { return m_sceneManager; }
+            State getState() const { return m_state; }
 
             void addSystem(std::unique_ptr<ISystem> system) { m_systems.emplace_back(std::move(system)); }
-            void updateSystems(const float dt) const
-            {
-                for (auto &system : m_systems)
-                {
-                    system->update(*m_registry, dt);
-                }
-            }
+            void setState(const State newState) { m_state = newState; }
+
+            void render(ecs::Registry &registry, Color clearColor, float dt) const;
+            void stop() const { m_renderer->closeWindow(); }
 
         private:
-            std::unique_ptr<IAudio> m_audio;
-            std::unique_ptr<INetworkClient> m_networkClient;
-            std::unique_ptr<IRenderer> m_renderer;
+            void updateSystems(ecs::Registry &registry, float dt) const;
 
+            State m_state = RUN;
             std::unique_ptr<utl::Clock> m_clock;
-            std::unique_ptr<ecs::Registry> m_registry; // to remove, maybe one registry per scene
+            std::unique_ptr<SceneManager> m_sceneManager;
             std::vector<std::unique_ptr<ISystem>> m_systems;
+            std::unique_ptr<IAudio> m_audio;
+            std::unique_ptr<INetworkClient> m_network;
+            std::unique_ptr<IRenderer> m_renderer;
     }; // class Engine
 
 } // namespace eng
