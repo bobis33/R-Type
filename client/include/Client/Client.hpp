@@ -37,11 +37,8 @@ namespace cli
 
         private:
             void handleEvents(eng::Event &event);
-            void update(float dt, const std::unique_ptr<eng::IScene> &scene);
-            eng::IScene& lobbyScene();
+            eng::IScene &lobbyScene();
 
-            ecs::Entity m_fpsEntity = 0;
-            ecs::Entity m_playerEntity = 0;
             std::unique_ptr<gme::IGameClient> m_game;
             std::unique_ptr<eng::Engine> m_engine;
             std::unordered_map<eng::Key, bool> m_keysPressed;

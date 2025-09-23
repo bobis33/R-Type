@@ -27,8 +27,10 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/client/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/ECS/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Engine/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Engine/src \
-                         @CMAKE_CURRENT_SOURCE_DIR@/modules/Game/R-Type/include \
-                         @CMAKE_CURRENT_SOURCE_DIR@/modules/Game/R-Type/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/modules/Game/R-Type/Client/include \
+                         @CMAKE_CURRENT_SOURCE_DIR@/modules/Game/R-Type/Client/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/modules/Game/R-Type/Server/include \
+                         @CMAKE_CURRENT_SOURCE_DIR@/modules/Game/R-Type/Server/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Interfaces/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Renderer/SFMLRenderer/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Renderer/SFMLRenderer/src \
