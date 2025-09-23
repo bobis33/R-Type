@@ -199,6 +199,8 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
             return eng::Key::Num8;
         case S::Num9:
             return eng::Key::Num9;
+        case S::Enter:
+            return eng::Key::Enter;
         default:
             return eng::Key::Unknown;
     }
