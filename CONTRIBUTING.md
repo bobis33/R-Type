@@ -33,6 +33,14 @@ const int MAX_PLAYERS = 4;
 ```cpp
 namespace ecs { ... }
 ```
+- Types / struct member: `snake_case`
+```cpp
+using entity_id = unsigned int;
+
+struct MyStruct {
+   std::string my_member;
+}
+```
 
 ### Yaml
 - Extention : `.yml`

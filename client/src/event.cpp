@@ -6,7 +6,7 @@ void cli::Client::handleEvents(eng::Event &event)
 
     while (m_engine->getRenderer()->pollEvent(event))
     {
-        scene->onEvent(event);
+        scene->event(event);
 
         switch (event.type)
         {

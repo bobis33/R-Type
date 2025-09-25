@@ -40,15 +40,15 @@ namespace eng
             bool pollEvent(Event &event) override;
             void setFrameLimit(unsigned int frameLimit) override;
 
-            void createFont(Font font) override;
+            void createFont(const std::string &name, const std::string &path) override;
             void createText(Text text) override;
             void setTextContent(const std::string &name, const std::string &content) override;
             void setTextPosition(const std::string &name, float x, float y) override;
             void setTextColor(const std::string &name, Color color) override;
 
             void drawText(const std::string &name) override;
-            void createTexture(const std::string &path, const std::string &name) override;
-            void createSprite(const std::string &textureName, float x, float y, const std::string &name, float scale_x,
+            void createTexture(const std::string &name, const std::string &path) override;
+            void createSprite(const std::string &name, const std::string &textureName, float x, float y, float scale_x,
                               float scale_y, int fx, int fy, int fnx, int fny) override;
             void setSpritePosition(const std::string &name, float x, float y) override;
             void setSpriteTexture(const std::string &name, const std::string &path) override;

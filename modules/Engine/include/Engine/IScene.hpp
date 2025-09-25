@@ -32,23 +32,26 @@ namespace eng
 
             virtual void setName(const std::string &newName) = 0;
 
-            virtual void setEventHandler(std::function<void(const Event&)> handler) = 0;
-            virtual void onEvent(const Event &event) = 0;
+            virtual void update(float dt, const WindowSize &size) = 0;
+            virtual void event(const Event &event) = 0;
 
-            virtual void setUpdateHandler(std::function<void(float)> handler) = 0;
-            virtual void onUpdate(float dt) = 0;
     }; // class IScene
 
     ///
-    /// @class Scene
+    /// @class AScene
     /// @brief Class for scene
     /// @namespace eng
     ///
-    class Scene final : public IScene
+    class AScene : public IScene
     {
         public:
-            Scene() : m_id(s_nextId++) {}
-            ~Scene() override = default;
+            AScene() : m_id(s_nextId++) {}
+            ~AScene() override = default;
+
+            AScene(const AScene &other) = delete;
+            AScene(AScene &&other) = delete;
+            AScene &operator=(const AScene &other) = delete;
+            AScene &operator=(AScene &&other) = delete;
 
             [[nodiscard]] std::string &getName() override { return m_name; }
             [[nodiscard]] id getId() const override { return m_id; }
@@ -56,29 +59,11 @@ namespace eng
 
             void setName(const std::string &newName) override { m_name = newName; }
 
-            void setEventHandler(std::function<void(const Event&)> handler) override { m_eventHandler = std::move(handler); }
-            void onEvent(const Event &event) override {
-                if (m_eventHandler) {
-                    m_eventHandler(event);
-                }
-            }
-            void setUpdateHandler(std::function<void(float)> handler) override { m_updateHandler = std::move(handler); }
-            void onUpdate(const float dt) override
-            {
-                if (m_updateHandler)
-                {
-                    m_updateHandler(dt);
-                }
-            }
-
         private:
             std::string m_name = "default_name";
-            id m_id;
+            id m_id = 1;
             ecs::Registry m_registry;
             inline static id s_nextId = 1;
-            std::function<void(const Event&)> m_eventHandler;
-            std::function<void(float)> m_updateHandler;
-
-    }; // class Scene
+    }; // class AScene
 
 } // namespace eng

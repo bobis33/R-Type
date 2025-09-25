@@ -34,19 +34,19 @@ void eng::SFMLRenderer::closeWindow() { m_impl->window.close(); }
 
 void eng::SFMLRenderer::setFrameLimit(const unsigned int frameLimit) { m_impl->window.setFramerateLimit(frameLimit); }
 
-void eng::SFMLRenderer::createFont(Font font)
+void eng::SFMLRenderer::createFont(const std::string &name, const std::string &path)
 {
     sf::Font sfFont;
-    if (!sfFont.openFromFile(font.path))
+    if (!sfFont.openFromFile(path))
     {
-        throw std::runtime_error("Failed to load font: " + font.path);
+        throw std::runtime_error("Failed to load font: " + path);
     }
-    m_impl->fonts.emplace(font.name, std::move(sfFont));
+    m_impl->fonts.emplace(name, std::move(sfFont));
 }
 
 void eng::SFMLRenderer::createText(Text text)
 {
-    const auto &font = m_impl->fonts.at(text.fontName);
+    const auto &font = m_impl->fonts.at(text.font_name);
     sf::Text sfText(font);
     sfText.setString(text.content);
     sfText.setCharacterSize(text.size);
@@ -238,9 +238,8 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
     return false;
 }
 
-void eng::SFMLRenderer::createSprite(const std::string &textureName, const float x, const float y,
-                                     const std::string &name, float scale_x, float scale_y, int fx, int fy, int fnx,
-                                     int fny)
+void eng::SFMLRenderer::createSprite(const std::string &name, const std::string &textureName, const float x,
+                                     const float y, float scale_x, float scale_y, int fx, int fy, int fnx, int fny)
 {
     sf::Sprite sfSprite(m_impl->textures[textureName]);
     sfSprite.setPosition({x, y});
@@ -258,7 +257,7 @@ void eng::SFMLRenderer::createSprite(const std::string &textureName, const float
     m_impl->sprites.emplace(name, std::move(sfSprite));
 }
 
-void eng::SFMLRenderer::createTexture(const std::string &path, const std::string &name)
+void eng::SFMLRenderer::createTexture(const std::string &name, const std::string &path)
 {
     if (m_impl->textures.contains(name))
     {
