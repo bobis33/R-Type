@@ -5,6 +5,7 @@ project(r-type
         LANGUAGES C CXX
 )
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+execute_process(COMMAND ln -s ${PROJECT_SOURCE_DIR}/cmake-build-release/compile_commands.json ${PROJECT_SOURCE_DIR})
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 set(LIBRARY_OUTPUT_PATH "${EXECUTABLE_OUTPUT_PATH}/lib")
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")

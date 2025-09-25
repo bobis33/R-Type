@@ -10,3 +10,6 @@
 [submodule "third-party/json"]
 	path = third-party/json
 	url = https://github.com/nlohmann/json.git
+[submodule "third-party/asio"]
+	path = third-party/asio
+	url = https://github.com/chriskohlhoff/asio

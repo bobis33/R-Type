@@ -2,12 +2,15 @@ add_library(r-type_engine INTERFACE)
 add_library(r-type_modules_client INTERFACE)
 add_library(r-type_modules_server INTERFACE)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 add_subdirectory(Utils)
 add_subdirectory(ECS)
 add_subdirectory(Audio)
 add_subdirectory(Renderer)
 add_subdirectory(Engine)
 add_subdirectory(Game)
+add_subdirectory(Network)
 
 target_link_libraries(r-type_engine INTERFACE
         utils
@@ -20,10 +23,12 @@ target_link_libraries(r-type_modules_client INTERFACE
         utils
         game_rtype_client
         engine
+        network_rtype_client
 )
 target_link_libraries(r-type_modules_server INTERFACE
         utils
         game_rtype_server
+        network_rtype_server
 )
 
 target_include_directories(r-type_engine SYSTEM INTERFACE
@@ -43,4 +48,5 @@ target_include_directories(r-type_modules_server SYSTEM INTERFACE
         "${CMAKE_CURRENT_SOURCE_DIR}/Game/R-Type/Server/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Interfaces/include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Utils/include"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Network/include"
 )
