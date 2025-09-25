@@ -6,7 +6,10 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Server/ArgsHandler.hpp"
+#include "Interfaces/INetworkServer.hpp"
 
 namespace srv
 {
@@ -29,6 +32,7 @@ namespace srv
             Server &operator=(Server &&) = delete;
 
         private:
+            std::unique_ptr<INetworkServer> m_network;
     }; // class Server
 
 } // namespace srv

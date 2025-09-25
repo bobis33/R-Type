@@ -5,10 +5,10 @@
 #include <string>
 #include <thread>
 #include <optional>
-#include <iostream>
 
-namespace net {
-    class NetworkServer : public srv::INetworkServer {
+namespace srv {
+
+    class NetworkServer final : public INetworkServer {
         public:
             NetworkServer(unsigned int port, const std::string &address);
             ~NetworkServer() override;
@@ -20,12 +20,12 @@ namespace net {
             void startReceive();
             void handleReceive(const asio::error_code& error, std::size_t bytes_transferred);
 
-            asio::io_context _ioContext;
-            asio::ip::udp::socket _socket;
-            asio::ip::udp::endpoint _remoteEndpoint;
-            std::array<char, srv::MAX_LEN_RECV_BUFFER> _recvBuffer;
+            asio::io_context m_ioContext;
+            asio::ip::udp::socket m_socket;
+            asio::ip::udp::endpoint m_remoteEndpoint;
+            std::array<char, MAX_LEN_RECV_BUFFER> m_recvBuffer;
 
-            std::optional<asio::executor_work_guard<asio::io_context::executor_type>> _workGuard;
-            std::thread _ioThread;
+            std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
+            std::thread m_ioThread;
     };
 }

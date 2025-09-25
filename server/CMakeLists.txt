@@ -6,7 +6,6 @@ project(r-type_server
 )
 set(PATH_VERSION "${PROJECT_SOURCE_DIR}/include/Server/Generated/Version.hpp")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/R-Type/*.hpp")
 include(MakeVersion)

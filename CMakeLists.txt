@@ -6,6 +6,7 @@ project(r-type
 )
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 execute_process(COMMAND ln -s ${PROJECT_SOURCE_DIR}/cmake-build-release/compile_commands.json ${PROJECT_SOURCE_DIR})
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 set(LIBRARY_OUTPUT_PATH "${EXECUTABLE_OUTPUT_PATH}/lib")
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
@@ -45,7 +46,7 @@ include(ClangFormat)
 add_subdirectory(third-party)
 add_subdirectory(modules)
 add_subdirectory(plugins)
-## include(MakeShaders) ## OPG / VLK
+## include(MakeShaders) ## OPGL / VLK
 add_subdirectory(tests)
 add_subdirectory(client)
 add_subdirectory(server)

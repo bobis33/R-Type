@@ -1,9 +1,8 @@
-project(network_rtype_client
-        DESCRIPTION "R-Type game library"
+project(network_asio_client
+        DESCRIPTION "Network client library"
         LANGUAGES CXX
 )
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
 
@@ -14,7 +13,6 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/modules/Interfaces/include
-        ${CMAKE_SOURCE_DIR}/modules/Network
         ${CMAKE_SOURCE_DIR}/third-party/asio/asio/include
 )
 
