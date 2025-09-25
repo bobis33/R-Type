@@ -1,17 +1,37 @@
+///
+/// @file NetworkServer.hpp
+/// @brief This file contains the server network implementation for Asio
+/// @namespace srv
+///
+
 #pragma once
 
-#include "Interfaces/INetworkServer.hpp"
-#include "asio.hpp"
 #include <string>
 #include <thread>
 #include <optional>
 
-namespace srv {
+#include <asio.hpp>
 
-    class NetworkServer final : public INetworkServer {
+#include "Interfaces/INetworkServer.hpp"
+
+namespace srv
+{
+
+    ///
+    /// @class NetworkServer
+    /// @brief Network implementation with asio for server
+    /// @namespace srv
+    ///
+    class NetworkServer final : public INetworkServer
+    {
         public:
             NetworkServer(unsigned int port, const std::string &address);
             ~NetworkServer() override;
+
+            NetworkServer(const NetworkServer &) = delete;
+            NetworkServer(NetworkServer &&) = delete;
+            NetworkServer &operator=(const NetworkServer &) = delete;
+            NetworkServer &operator=(NetworkServer &&) = delete;
 
             void start() override;
             void stop() override;
@@ -27,5 +47,5 @@ namespace srv {
 
             std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
             std::thread m_ioThread;
-    };
-}
+    }; // class NetworkServer
+} // namespace srv
