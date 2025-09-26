@@ -22,6 +22,8 @@ namespace cli
             unsigned int height = Config::Window::DEFAULT_WINDOW_HEIGHT;
             unsigned int frameLimit = Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
             bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
+            std::string host = Config::Network::DEFAULT_NETWORK_HOST;
+            unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
             static ArgsConfig fromFile(const std::string &path);
     }; // struct Config
     struct EnvConfig

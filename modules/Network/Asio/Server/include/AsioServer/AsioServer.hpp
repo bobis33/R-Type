@@ -1,5 +1,5 @@
 ///
-/// @file NetworkServer.hpp
+/// @file AsioServer.hpp
 /// @brief This file contains the server network implementation for Asio
 /// @namespace srv
 ///
@@ -18,20 +18,20 @@ namespace srv
 {
 
     ///
-    /// @class NetworkServer
+    /// @class AsioServer
     /// @brief Network implementation with asio for server
     /// @namespace srv
     ///
-    class NetworkServer final : public INetworkServer
+    class AsioServer final : public INetworkServer
     {
         public:
-            NetworkServer(unsigned int port, const std::string &address);
-            ~NetworkServer() override { stop(); }
+            AsioServer(uint16_t port, const std::string &address);
+            ~AsioServer() override { stop(); }
 
-            NetworkServer(const NetworkServer &) = delete;
-            NetworkServer(NetworkServer &&) = delete;
-            NetworkServer &operator=(const NetworkServer &) = delete;
-            NetworkServer &operator=(NetworkServer &&) = delete;
+            AsioServer(const AsioServer &) = delete;
+            AsioServer(AsioServer &&) = delete;
+            AsioServer &operator=(const AsioServer &) = delete;
+            AsioServer &operator=(AsioServer &&) = delete;
 
             void start() override;
             void stop() override;
@@ -47,5 +47,5 @@ namespace srv
 
             std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
             std::thread m_ioThread;
-    }; // class NetworkServer
+    }; // class AsioServer
 } // namespace srv

@@ -1,5 +1,5 @@
 #include "Server/Server.hpp"
-#include "NetworkServer/NetworkServer.hpp"
+#include "AsioServer/AsioServer.hpp"
 #include "Server/ArgsHandler.hpp"
 #include "Server/Generated/Version.hpp"
 #include "Utils/Logger.hpp"
@@ -14,7 +14,7 @@ srv::Server::Server(const ArgsConfig &config)
                  "\tGit tag: " GIT_TAG "\n"
                  "\tGit commit hash: " GIT_COMMIT_HASH "\n";
 
-    m_network = std::make_unique<NetworkServer>(config.port, config.host);
+    m_network = std::make_unique<AsioServer>(config.port, config.host);
 }
 
 void srv::Server::run() const

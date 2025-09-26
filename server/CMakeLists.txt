@@ -17,7 +17,7 @@ add_dependencies(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
         "${INCLUDE_DIR}"
         "${CMAKE_SOURCE_DIR}/third-party/json/single_include"
-        "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include"
+        "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include" ## TODO(Bobis33): to remove
         "${CMAKE_SOURCE_DIR}/modules/Network/Server/include"
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE

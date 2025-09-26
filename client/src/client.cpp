@@ -1,4 +1,5 @@
 #include "Client/Client.hpp"
+#include "AsioClient/AsioClient.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Lobby.hpp"
 #include "Client/Systems/Systems.hpp"
@@ -22,7 +23,8 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine =
         std::make_unique<eng::Engine>([]() { return std::make_unique<eng::SFMLAudio>(); }, []() { return nullptr; },
                                       []() { return std::make_unique<eng::SFMLRenderer>(); });
-    m_game = std::make_unique<gme::RTypeClient>();
+    // m_game = std::make_unique<gme::RTypeClient>();
+    m_network = std::make_unique<eng::AsioClient>();
 
     m_engine->getRenderer()->createWindow("R-Type Client", cfg.height, cfg.width, cfg.frameLimit, cfg.fullscreen);
 

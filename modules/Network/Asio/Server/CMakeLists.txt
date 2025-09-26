@@ -1,5 +1,5 @@
 project(network_asio_server
-        DESCRIPTION "Network Asio library"
+        DESCRIPTION "Network Asio server library"
         LANGUAGES CXX
 )
 
@@ -12,8 +12,8 @@ file(GLOB_RECURSE HEADERS "${INCLUDE_DIRS}/*.hpp")
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIRS}
-        ${CMAKE_SOURCE_DIR}/modules/Interfaces/include
-        ${CMAKE_SOURCE_DIR}/third-party/asio/asio/include
+        "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
+        "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include"
 )
 
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})

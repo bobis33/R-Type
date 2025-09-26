@@ -1,21 +1,21 @@
 #include <iostream>
 
-#include "NetworkServer/NetworkServer.hpp"
+#include "AsioServer/AsioServer.hpp"
 
 using asio::ip::udp;
 
-srv::NetworkServer::NetworkServer(const unsigned int port, const std::string &address)
+srv::AsioServer::AsioServer(const uint16_t port, const std::string &address)
     : m_socket(m_ioContext), m_recvBuffer()
 {
     const asio::ip::address addr = asio::ip::make_address(address);
-    const udp::endpoint ep(addr, static_cast<unsigned short>(port));
+    const udp::endpoint ep(addr, port);
 
     m_socket.open(ep.protocol());
     m_socket.set_option(asio::socket_base::reuse_address(true));
     m_socket.bind(ep);
 }
 
-void srv::NetworkServer::start()
+void srv::AsioServer::start()
 {
     m_workGuard.emplace(asio::make_work_guard(m_ioContext));
 
@@ -35,7 +35,7 @@ void srv::NetworkServer::start()
         });
 }
 
-void srv::NetworkServer::stop()
+void srv::AsioServer::stop()
 {
     if (m_workGuard.has_value())
     {
@@ -57,13 +57,13 @@ void srv::NetworkServer::stop()
     }
 }
 
-void srv::NetworkServer::startReceive()
+void srv::AsioServer::startReceive()
 {
     m_socket.async_receive_from(asio::buffer(m_recvBuffer), m_remoteEndpoint,
                                 [this](const asio::error_code &ec, const std::size_t n) { handleReceive(ec, n); });
 }
 
-void srv::NetworkServer::handleReceive(const asio::error_code &error, const std::size_t bytesTransferred)
+void srv::AsioServer::handleReceive(const asio::error_code &error, const std::size_t bytesTransferred)
 {
     if (!error || error == asio::error::message_size)
     {
