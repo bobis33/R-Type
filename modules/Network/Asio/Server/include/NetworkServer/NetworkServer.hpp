@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <thread>
-#include <optional>
 
 #include <asio.hpp>
 
@@ -26,7 +26,7 @@ namespace srv
     {
         public:
             NetworkServer(unsigned int port, const std::string &address);
-            ~NetworkServer() override;
+            ~NetworkServer() override { stop(); }
 
             NetworkServer(const NetworkServer &) = delete;
             NetworkServer(NetworkServer &&) = delete;
@@ -35,10 +35,10 @@ namespace srv
 
             void start() override;
             void stop() override;
-        private:
 
+        private:
             void startReceive();
-            void handleReceive(const asio::error_code& error, std::size_t bytes_transferred);
+            void handleReceive(const asio::error_code &error, std::size_t bytesTransferred);
 
             asio::io_context m_ioContext;
             asio::ip::udp::socket m_socket;

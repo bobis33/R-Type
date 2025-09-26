@@ -18,7 +18,8 @@ namespace srv
     /// @brief Interface for the server network
     /// @namespace srv
     ///
-    class INetworkServer {
+    class INetworkServer
+    {
         public:
             virtual ~INetworkServer() = default;
             virtual void start() = 0;

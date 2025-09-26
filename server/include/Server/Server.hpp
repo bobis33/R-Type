@@ -8,8 +8,8 @@
 
 #include <memory>
 
-#include "Server/ArgsHandler.hpp"
 #include "Interfaces/INetworkServer.hpp"
+#include "Server/ArgsHandler.hpp"
 
 namespace srv
 {
@@ -30,6 +30,8 @@ namespace srv
             Server &operator=(const Server &) = delete;
             Server(Server &&) = delete;
             Server &operator=(Server &&) = delete;
+
+            void run() const;
 
         private:
             std::unique_ptr<INetworkServer> m_network;

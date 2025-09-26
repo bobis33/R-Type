@@ -1,5 +1,5 @@
-#include "NetworkServer/NetworkServer.hpp"
 #include "Server/Server.hpp"
+#include "NetworkServer/NetworkServer.hpp"
 #include "Server/ArgsHandler.hpp"
 #include "Server/Generated/Version.hpp"
 #include "Utils/Logger.hpp"
@@ -15,9 +15,13 @@ srv::Server::Server(const ArgsConfig &config)
                  "\tGit commit hash: " GIT_COMMIT_HASH "\n";
 
     m_network = std::make_unique<NetworkServer>(config.port, config.host);
+}
+
+void srv::Server::run() const
+{
     m_network->start();
     for (;;)
-        {
+    {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
