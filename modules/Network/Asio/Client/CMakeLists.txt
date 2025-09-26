@@ -11,7 +11,7 @@ file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
-        ${INCLUDE_DIRS}
+        ${INCLUDE_DIR}
         "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
         "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include"
 )
