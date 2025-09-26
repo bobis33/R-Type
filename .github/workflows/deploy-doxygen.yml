@@ -33,7 +33,7 @@ jobs:
         run: ./scripts/unix/build.sh release --doc
 
       - name: 'Commit and push pdf documentation'
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_user_name: "[Bot] doc generator"
           commit_message: "[Docs]: Update docs"
@@ -50,7 +50,7 @@ jobs:
           destination: ./_site
 
       - name: 'Upload artifact'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
 
   deploy:
     runs-on: ubuntu-24.04
