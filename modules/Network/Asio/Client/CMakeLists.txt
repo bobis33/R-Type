@@ -4,10 +4,10 @@ project(network_asio_client
 )
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
-set(INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include")
+set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
 
 file(GLOB_RECURSE SOURCES "${SRC_DIR}/*.cpp")
-file(GLOB_RECURSE HEADERS "${INCLUDE_DIRS}/*.hpp")
+file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
