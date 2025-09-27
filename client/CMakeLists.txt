@@ -16,8 +16,9 @@ add_dependencies(${PROJECT_NAME}
         r-type_modules_client
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
-        "${INCLUDE_DIR}"
+        ${INCLUDE_DIR}
         "${CMAKE_SOURCE_DIR}/third-party/json/single_include"
+        "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include" ## TODO(Bobis33): to remove
         "${CMAKE_SOURCE_DIR}/modules/Renderer/SFMLRenderer/include"
         "${CMAKE_SOURCE_DIR}/modules/Audio/SFMLAudio/include"
         "${CMAKE_SOURCE_DIR}/modules/Game/R-Type/Client/include"

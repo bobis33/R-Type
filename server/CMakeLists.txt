@@ -6,8 +6,6 @@ project(r-type_server
 )
 set(PATH_VERSION "${PROJECT_SOURCE_DIR}/include/Server/Generated/Version.hpp")
 set(INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include")
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-execute_process(COMMAND ln -s ${PROJECT_SOURCE_DIR}/cmake-build-release/compile_commands.json ${PROJECT_SOURCE_DIR})
 file(GLOB_RECURSE SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/R-Type/*.hpp")
 include(MakeVersion)
@@ -17,8 +15,10 @@ add_dependencies(${PROJECT_NAME}
         r-type_modules_server
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
-        "${INCLUDE_DIR}"
+        ${INCLUDE_DIR}
         "${CMAKE_SOURCE_DIR}/third-party/json/single_include"
+        "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include" ## TODO(Bobis33): to remove
+        "${CMAKE_SOURCE_DIR}/modules/Network/Server/include"
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
         r-type_modules_server

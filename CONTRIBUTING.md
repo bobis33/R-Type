@@ -25,6 +25,10 @@ struct TransformComponent { ... };
 void updatePosition();
 int playerHealth;
 ```
+- Private members:
+```cpp
+unsigned int m_privateMember
+```
 - Constants / Macros: `UPPER_CASE_SNAKE_CASE`
 ```cpp
 const int MAX_PLAYERS = 4;
