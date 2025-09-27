@@ -1,5 +1,6 @@
 name: 'CI - Gitleaks'
 run-name: 'Gitleaks - "${{ github.ref_name }}"'
+
 on:
   push:
     branches:
@@ -15,7 +16,7 @@ jobs:
   scan:
     name: ''
     if: github.actor != 'dependabot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash

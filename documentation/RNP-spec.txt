@@ -1,0 +1,91 @@
+R-Type Protocol Specification
+=============================
+Author: Elliot Mas
+Version: 0.1
+Date: 2025-09-26
+Status: Draft
+
+1. Introduction
+---------------
+This document specifies the R-Type multiplayer game protocol.
+The protocol is designed to run over UDP, with a custom binary format
+for efficient real-time communication.
+
+2. Terminology
+--------------
+- Client: a game instance controlled by a player.
+- Server: the authoritative game host managing the world state.
+- Packet: a unit of data transmitted between client and server.
+
+3. Transport
+------------
+- Transport protocol: UDP (default port TBD)
+- Endianness: Little Endian
+- Reliability: Implemented at application level
+- Message size: max 512 bytes
+
+4. Packet Structure
+-------------------
+All packets share a common header:
+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |   Version     |   Type        |          Length               |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Sequence Number                        |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                        Payload ...                            |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+- Version (8 bits): Protocol version (currently 1)
+- Type (8 bits): Packet type (see section 5)
+- Length (16 bits): Length of payload in bytes
+- Sequence Number (32 bits): Monotonic counter for reliability
+- Payload: Type-specific data
+
+5. Packet Types
+---------------
+Type codes:
+
+    0x01 - CONNECT
+    0x02 - DISCONNECT
+    0x03 - PLAYER_INPUT
+    0x04 - WORLD_STATE
+    0x05 - PING
+    0x06 - PONG
+    0x07 - ERROR
+
+6. Reliability
+--------------
+Since UDP is unreliable, the protocol implements:
+- Sequence numbers to detect loss/reordering
+- Optional ACK packets
+- Retransmission on timeout
+
+7. Example Messages
+-------------------
+CONNECT (Client → Server)
+- Type: 0x01
+- Payload: player name (null-terminated string)
+
+PLAYER_INPUT (Client → Server)
+- Type: 0x03
+- Payload:
+    uint8  direction (0=none,1=up,2=down,3=left,4=right)
+    uint8  shooting (0/1)
+
+WORLD_STATE (Server → Client)
+- Type: 0x04
+- Payload: serialized entity list
+
+8. Security Considerations
+--------------------------
+- No authentication in this draft version
+- Spoofed UDP packets possible
+- Mitigation: future version may add HMAC or token exchange
+
+9. References
+-------------
+- RFC 768: User Datagram Protocol
+- Boost.Asio Documentation

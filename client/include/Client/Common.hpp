@@ -10,6 +10,16 @@ namespace cli
 {
     namespace Config
     {
+        namespace Audio
+        {
+            inline constexpr auto DEFAULT_AUDIO_VOLUME = 50;   // unused
+            inline constexpr auto DEFAULT_AUDIO_MUTED = false; // unused
+        } // namespace Audio
+        namespace Network
+        {
+            inline constexpr auto DEFAULT_NETWORK_HOST = "127.0.0.1";
+            inline constexpr auto DEFAULT_NETWORK_PORT = 2560;
+        } // namespace Network
         namespace Window
         {
             inline constexpr auto DEFAULT_WINDOW_WIDTH = 960;
@@ -17,11 +27,6 @@ namespace cli
             inline constexpr auto DEFAULT_WINDOW_FRAME_LIMIT = 240;
             inline constexpr auto DEFAULT_WINDOW_FULLSCREEN = false;
         } // namespace Window
-        namespace Audio
-        {
-            inline constexpr auto DEFAULT_AUDIO_VOLUME = 50;   // unused
-            inline constexpr auto DEFAULT_AUDIO_MUTED = false; // unused
-        } // namespace Audio
     } // namespace Config
     namespace Path
     {

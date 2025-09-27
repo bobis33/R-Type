@@ -39,8 +39,9 @@ namespace cli
             void handleEvents(eng::Event &event);
             eng::IScene &lobbyScene();
 
-            std::unique_ptr<gme::IGameClient> m_game;
             std::unique_ptr<eng::Engine> m_engine;
+            std::unique_ptr<gme::IGameClient> m_game;
+            std::unique_ptr<eng::INetworkClient> m_network;
             std::unordered_map<eng::Key, bool> m_keysPressed;
     }; // class Client
 

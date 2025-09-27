@@ -15,7 +15,8 @@ int main(const int argc, const char *const argv[], const char *const env[])
         {
             return EXIT_SUCCESS;
         }
-        srv::Server server(argsConf);
+        const srv::Server server(argsConf);
+        server.run();
     }
     catch (const std::exception &e)
     {

@@ -19,6 +19,8 @@ namespace eng
         public:
             virtual ~INetworkClient() = default;
 
+            virtual void connect(const std::string &host, unsigned short int port) = 0;
+            virtual void disconnect() = 0;
         private:
     }; // class INetworkClient
 
