@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Utils/Interfaces/IPlugin.hpp"
+
 namespace srv
 {
 
@@ -18,11 +20,10 @@ namespace srv
     /// @brief Interface for the server network
     /// @namespace srv
     ///
-    class INetworkServer
+    class INetworkServer : public utl::IPlugin
     {
         public:
-            virtual ~INetworkServer() = default;
-
+            virtual void init(uint16_t port, const std::string &address) = 0;
             virtual void start() = 0;
             virtual void stop() = 0;
     }; // class INetworkServer

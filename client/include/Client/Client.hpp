@@ -11,7 +11,7 @@
 #include "Client/ArgsHandler.hpp"
 #include "Engine/Engine.hpp"
 #include "Interfaces/IGameClient.hpp"
-#include "Utils/Clock.hpp"
+#include "Utils/PluginLoader.hpp"
 
 namespace cli
 {
@@ -37,11 +37,10 @@ namespace cli
 
         private:
             void handleEvents(eng::Event &event);
-            eng::IScene &lobbyScene();
 
+            std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<eng::Engine> m_engine;
             std::unique_ptr<gme::IGameClient> m_game;
-            std::unique_ptr<eng::INetworkClient> m_network;
             std::unordered_map<eng::Key, bool> m_keysPressed;
     }; // class Client
 

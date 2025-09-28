@@ -1,13 +1,11 @@
 #include "Client/Client.hpp"
-#include "AsioClient/AsioClient.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Lobby.hpp"
 #include "Client/Systems/Systems.hpp"
 #include "R-TypeClient/RTypeClient.hpp"
-#include "SFMLAudio/SFMLAudio.hpp"
-#include "SFMLRenderer/SFMLRenderer.hpp"
 #include "Utils/Clock.hpp"
 #include "Utils/Logger.hpp"
+#include "Utils/PluginLoader.hpp"
 
 static constexpr eng::Color DARK = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
 
@@ -20,12 +18,19 @@ cli::Client::Client(const ArgsConfig &cfg)
               << "\tGit tag: " GIT_TAG "\n"
               << "\tGit commit hash: " GIT_COMMIT_HASH "\n";
 
-    m_engine =
-        std::make_unique<eng::Engine>([]() { return std::make_unique<eng::SFMLAudio>(); }, []() { return nullptr; },
-                                      []() { return std::make_unique<eng::SFMLRenderer>(); });
+    m_pluginLoader = std::make_unique<utl::PluginLoader>();
+    const std::filesystem::path sfmlRendererPath =
+        std::filesystem::path(PLUGINS_DIR) / ("renderer_sfml" + std::string(PLUGINS_EXTENSION));
+    const std::filesystem::path sfmlAudioPath =
+        std::filesystem::path(PLUGINS_DIR) / ("audio_sfml" + std::string(PLUGINS_EXTENSION));
+    const std::filesystem::path asioNetworkPath =
+        std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
+    const auto renderer = m_pluginLoader->loadPlugin<eng::IRenderer>(sfmlRendererPath);
+    const auto audio = m_pluginLoader->loadPlugin<eng::IAudio>(sfmlAudioPath);
+    const auto network = m_pluginLoader->loadPlugin<eng::INetworkClient>(asioNetworkPath);
+    m_engine = std::make_unique<eng::Engine>([audio]() { return audio; }, [network]() { return network; },
+                                             [renderer]() { return renderer; });
     // m_game = std::make_unique<gme::RTypeClient>();
-    m_network = std::make_unique<eng::AsioClient>();
-
     m_engine->getRenderer()->createWindow("R-Type Client", cfg.height, cfg.width, cfg.frameLimit, cfg.fullscreen);
 
     m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));

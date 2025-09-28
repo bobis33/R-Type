@@ -8,6 +8,8 @@
 
 #include <string>
 
+#include "Utils/Interfaces/IPlugin.hpp"
+
 namespace eng
 {
 
@@ -23,11 +25,9 @@ namespace eng
     /// @brief Interface for the audio
     /// @namespace eng
     ///
-    class IAudio
+    class IAudio : public utl::IPlugin
     {
         public:
-            virtual ~IAudio() = default;
-
             virtual void createAudio(const std::string &path, float volume, bool loop, const std::string &name) = 0;
             virtual void playAudio(const std::string &name) = 0;
 

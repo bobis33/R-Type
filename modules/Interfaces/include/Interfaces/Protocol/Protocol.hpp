@@ -30,23 +30,24 @@ namespace rnp
 
     struct PacketHeader
     {
-        uint8_t version;
-        PacketType type;
-        uint16_t length;
-        uint32_t sequence;
+            uint8_t version;
+            PacketType type;
+            uint16_t length;
+            uint32_t sequence;
     };
 
     struct PacketConnect
     {
-        PacketHeader header;
-        char player_name[32];
+            PacketHeader header;
+            char player_name[32];
     };
 
     inline std::vector<uint8_t> serialize(const PacketHeader &header, const uint8_t *payload = nullptr)
     {
         std::vector<uint8_t> buffer(sizeof(PacketHeader) + (payload ? header.length : 0));
         std::memcpy(buffer.data(), &header, sizeof(PacketHeader));
-        if (payload && header.length > 0) {
+        if (payload && header.length > 0)
+        {
             std::memcpy(buffer.data() + sizeof(PacketHeader), payload, header.length);
         }
         return buffer;
@@ -55,7 +56,7 @@ namespace rnp
     inline PacketHeader deserializeHeader(const uint8_t *data, const std::size_t size)
     {
         if (size < sizeof(PacketHeader))
-            {
+        {
             throw std::runtime_error("Buffer too small for header");
         }
         PacketHeader header;
