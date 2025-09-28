@@ -9,10 +9,15 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <vector>
+#include <functional>
+#include <unordered_map>
+#include <unordered_set>
 
-#include <asio.hpp>
+#include "asio.hpp"
 
 #include "Interfaces/INetworkServer.hpp"
+#include "Interfaces/Protocol/Protocol.hpp"
 
 namespace srv
 {
@@ -25,7 +30,15 @@ namespace srv
     class AsioServer final : public INetworkServer
     {
         public:
-            AsioServer() : m_socket(m_ioContext), m_recvBuffer() {}
+            using PacketHandler = std::function<void(const asio::ip::udp::endpoint&, const rnp::PacketHeader&, const std::vector<uint8_t>&)>;
+            using ClientInfo = struct {
+                asio::ip::udp::endpoint endpoint;
+                std::string playerName;
+                uint32_t lastSequence;
+                bool connected;
+            };
+
+            AsioServer(uint16_t port, const std::string &address);
             ~AsioServer() override { stop(); }
 
             AsioServer(const AsioServer &) = delete;
@@ -40,16 +53,32 @@ namespace srv
             void start() override;
             void stop() override;
 
+            void sendWorldState(const asio::ip::udp::endpoint &client, const std::vector<uint8_t> &worldData);
+            void sendPong(const asio::ip::udp::endpoint &client);
+            void sendError(const asio::ip::udp::endpoint &client, const std::string &errorMessage);
+            void broadcastToAll(const std::vector<uint8_t> &data);
+
+            void setPacketHandler(rnp::PacketType type, PacketHandler handler);
+
+            const std::unordered_map<asio::ip::udp::endpoint, ClientInfo>& getClients() const { return m_clients; }
+
         private:
             void startReceive();
             void handleReceive(const asio::error_code &error, std::size_t bytesTransferred);
+            void handleSend(const asio::error_code &error, std::size_t bytesTransferred);
+            void processPacket(const asio::ip::udp::endpoint &sender, const std::vector<uint8_t> &data);
+            void addClient(const asio::ip::udp::endpoint &endpoint, const std::string &playerName);
+            void removeClient(const asio::ip::udp::endpoint &endpoint);
 
             asio::io_context m_ioContext;
             asio::ip::udp::socket m_socket;
             asio::ip::udp::endpoint m_remoteEndpoint;
-            std::array<char, MAX_LEN_RECV_BUFFER> m_recvBuffer;
+            std::array<uint8_t, rnp::MAX_PAYLOAD + sizeof(rnp::PacketHeader)> m_recvBuffer;
 
             std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
             std::thread m_ioThread;
+            std::unordered_map<asio::ip::udp::endpoint, ClientInfo> m_clients;
+            std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
+            uint32_t m_sequenceNumber = 0;
     }; // class AsioServer
 } // namespace srv
