@@ -75,8 +75,8 @@ Make sure you have the following dependencies installed on your system:
 cmake -S . -B cmake-build-release -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
 cmake --build cmake-build-release -- -j4
 ## Then
-./cmake-build-release/r-type_client ## client
-./cmake-build-release/r-type_server ## server
+./cmake-build-release/bin/r-type_client ## client
+./cmake-build-release/bin/r-type_server ## server
 ```
 
 ### Windows

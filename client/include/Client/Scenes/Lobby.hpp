@@ -21,7 +21,7 @@ namespace cli
     class Lobby final : public eng::AScene
     {
         public:
-            Lobby(const std::unique_ptr<eng::IRenderer> &renderer, const std::unique_ptr<eng::IAudio> &audio);
+            Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
             ~Lobby() override = default;
 
             Lobby(const Lobby &other) = delete;

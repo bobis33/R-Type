@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Utils/Interfaces/IPlugin.hpp"
+
 namespace eng
 {
 
@@ -14,13 +16,12 @@ namespace eng
     /// @brief Interface for the client network
     /// @namespace eng
     ///
-    class INetworkClient
+    class INetworkClient : public utl::IPlugin
     {
         public:
-            virtual ~INetworkClient() = default;
-
             virtual void connect(const std::string &host, unsigned short int port) = 0;
             virtual void disconnect() = 0;
+
         private:
     }; // class INetworkClient
 

@@ -1,3 +1,9 @@
+///
+/// @file Logger.hpp
+/// @brief This file contains the Logger class
+/// @namespace utl
+///
+
 #pragma once
 
 #include <array>
@@ -14,6 +20,11 @@ namespace utl
         WARNING
     };
 
+    ///
+    /// @class Logger
+    /// @brief Class for logging
+    /// @namespace utl
+    ///
     class Logger
     {
 
