@@ -52,11 +52,15 @@ namespace eng
 
             void setPacketHandler(rnp::PacketType type, PacketHandler handler);
 
+            // Gestion dédiée aux événements
+            void setEventsHandler(std::function<void(const std::vector<rnp::EventRecord>&)> handler);
+
         private:
             void startReceive();
             void handleReceive(const asio::error_code &error, std::size_t bytesTransferred);
             void handleSend(const asio::error_code &error, std::size_t bytesTransferred);
             void processPacket(const std::vector<uint8_t> &data);
+            void processEvents(const std::vector<uint8_t> &payload);
 
             asio::io_context m_ioContext;
             asio::ip::udp::socket m_socket;
@@ -66,6 +70,7 @@ namespace eng
             std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
             std::thread m_ioThread;
             std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
+            std::function<void(const std::vector<rnp::EventRecord>&)> m_eventsHandler;
             uint32_t m_sequenceNumber = 0;
             bool m_connected = false;
     }; // class AsioClient
