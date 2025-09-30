@@ -103,7 +103,6 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
                            data.begin() + sizeof(rnp::PacketHeader) + header.length);
         }
 
-        // Vérifier la version du protocole
         if (header.version != rnp::PROTOCOL_VERSION)
         {
             sendError(sender, "Version de protocole non supportée");
