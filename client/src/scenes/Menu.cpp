@@ -60,6 +60,18 @@ namespace cli
             .build();
         m_items.push_back({quitEntity, "quit"});
 
+        for (int i = 0; i < 100; i++) {
+            registry.createEntity()
+                .with<ecs::Pixel>("star_point_" + std::to_string(i))
+                .with<ecs::Transform>("star_point_transform", 
+                                       static_cast<float>(std::rand() % 800),
+                                       static_cast<float>(std::rand() % 600),
+                                       0.F)
+                .with<ecs::Velocity>("star_vel", -20.F - static_cast<float>(std::rand() % 30), 0.F)
+                .with<ecs::Color>("star_color", 200, 200, 255, 255)
+                .build();
+        }
+
         updateHighlight();
         std::cout << "Menu entities created!" << std::endl;
     }
@@ -103,8 +115,22 @@ namespace cli
         }
     }
 
-    void Menu::update(float, const eng::WindowSize &)
+    void Menu::update(float dt, const eng::WindowSize &size)
     {
+        auto &reg = getRegistry();
+
+        for (auto &[entity, velocity] : reg.getAll<ecs::Velocity>()) {
+            if (auto *pixel = reg.getComponent<ecs::Pixel>(entity)) {
+                if (auto *transform = reg.getComponent<ecs::Transform>(entity)) {
+                    transform->x += velocity.x * dt;
+                    transform->y += velocity.y * dt;
+                    if (transform->x < 0) {
+                        transform->x = static_cast<float>(size.width);
+                        transform->y = static_cast<float>(std::rand() % size.height);
+                    }
+                }
+            }
+        }
         if (m_exitGame)
             std::cout << "Exiting game..." << std::endl;
         if (m_startGame)
