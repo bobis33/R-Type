@@ -37,5 +37,10 @@ namespace cli
 
             ecs::Entity m_playerEntity;
             ecs::Entity m_fpsEntity;
+            ecs::Entity m_enemyCounterEntity;
+            ecs::Entity m_asteroidCounterEntity;
+            
+            // Système d'armes
+            WeaponSystem m_weaponSystem;
     }; // class Lobby
 } // namespace cli
