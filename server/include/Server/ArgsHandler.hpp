@@ -20,6 +20,7 @@ namespace srv
             bool exit = false;
             std::string host = "0.0.0.0";
             unsigned int port = 2560;
+            std::string network_lib_path;
 
             static ArgsConfig fromFile(const std::string &path);
     }; // struct Config

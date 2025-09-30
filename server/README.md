@@ -8,6 +8,9 @@ Here is an example configuration file:
 ```json
 {
   "host": "0.0.0.0",
-  "port": 2560
+  "port": 2560,
+  "plugins": {
+    "network": "/plugins/my_network_server_plugin.so"
+  }
 }
 ```
