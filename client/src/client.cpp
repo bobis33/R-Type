@@ -8,6 +8,8 @@
 #include "Utils/Clock.hpp"
 #include "Utils/Logger.hpp"
 #include "Client/Scenes/Lobby.hpp"
+#include "Client/Scenes/Menu.hpp"
+#include "Client/Scenes/Game.hpp"
 
 static constexpr eng::Color DARK = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
 
