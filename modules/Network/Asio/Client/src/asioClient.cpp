@@ -146,6 +146,11 @@ void eng::AsioClient::setPacketHandler(rnp::PacketType type, PacketHandler handl
     m_packetHandlers[type] = handler;
 }
 
+void eng::AsioClient::setEventsHandler(std::function<void(const std::vector<rnp::EventRecord>&)> handler)
+{
+    m_eventsHandler = std::move(handler);
+}
+
 void eng::AsioClient::startReceive()
 {
     m_socket.async_receive_from(asio::buffer(m_recvBuffer), m_serverEndpoint,
@@ -190,16 +195,23 @@ void eng::AsioClient::processPacket(const std::vector<uint8_t> &data)
                           data.begin() + sizeof(rnp::PacketHeader) + header.length);
         }
         
+        if (header.type == rnp::PacketType::EVENTS)
+        {
+            try
+            {
+                const std::vector<rnp::EventRecord> events = rnp::deserializeEvents(payload.data(), payload.size());
+                if (m_eventsHandler) { m_eventsHandler(events); }
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << "[AsioClient] Erreur de parsing EVENTS: " << e.what() << "\n";
+            }
+            return;
+        }
+
         auto it = m_packetHandlers.find(header.type);
-        if (it != m_packetHandlers.end())
-        {
-            it->second(header, payload);
-        }
-        else
-        {
-            std::cout << "[AsioClient] Paquet reçu de type " << static_cast<int>(header.type) 
-                      << " sans gestionnaire\n";
-        }
+        if (it != m_packetHandlers.end()) { it->second(header, payload); }
+        else { std::cout << "[AsioClient] Paquet reçu de type " << static_cast<int>(header.type) << " sans gestionnaire\n"; }
     }
     catch (const std::exception &e)
     {
