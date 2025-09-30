@@ -9,20 +9,21 @@
 #include <memory>
 #include <ranges>
 #include <stdexcept>
-#include <string>
 #include <unordered_map>
-
-#include "Logger.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
 #define PLUGINS_EXTENSION ".dll"
 #else
 #include <dlfcn.h>
-#define PLUGINS_EXTENSION ".so"
+    #ifdef __linux__
+    #define PLUGINS_EXTENSION ".so"
+    #elif __APPLE__
+    #define PLUGINS_EXTENSION ".dylib"
+    #endif
 #endif
-
 #include "Utils/Interfaces/IPlugin.hpp"
+#include "Utils/Logger.hpp"
 
 namespace utl
 {
@@ -30,7 +31,7 @@ namespace utl
     using LibHandle =
 #ifdef _WIN32
         HMODULE;
-#else
+#elif
         void *;
 #endif
 
@@ -77,7 +78,7 @@ namespace utl
                 }
 
 #ifdef _WIN32
-                auto entry = reinterpret_cast<EntryPointFn>(GetProcAddress(handle, "entryPoint"));
+                const auto entry = reinterpret_cast<EntryPointFn>(GetProcAddress(handle, "entryPoint"));
 #else
                 const auto entry = reinterpret_cast<EntryPointFn>(dlsym(handle, "entryPoint"));
 #endif
