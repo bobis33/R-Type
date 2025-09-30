@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
 #include <functional>
 #include <memory>
-#include <thread>
 #include <optional>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include "asio.hpp"
 
@@ -29,7 +29,7 @@ namespace eng
     class AsioClient final : public INetworkClient
     {
         public:
-            using PacketHandler = std::function<void(const rnp::PacketHeader&, const std::vector<uint8_t>&)>;
+            using PacketHandler = std::function<void(const rnp::PacketHeader &, const std::vector<uint8_t> &)>;
 
             AsioClient();
             ~AsioClient() override;
@@ -53,7 +53,7 @@ namespace eng
             void setPacketHandler(rnp::PacketType type, PacketHandler handler);
 
             // Gestion dédiée aux événements
-            void setEventsHandler(std::function<void(const std::vector<rnp::EventRecord>&)> handler);
+            void setEventsHandler(std::function<void(const std::vector<rnp::EventRecord> &)> handler);
 
         private:
             void startReceive();
@@ -70,7 +70,7 @@ namespace eng
             std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
             std::thread m_ioThread;
             std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
-            std::function<void(const std::vector<rnp::EventRecord>&)> m_eventsHandler;
+            std::function<void(const std::vector<rnp::EventRecord> &)> m_eventsHandler;
             uint32_t m_sequenceNumber = 0;
             bool m_connected = false;
     }; // class AsioClient

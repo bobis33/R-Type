@@ -6,13 +6,13 @@
 
 #pragma once
 
+#include <functional>
 #include <optional>
 #include <string>
 #include <thread>
-#include <vector>
-#include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "asio.hpp"
 
@@ -30,13 +30,15 @@ namespace srv
     class AsioServer final : public INetworkServer
     {
         public:
-            using PacketHandler = std::function<void(const asio::ip::udp::endpoint&, const rnp::PacketHeader&, const std::vector<uint8_t>&)>;
-            using ClientInfo = struct {
-                asio::ip::udp::endpoint endpoint;
-                std::string playerName;
-                uint32_t lastSequence;
-                bool connected;
-                std::uint16_t playerId;
+            using PacketHandler = std::function<void(const asio::ip::udp::endpoint &, const rnp::PacketHeader &,
+                                                     const std::vector<uint8_t> &)>;
+            using ClientInfo = struct
+            {
+                    asio::ip::udp::endpoint endpoint;
+                    std::string playerName;
+                    uint32_t lastSequence;
+                    bool connected;
+                    std::uint16_t playerId;
             };
 
             AsioServer(uint16_t port, const std::string &address);
@@ -63,7 +65,7 @@ namespace srv
 
             void setPacketHandler(rnp::PacketType type, PacketHandler handler);
 
-            const std::unordered_map<asio::ip::udp::endpoint, ClientInfo>& getClients() const { return m_clients; }
+            const std::unordered_map<asio::ip::udp::endpoint, ClientInfo> &getClients() const { return m_clients; }
 
         private:
             void startReceive();
