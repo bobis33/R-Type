@@ -29,6 +29,8 @@ cli::Client::Client(const ArgsConfig &cfg)
 
     m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
     m_engine->addSystem(std::make_unique<PixelSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<PlayerDirectionSystem>());
+    m_engine->addSystem(std::make_unique<AnimationSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<SpriteSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<TextSyStem>(*m_engine->getRenderer()));
 

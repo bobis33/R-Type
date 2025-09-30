@@ -83,11 +83,12 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
                       .build();
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", 200.F, 100.F, 0.F)
-                         .with<ecs::Velocity>("player_velocity", 500.F, 500.F)
-                         .with<ecs::Rect>("player_rect", 0.F, 0.F, 33, 20)
+                         .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
+                         .with<ecs::Rect>("player_rect", 0.F, 0.F, 33, 17)
                          .with<ecs::Scale>("player_scale", 2.F, 2.F)
                          .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
-                         // .with
+                         .with<ecs::Player>("player", true)
+                         .with<ecs::Animation>("player_animation", 0, 25, 0.1f, 0.0f, 33, 17, 5)
                          .build();
     for (int i = 0; i < 100; i++)
     {
@@ -105,7 +106,7 @@ void cli::Lobby::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
     auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
-    const auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
+    auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
     for (auto &[entity, velocity] : reg.getAll<ecs::Velocity>())
     {
         if (auto *pixel = reg.getComponent<ecs::Pixel>(entity))
@@ -127,22 +128,47 @@ void cli::Lobby::update(const float dt, const eng::WindowSize &size)
     {
         fpsText->content = "FPS " + std::to_string(static_cast<int>(1 / dt));
     }
-    if (m_keysPressed[eng::Key::Up])
+    float speed = 500.0f;
+    float diagonal_speed = speed * 0.707f;
+    
+    playerVelocity->x = 0.0f;
+    playerVelocity->y = 0.0f;
+    
+    bool up = m_keysPressed[eng::Key::Up];
+    bool down = m_keysPressed[eng::Key::Down];
+    bool left = m_keysPressed[eng::Key::Left];
+    bool right = m_keysPressed[eng::Key::Right];
+    
+    if (up && right)
     {
-        playerTransform->y -= playerVelocity->y * dt;
+        playerVelocity->x = diagonal_speed;
+        playerVelocity->y = -diagonal_speed;
     }
-    if (m_keysPressed[eng::Key::Down])
+    else if (up && left)
     {
-        playerTransform->y += playerVelocity->y * dt;
+        playerVelocity->x = -diagonal_speed;
+        playerVelocity->y = -diagonal_speed;
     }
-    if (m_keysPressed[eng::Key::Left])
+    else if (down && right)
     {
-        playerTransform->x -= playerVelocity->x * dt;
+        playerVelocity->x = diagonal_speed;
+        playerVelocity->y = diagonal_speed;
     }
-    if (m_keysPressed[eng::Key::Right])
+    else if (down && left)
     {
-        playerTransform->x += playerVelocity->x * dt;
+        playerVelocity->x = -diagonal_speed;
+        playerVelocity->y = diagonal_speed;
     }
+    else
+    {
+        if (up) playerVelocity->y = -speed;
+        if (down) playerVelocity->y = speed;
+        if (left) playerVelocity->x = -speed;
+        if (right) playerVelocity->x = speed;
+    }
+    
+    playerTransform->x += playerVelocity->x * dt;
+    playerTransform->y += playerVelocity->y * dt;
     playerTransform->x = std::max(playerTransform->x, 0.F);
     playerTransform->y = std::max(playerTransform->y, 0.F);
     playerTransform->x =
@@ -153,7 +179,6 @@ void cli::Lobby::update(const float dt, const eng::WindowSize &size)
 
 void cli::Lobby::event(const eng::Event &event)
 {
-    auto &reg = getRegistry();
     switch (event.type)
     {
         case eng::EventType::KeyPressed:
