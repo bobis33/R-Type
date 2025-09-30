@@ -44,17 +44,25 @@ namespace cli
             .with<ecs::Text>("title", "RType", 60U)
             .build();
 
-        auto startEntity = registry.createEntity()
+        auto soloEntity = registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_start", 220.F, 200.F, 0.F)
-            .with<ecs::Color>("color_start", 200, 200, 200, 255)
-            .with<ecs::Text>("start", "Start Game", 30U)
+            .with<ecs::Transform>("transform_solo", 220.F, 180.F, 0.F)
+            .with<ecs::Color>("color_solo", 200, 200, 200, 255)
+            .with<ecs::Text>("solo", "Solo", 30U)
             .build();
-        m_items.push_back({startEntity, "start"});
+        m_items.push_back({soloEntity, "solo"});
+
+        auto multiEntity = registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_multi", 220.F, 230.F, 0.F)
+            .with<ecs::Color>("color_multi", 200, 200, 200, 255)
+            .with<ecs::Text>("multi", "Multiplayer", 30U)
+            .build();
+        m_items.push_back({multiEntity, "multi"});
 
         auto quitEntity = registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_quit", 220.F, 250.F, 0.F)
+            .with<ecs::Transform>("transform_quit", 220.F, 280.F, 0.F)
             .with<ecs::Color>("color_quit", 200, 200, 200, 255)
             .with<ecs::Text>("quit", "Quit", 30U)
             .build();
@@ -63,7 +71,7 @@ namespace cli
         for (int i = 0; i < 100; i++) {
             registry.createEntity()
                 .with<ecs::Pixel>("star_point_" + std::to_string(i))
-                .with<ecs::Transform>("star_point_transform", 
+                .with<ecs::Transform>("star_point_transform",
                                        static_cast<float>(std::rand() % 800),
                                        static_cast<float>(std::rand() % 600),
                                        0.F)
@@ -107,8 +115,10 @@ namespace cli
                 updateHighlight();
             }
             else if (event.key == eng::Key::Enter) {
-                if (m_items[m_selectedIndex].id == "start")
-                    m_startGame = true;
+                if (m_items[m_selectedIndex].id == "solo")
+                    m_startSolo = true;
+                else if (m_items[m_selectedIndex].id == "multi")
+                    m_startMulti = true;
                 else if (m_items[m_selectedIndex].id == "quit")
                     m_exitGame = true;
             }
@@ -123,7 +133,6 @@ namespace cli
             if (auto *pixel = reg.getComponent<ecs::Pixel>(entity)) {
                 if (auto *transform = reg.getComponent<ecs::Transform>(entity)) {
                     transform->x += velocity.x * dt;
-                    transform->y += velocity.y * dt;
                     if (transform->x < 0) {
                         transform->x = static_cast<float>(size.width);
                         transform->y = static_cast<float>(std::rand() % size.height);
@@ -133,7 +142,9 @@ namespace cli
         }
         if (m_exitGame)
             std::cout << "Exiting game..." << std::endl;
-        if (m_startGame)
-            std::cout << "Starting game..." << std::endl;
+        if (m_startSolo)
+            std::cout << "Starting SOLO game..." << std::endl;
+        if (m_startMulti)
+            std::cout << "Starting MULTIPLAYER game..." << std::endl;
     }
 }

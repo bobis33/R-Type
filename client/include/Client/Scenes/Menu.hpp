@@ -28,7 +28,8 @@ namespace cli
         void update(float dt, const eng::WindowSize &size) override;
         void event(const eng::Event &event) override;
 
-        bool shouldStartGame() const { return m_startGame; }
+        bool shouldStartSolo() const { return m_startSolo; }
+        bool shouldStartMulti() const { return m_startMulti; }
         bool shouldExitGame() const { return m_exitGame; }
 
     private:
@@ -39,7 +40,9 @@ namespace cli
 
         std::vector<Item> m_items;
         int m_selectedIndex = 0;
-        bool m_startGame = false;
+
+        bool m_startSolo = false;
+        bool m_startMulti = false;
         bool m_exitGame = false;
 
         void createMenuEntities();
