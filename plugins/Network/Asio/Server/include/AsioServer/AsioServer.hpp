@@ -36,6 +36,7 @@ namespace srv
                 std::string playerName;
                 uint32_t lastSequence;
                 bool connected;
+                std::uint16_t playerId;
             };
 
             AsioServer(uint16_t port, const std::string &address);
@@ -54,9 +55,11 @@ namespace srv
             void stop() override;
 
             void sendWorldState(const asio::ip::udp::endpoint &client, const std::vector<uint8_t> &worldData);
+            void sendEvents(const asio::ip::udp::endpoint &client, const std::vector<rnp::EventRecord> &events);
             void sendPong(const asio::ip::udp::endpoint &client);
             void sendError(const asio::ip::udp::endpoint &client, const std::string &errorMessage);
             void broadcastToAll(const std::vector<uint8_t> &data);
+            void broadcastEvents(const std::vector<rnp::EventRecord> &events);
 
             void setPacketHandler(rnp::PacketType type, PacketHandler handler);
 
@@ -69,6 +72,7 @@ namespace srv
             void processPacket(const asio::ip::udp::endpoint &sender, const std::vector<uint8_t> &data);
             void addClient(const asio::ip::udp::endpoint &endpoint, const std::string &playerName);
             void removeClient(const asio::ip::udp::endpoint &endpoint);
+            std::uint16_t getPlayerId(const asio::ip::udp::endpoint &endpoint) const;
 
             asio::io_context m_ioContext;
             asio::ip::udp::socket m_socket;
@@ -80,5 +84,6 @@ namespace srv
             std::unordered_map<asio::ip::udp::endpoint, ClientInfo> m_clients;
             std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
             uint32_t m_sequenceNumber = 0;
+            std::uint16_t m_nextPlayerId = 1;
     }; // class AsioServer
 } // namespace srv

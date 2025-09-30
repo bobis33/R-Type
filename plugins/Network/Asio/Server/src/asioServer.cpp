@@ -1,11 +1,11 @@
-#include <iostream>
 #include <cstring>
+#include <iostream>
 
 #include "AsioServer/AsioServer.hpp"
 
 using asio::ip::udp;
 
-void srv::AsioServer::init(const uint16_t port, const std::string &address)
+srv::AsioServer::AsioServer(const uint16_t port, const std::string &address) : m_socket(m_ioContext), m_recvBuffer()
 {
     const asio::ip::address addr = asio::ip::make_address(address);
     const udp::endpoint ep(addr, port);
@@ -95,12 +95,12 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
     try
     {
         rnp::PacketHeader header = rnp::deserializeHeader(data.data(), data.size());
-        
+
         std::vector<uint8_t> payload;
         if (header.length > 0 && data.size() >= sizeof(rnp::PacketHeader) + header.length)
         {
-            payload.assign(data.begin() + sizeof(rnp::PacketHeader), 
-                          data.begin() + sizeof(rnp::PacketHeader) + header.length);
+            payload.assign(data.begin() + sizeof(rnp::PacketHeader),
+                           data.begin() + sizeof(rnp::PacketHeader) + header.length);
         }
 
         // Vérifier la version du protocole
@@ -119,16 +119,39 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
                     std::string playerName(payload.begin(), payload.end());
                     playerName.erase(std::find(playerName.begin(), playerName.end(), '\0'), playerName.end());
                     addClient(sender, playerName);
-                    std::cout << "[AsioServer] Client connecté: " << playerName 
-                              << " (" << sender.address().to_string() << ":" << sender.port() << ")\n";
+                    std::cout << "[AsioServer] Client connecté: " << playerName << " (" << sender.address().to_string()
+                              << ":" << sender.port() << ")\n";
                 }
                 break;
             }
             case rnp::PacketType::DISCONNECT:
             {
                 removeClient(sender);
-                std::cout << "[AsioServer] Client déconnecté: " 
-                          << sender.address().to_string() << ":" << sender.port() << "\n";
+                std::cout << "[AsioServer] Client déconnecté: " << sender.address().to_string() << ":" << sender.port()
+                          << "\n";
+                break;
+            }
+            case rnp::PacketType::PLAYER_INPUT:
+            {
+                if (payload.size() >= 2)
+                {
+                    const std::uint8_t direction = payload[0];
+                    const std::uint8_t shooting = payload[1];
+
+                    rnp::EventRecord ev;
+                    ev.type = rnp::EventType::INPUT;
+                    ev.data.reserve(4);
+
+                    const std::uint16_t playerId = getPlayerId(sender);
+                    ev.data.push_back(static_cast<std::uint8_t>(playerId & 0xFF));
+                    ev.data.push_back(static_cast<std::uint8_t>((playerId >> 8) & 0xFF));
+                    ev.data.push_back(direction);
+                    ev.data.push_back(shooting);
+
+                    std::vector<rnp::EventRecord> batch;
+                    batch.emplace_back(std::move(ev));
+                    broadcastEvents(batch);
+                }
                 break;
             }
             case rnp::PacketType::PING:
@@ -155,12 +178,25 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
 
 void srv::AsioServer::addClient(const asio::ip::udp::endpoint &endpoint, const std::string &playerName)
 {
-    m_clients[endpoint] = {endpoint, playerName, 0, true};
+    ClientInfo info;
+    info.endpoint = endpoint;
+    info.playerName = playerName;
+    info.lastSequence = 0;
+    info.connected = true;
+    info.playerId = m_nextPlayerId++;
+    m_clients[endpoint] = info;
 }
 
-void srv::AsioServer::removeClient(const asio::ip::udp::endpoint &endpoint)
+void srv::AsioServer::removeClient(const asio::ip::udp::endpoint &endpoint) { m_clients.erase(endpoint); }
+
+std::uint16_t srv::AsioServer::getPlayerId(const asio::ip::udp::endpoint &endpoint) const
 {
-    m_clients.erase(endpoint);
+    auto it = m_clients.find(endpoint);
+    if (it != m_clients.end())
+    {
+        return it->second.playerId;
+    }
+    return 0;
 }
 
 void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, const std::vector<uint8_t> &worldData)
@@ -172,11 +208,27 @@ void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, cons
     header.sequence = ++m_sequenceNumber;
 
     std::vector<uint8_t> buffer = rnp::serialize(header, worldData.data());
-    
+
     m_socket.async_send_to(asio::buffer(buffer), client,
-        [this](const asio::error_code &error, std::size_t bytesTransferred) {
-            handleSend(error, bytesTransferred);
-        });
+                           [this](const asio::error_code &error, std::size_t bytesTransferred)
+                           { handleSend(error, bytesTransferred); });
+}
+
+void srv::AsioServer::sendEvents(const asio::ip::udp::endpoint &client, const std::vector<rnp::EventRecord> &events)
+{
+    const std::vector<uint8_t> eventsPayload = rnp::serializeEvents(events);
+
+    rnp::PacketHeader header;
+    header.version = rnp::PROTOCOL_VERSION;
+    header.type = rnp::PacketType::EVENTS;
+    header.length = static_cast<std::uint16_t>(eventsPayload.size());
+    header.sequence = ++m_sequenceNumber;
+
+    std::vector<uint8_t> buffer = rnp::serialize(header, eventsPayload.data());
+
+    m_socket.async_send_to(asio::buffer(buffer), client,
+                           [this](const asio::error_code &error, std::size_t bytesTransferred)
+                           { handleSend(error, bytesTransferred); });
 }
 
 void srv::AsioServer::sendPong(const asio::ip::udp::endpoint &client)
@@ -188,11 +240,10 @@ void srv::AsioServer::sendPong(const asio::ip::udp::endpoint &client)
     header.sequence = ++m_sequenceNumber;
 
     std::vector<uint8_t> buffer = rnp::serialize(header);
-    
+
     m_socket.async_send_to(asio::buffer(buffer), client,
-        [this](const asio::error_code &error, std::size_t bytesTransferred) {
-            handleSend(error, bytesTransferred);
-        });
+                           [this](const asio::error_code &error, std::size_t bytesTransferred)
+                           { handleSend(error, bytesTransferred); });
 }
 
 void srv::AsioServer::sendError(const asio::ip::udp::endpoint &client, const std::string &errorMessage)
@@ -203,13 +254,11 @@ void srv::AsioServer::sendError(const asio::ip::udp::endpoint &client, const std
     header.length = errorMessage.size();
     header.sequence = ++m_sequenceNumber;
 
-    std::vector<uint8_t> buffer = rnp::serialize(header, 
-        reinterpret_cast<const uint8_t*>(errorMessage.c_str()));
-    
+    std::vector<uint8_t> buffer = rnp::serialize(header, reinterpret_cast<const uint8_t *>(errorMessage.c_str()));
+
     m_socket.async_send_to(asio::buffer(buffer), client,
-        [this](const asio::error_code &error, std::size_t bytesTransferred) {
-            handleSend(error, bytesTransferred);
-        });
+                           [this](const asio::error_code &error, std::size_t bytesTransferred)
+                           { handleSend(error, bytesTransferred); });
 }
 
 void srv::AsioServer::broadcastToAll(const std::vector<uint8_t> &data)
@@ -219,9 +268,31 @@ void srv::AsioServer::broadcastToAll(const std::vector<uint8_t> &data)
         if (clientInfo.connected)
         {
             m_socket.async_send_to(asio::buffer(data), endpoint,
-                [this](const asio::error_code &error, std::size_t bytesTransferred) {
-                    handleSend(error, bytesTransferred);
-                });
+                                   [this](const asio::error_code &error, std::size_t bytesTransferred)
+                                   { handleSend(error, bytesTransferred); });
+        }
+    }
+}
+
+void srv::AsioServer::broadcastEvents(const std::vector<rnp::EventRecord> &events)
+{
+    const std::vector<uint8_t> payload = rnp::serializeEvents(events);
+
+    rnp::PacketHeader header;
+    header.version = rnp::PROTOCOL_VERSION;
+    header.type = rnp::PacketType::EVENTS;
+    header.length = static_cast<std::uint16_t>(payload.size());
+    header.sequence = ++m_sequenceNumber;
+
+    const std::vector<uint8_t> frame = rnp::serialize(header, payload.data());
+
+    for (const auto &[endpoint, clientInfo] : m_clients)
+    {
+        if (clientInfo.connected)
+        {
+            m_socket.async_send_to(asio::buffer(frame), endpoint,
+                                   [this](const asio::error_code &error, std::size_t bytesTransferred)
+                                   { handleSend(error, bytesTransferred); });
         }
     }
 }
