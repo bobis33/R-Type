@@ -6,10 +6,16 @@
 
 #pragma once
 
+#include <cmath>
+#include <iostream>
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Interfaces/IRenderer.hpp"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #include "Engine/Systems.hpp"
 
@@ -32,7 +38,7 @@ namespace cli
             TextSyStem(TextSyStem &&) = delete;
             TextSyStem &operator=(TextSyStem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(ecs::Registry &registry, float /* dt */) override
             {
 
                 for (auto &[entity, text] : registry.getAll<ecs::Text>())
@@ -75,7 +81,7 @@ namespace cli
             AudioSystem(AudioSystem &&) = delete;
             AudioSystem &operator=(AudioSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(ecs::Registry &registry, float /* dt */) override
             {
                 for (auto &[entity, audio] : registry.getAll<ecs::Audio>())
                 {
@@ -108,29 +114,26 @@ namespace cli
             SpriteSystem(SpriteSystem &&) = delete;
             SpriteSystem &operator=(SpriteSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(ecs::Registry &registry, float /* dt */) override
             {
                 for (auto &[entity, sprite] : registry.getAll<ecs::Texture>())
                 {
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    const auto *color = registry.getComponent<ecs::Color>(entity);
-                    const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
+                    const auto *rect = registry.getComponent<ecs::Rect>(entity);
 
                     const float x = (transform != nullptr) ? transform->x : 0.F;
                     const float y = (transform != nullptr) ? transform->y : 0.F;
-
-                    // std::uint8_t r = color ? static_cast<std::uint8_t>(color->r) : 255;
-                    // std::uint8_t g = color ? static_cast<std::uint8_t>(color->g) : 255;
-                    // std::uint8_t b = color ? static_cast<std::uint8_t>(color->b) : 255;
-                    // std::uint8_t a = color ? static_cast<std::uint8_t>(color->a) : 255;
-
-                    // int xv = velocity ? static_cast<int>(velocity->x) : 0;
-                    // int yv = velocity ? static_cast<int>(velocity->y) : 0;
-                    // x *= xv;
-                    // y *= yv;
                     m_renderer.setSpriteTexture(sprite.id + std::to_string(entity), sprite.path);
                     m_renderer.setSpritePosition(sprite.id + std::to_string(entity), x, y);
-                    // m_renderer.setSpriteColor(sprite.id, {r, g, b, a});
+                    
+                    if (rect)
+                    {
+                        m_renderer.setSpriteFrame(sprite.id + std::to_string(entity), 
+                                                 static_cast<int>(rect->pos_x), 
+                                                 static_cast<int>(rect->pos_y), 
+                                                 rect->size_x, 
+                                                 rect->size_y);
+                    }
 
                     m_renderer.drawSprite(sprite.id + std::to_string(entity));
                 }
@@ -139,6 +142,85 @@ namespace cli
         private:
             eng::IRenderer &m_renderer;
     }; // class SpriteSystem
+
+    class AnimationSystem final : public eng::ASystem
+    {
+        public:
+            explicit AnimationSystem(eng::IRenderer &/* renderer */) {}
+            ~AnimationSystem() override = default;
+
+            AnimationSystem(const AnimationSystem &) = delete;
+            AnimationSystem &operator=(const AnimationSystem &) = delete;
+            AnimationSystem(AnimationSystem &&) = delete;
+            AnimationSystem &operator=(AnimationSystem &&) = delete;
+
+            void update(ecs::Registry &registry, float /* dt */) override
+            {
+                for (auto &[entity, animation] : registry.getAll<ecs::Animation>())
+                {
+                    auto *rect = registry.getComponent<ecs::Rect>(entity);
+                    
+                    if (rect)
+                    {
+                        // Calculer la position du frame dans la spritesheet
+                        int frame_x = (animation.current_frame % animation.frames_per_row) * animation.frame_width;
+                        int frame_y = (animation.current_frame / animation.frames_per_row) * animation.frame_height;
+                        if (rect->pos_x != static_cast<float>(frame_x) || rect->pos_y != static_cast<float>(frame_y))
+                        {
+                            rect->pos_x = static_cast<float>(frame_x);
+                            rect->pos_y = static_cast<float>(frame_y);
+                            rect->size_x = animation.frame_width;
+                            rect->size_y = animation.frame_height;
+                            
+                        }
+                    }
+                }
+            }
+
+    }; // class AnimationSystem
+
+    class PlayerDirectionSystem final : public eng::ASystem
+    {
+        public:
+            explicit PlayerDirectionSystem() = default;
+            ~PlayerDirectionSystem() override = default;
+
+            PlayerDirectionSystem(const PlayerDirectionSystem &) = delete;
+            PlayerDirectionSystem &operator=(const PlayerDirectionSystem &) = delete;
+            PlayerDirectionSystem(PlayerDirectionSystem &&) = delete;
+            PlayerDirectionSystem &operator=(PlayerDirectionSystem &&) = delete;
+
+            void update(ecs::Registry &registry, float /* dt */) override
+            {
+                for (auto &[entity, animation] : registry.getAll<ecs::Animation>())
+                {
+                    const auto *player = registry.getComponent<ecs::Player>(entity);
+                    const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
+                    
+                    if (player && velocity)
+                    {
+                        int frame = 0;
+                        float angle = std::atan2(velocity->y, velocity->x);
+                        if (std::abs(velocity->x) < 0.1f && std::abs(velocity->y) < 0.1f)
+                        {
+                            return;
+                        }
+                        if (angle < 0) angle += 2.0f * static_cast<float>(M_PI);
+                        if (angle >= 0 && angle < M_PI/4)
+                            frame = 0; // Droite
+                        else if (angle >= M_PI/4 && angle < 3*M_PI/4)
+                            frame = 1; // Haut
+                        else if (angle >= 3*M_PI/4 && angle < 5*M_PI/4)
+                            frame = 2; // Gauche
+                        else if (angle >= 5*M_PI/4 && angle < 7*M_PI/4)
+                            frame = 3; // Bas
+                        else
+                            frame = 4; // Droite (retour)
+                        animation.current_frame = frame;
+                    }
+                }
+            }
+    }; // class PlayerDirectionSystem
 
     class PixelSystem final : public eng::ASystem
     {
@@ -151,9 +233,9 @@ namespace cli
             explicit PixelSystem(SpriteSystem &&) = delete;
             PixelSystem &operator=(SpriteSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(ecs::Registry &registry, float /* dt */) override
             {
-                for (const auto &entity : registry.getAll<ecs::Pixel>() | std::views::keys)
+                for (auto &[entity, pixel] : registry.getAll<ecs::Pixel>())
                 {
                     const auto *color = registry.getComponent<ecs::Color>(entity);
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);

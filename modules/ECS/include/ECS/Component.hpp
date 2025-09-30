@@ -73,4 +73,14 @@ namespace ecs
     {
             float x{}, y{};
     };
+    struct Animation final : IComponent
+    {
+            int current_frame{};
+            int total_frames{};
+            float frame_duration{};
+            float current_time{};
+            int frame_width{};
+            int frame_height{};
+            int frames_per_row{};
+    };
 } // namespace ecs
