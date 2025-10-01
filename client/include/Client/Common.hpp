@@ -51,9 +51,12 @@ namespace cli
         } // namespace Font
         namespace Plugin
         {
-            inline auto PLUGIN_AUDIO_SFML = std::filesystem::path(PLUGINS_DIR) / ("audio_sfml" + std::string(PLUGINS_EXTENSION));
-            inline auto PLUGIN_NETWORK_ASIO_CLIENT = std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
-            inline auto PLUGIN_RENDERER_SFML = std::filesystem::path(PLUGINS_DIR) / ("renderer_sfml" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_AUDIO_SFML =
+                std::filesystem::path(PLUGINS_DIR) / ("audio_sfml" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_NETWORK_ASIO_CLIENT =
+                std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_RENDERER_SFML =
+                std::filesystem::path(PLUGINS_DIR) / ("renderer_sfml" + std::string(PLUGINS_EXTENSION));
         } // namespace Plugin
         namespace Texture
         {

@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    std::unique_ptr<srv::INetworkServer> entryPoint() { return std::make_unique<srv::AsioServer>(); }
+    srv::INetworkServer *entryPoint() { return std::make_unique<srv::AsioServer>().release(); }
 }
