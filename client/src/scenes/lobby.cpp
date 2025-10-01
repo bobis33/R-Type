@@ -1,5 +1,6 @@
 #include "Client/Scenes/Lobby.hpp"
 #include "Client/Common.hpp"
+#include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -102,8 +103,8 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", 200.F, 100.F, 0.F)
                          .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
-                         .with<ecs::Rect>("player_rect", 0.F, 0.F, 33, 17)
-                         .with<ecs::Scale>("player_scale", 2.F, 2.F)
+                         .with<ecs::Rect>("player_rect", 0.F, 0.F, GameConfig::Player::SPRITE_WIDTH, GameConfig::Player::SPRITE_HEIGHT)
+                         .with<ecs::Scale>("player_scale", GameConfig::Player::SCALE, GameConfig::Player::SCALE)
                          .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
                          .with<ecs::Player>("player", true)
                          .with<ecs::BeamCharge>("beam_charge", 0.0f, GameConfig::Beam::MAX_CHARGE)
@@ -301,10 +302,11 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
     playerTransform->x = std::max(playerTransform->x, 0.F);
     playerTransform->y = std::max(playerTransform->y, 0.F);
     playerTransform->x =
-        std::min(playerTransform->x, static_cast<float>(size.width) - 66.F); // TODO(bobis33): getTextureSize.x
+        std::min(playerTransform->x, static_cast<float>(size.width) - GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
     playerTransform->y =
-        std::min(playerTransform->y, static_cast<float>(size.height) - 40.F); // TODO(bobis33): getTextureSize.y
+        std::min(playerTransform->y, static_cast<float>(size.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
 }
+
 
 void cli::Lobby::event(const eng::Event &event)
 {
@@ -319,6 +321,8 @@ void cli::Lobby::event(const eng::Event &event)
                 m_keysPressed[eng::Key::Left] = true;
             if (event.key == eng::Key::Right)
                 m_keysPressed[eng::Key::Right] = true;
+            if (event.key == eng::Key::Space)
+                m_keysPressed[eng::Key::Space] = true;
             break;
 
         case eng::EventType::KeyReleased:
@@ -330,6 +334,8 @@ void cli::Lobby::event(const eng::Event &event)
                 m_keysPressed[eng::Key::Left] = false;
             if (event.key == eng::Key::Right)
                 m_keysPressed[eng::Key::Right] = false;
+            if (event.key == eng::Key::Space)
+                m_keysPressed[eng::Key::Space] = false;
             break;
 
         default:
