@@ -10,6 +10,7 @@
 
 #include "Engine/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "Client/WeaponSystem.hpp"
 
 namespace cli
 {

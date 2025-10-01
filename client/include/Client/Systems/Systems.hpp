@@ -156,10 +156,18 @@ namespace cli
             AnimationSystem(AnimationSystem &&) = delete;
             AnimationSystem &operator=(AnimationSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float /* dt */) override
+            void update(ecs::Registry &registry, float dt) override
             {
                 for (auto &[entity, animation] : registry.getAll<ecs::Animation>())
                 {
+                    animation.current_time += dt;
+                    
+                    if (animation.current_time >= animation.frame_duration)
+                    {
+                        animation.current_time = 0.0f;
+                        animation.current_frame = (animation.current_frame + 1) % animation.total_frames;
+                    }
+                    
                     auto *rect = registry.getComponent<ecs::Rect>(entity);
                     
                     if (rect)
@@ -173,7 +181,6 @@ namespace cli
                             rect->pos_y = static_cast<float>(frame_y);
                             rect->size_x = animation.frame_width;
                             rect->size_y = animation.frame_height;
-                            
                         }
                     }
                 }
@@ -194,12 +201,12 @@ namespace cli
 
             void update(ecs::Registry &registry, float /* dt */) override
             {
-                for (auto &[entity, animation] : registry.getAll<ecs::Animation>())
+                for (auto &[entity, player] : registry.getAll<ecs::Player>())
                 {
-                    const auto *player = registry.getComponent<ecs::Player>(entity);
                     const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
+                    auto *rect = registry.getComponent<ecs::Rect>(entity);
                     
-                    if (player && velocity)
+                    if (velocity && rect)
                     {
                         int frame = 0;
                         float angle = std::atan2(velocity->y, velocity->x);
@@ -218,11 +225,74 @@ namespace cli
                             frame = 3; // Bas
                         else
                             frame = 4; // Droite (retour)
-                        animation.current_frame = frame;
+                        int frame_width = static_cast<int>(GameConfig::Player::SPRITE_WIDTH);
+                        int frame_height = static_cast<int>(GameConfig::Player::SPRITE_HEIGHT);
+                        int frames_per_row = GameConfig::Player::FRAMES_PER_ROW;
+                        int frame_x = (frame % frames_per_row) * frame_width;
+                        int frame_y = (frame / frames_per_row) * frame_height;
+                        
+                        rect->pos_x = static_cast<float>(frame_x);
+                        rect->pos_y = static_cast<float>(frame_y);
+                        rect->size_x = frame_width;
+                        rect->size_y = frame_height;
                     }
                 }
             }
     }; // class PlayerDirectionSystem
+
+    class ProjectileSystem final : public eng::ASystem
+    {
+        public:
+            explicit ProjectileSystem(eng::IRenderer &/* renderer */) {}
+            ~ProjectileSystem() override = default;
+
+            ProjectileSystem(const ProjectileSystem &) = delete;
+            ProjectileSystem &operator=(const ProjectileSystem &) = delete;
+            ProjectileSystem(ProjectileSystem &&) = delete;
+            ProjectileSystem &operator=(ProjectileSystem &&) = delete;
+
+            void update(ecs::Registry &registry, float dt) override
+            {
+                std::vector<ecs::Entity> entitiesToRemove;
+                
+                for (auto &[entity, projectile] : registry.getAll<ecs::Projectile>())
+                {
+                    projectile.current_lifetime += dt;
+                    if (projectile.current_lifetime >= projectile.lifetime)
+                    {
+                        entitiesToRemove.push_back(entity);
+                        continue;
+                    }
+                    auto *transform = registry.getComponent<ecs::Transform>(entity);
+                    auto *velocity = registry.getComponent<ecs::Velocity>(entity);
+                    
+                    if (transform && velocity)
+                    {
+                        transform->x += velocity->x * dt;
+                        transform->y += velocity->y * dt;
+                    }
+                }
+                
+                for (const auto &entity : entitiesToRemove)
+                {
+                    if (registry.hasComponent<ecs::Projectile>(entity))
+                        registry.removeComponent<ecs::Projectile>(entity);
+                    if (registry.hasComponent<ecs::Transform>(entity))
+                        registry.removeComponent<ecs::Transform>(entity);
+                    if (registry.hasComponent<ecs::Velocity>(entity))
+                        registry.removeComponent<ecs::Velocity>(entity);
+                    if (registry.hasComponent<ecs::Rect>(entity))
+                        registry.removeComponent<ecs::Rect>(entity);
+                    if (registry.hasComponent<ecs::Scale>(entity))
+                        registry.removeComponent<ecs::Scale>(entity);
+                    if (registry.hasComponent<ecs::Texture>(entity))
+                        registry.removeComponent<ecs::Texture>(entity);
+                    if (registry.hasComponent<ecs::Animation>(entity))
+                        registry.removeComponent<ecs::Animation>(entity);
+                }
+            }
+
+    }; // class ProjectileSystem
 
     class PixelSystem final : public eng::ASystem
     {
