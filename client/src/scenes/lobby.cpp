@@ -1,186 +1,126 @@
 #include "Client/Scenes/Lobby.hpp"
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
+#include <iostream>
 
-static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
+static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
-cli::Lobby::Lobby(const std::unique_ptr<eng::IRenderer> &renderer, const std::unique_ptr<eng::IAudio> &audio)
+namespace cli
 {
-    auto &registry = AScene::getRegistry();
+    Lobby::Lobby(const std::unique_ptr<eng::IRenderer> &renderer,
+                 const std::unique_ptr<eng::IAudio> & /*audio*/)
+    {
+        auto &registry = AScene::getRegistry();
 
-    registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
-        {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
+        registry.onComponentAdded([&renderer, &registry](const ecs::Entity e, const std::type_info &type) {
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
-            const auto *rectComp = registry.getComponent<ecs::Rect>(e);
-            const auto *scaleComp = registry.getComponent<ecs::Scale>(e);
             const auto *textComp = registry.getComponent<ecs::Text>(e);
-            const auto *textureComp = registry.getComponent<ecs::Texture>(e);
             const auto *transform = registry.getComponent<ecs::Transform>(e);
 
-            if (type == typeid(ecs::Text))
-            {
-                if (textComp && transform && fontComp)
-                {
-                    renderer->createFont(fontComp->id, fontComp->path);
-                    renderer->createText(
-                        {.font_name = fontComp->id,
-                         .color = {.r = colorComp->r, .g = colorComp->g, .b = colorComp->b, .a = colorComp->a},
-                         .content = textComp->content,
-                         .size = textComp->font_size,
-                         .x = transform->x,
-                         .y = transform->y,
-                         .name = textComp->id});
-                }
-            }
-            else if (type == typeid(ecs::Texture))
-            {
-                const float scale_x = scaleComp ? scaleComp->x : 1.F;
-                const float scale_y = scaleComp ? scaleComp->y : 1.F;
-
-                renderer->createTexture(textureComp->id, textureComp->path);
-
-                if (transform && textureComp)
-                {
-                    if (rectComp)
-                    {
-                        renderer->createSprite(textureComp->id + std::to_string(e), textureComp->id, transform->x,
-                                               transform->y, scale_x, scale_y, static_cast<int>(rectComp->pos_x),
-                                               static_cast<int>(rectComp->pos_y), rectComp->size_x, rectComp->size_y);
-                    }
-                    else
-                    {
-                        renderer->createSprite(textureComp->id + std::to_string(e), textureComp->id, transform->x,
-                                               transform->y);
-                    }
-                }
-            }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
-                }
+            if (type == typeid(ecs::Text) && textComp && transform && fontComp) {
+                renderer->createFont(fontComp->id, fontComp->path);
+                renderer->createText({
+                    .font_name = fontComp->id,
+                    .color = {.r = colorComp->r, .g = colorComp->g, .b = colorComp->b, .a = colorComp->a},
+                    .content = textComp->content,
+                    .size = textComp->font_size,
+                    .x = transform->x,
+                    .y = transform->y,
+                    .name = textComp->id});
             }
         });
 
-    registry.createEntity()
-        .with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true)
-        .build();
-    registry.createEntity()
-        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 10.F, 10.F, 0.F)
-        .with<ecs::Color>("color_title", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-        .with<ecs::Text>("id", std::string("RType Client"), 50U)
-        .build();
-    m_fpsEntity = registry.createEntity()
-                      .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                      .with<ecs::Transform>("transform_fps", 10.F, 70.F, 0.F)
-                      .with<ecs::Color>("color_fps", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-                      .with<ecs::Text>("id_text", std::string("RType Client"), 20U)
-                      .build();
-    m_playerEntity = registry.createEntity()
-                         .with<ecs::Transform>("player_transform", 200.F, 100.F, 0.F)
-                         .with<ecs::Velocity>("player_velocity", 500.F, 500.F)
-                         .with<ecs::Rect>("player_rect", 0.F, 0.F, 33, 20)
-                         .with<ecs::Scale>("player_scale", 2.F, 2.F)
-                         .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
-                         // .with
-                         .build();
-    for (int i = 0; i < 100; i++)
-    {
-        registry.createEntity()
-            .with<ecs::Pixel>("star_point_" + std::to_string(i))
-            .with<ecs::Transform>("star_point_transform", 0.F, 0.F, 0.F)
-            .with<ecs::Velocity>("star_vel", -20.F - static_cast<float>(std::rand() % 30), 0.F)
-            .with<ecs::Color>("star_color", static_cast<unsigned char>(100U), static_cast<unsigned char>(100U),
-                              static_cast<unsigned char>(200U), static_cast<unsigned char>(255U))
-            .build();
+        createLobbyEntities();
     }
-}
 
-void cli::Lobby::update(const float dt, const eng::WindowSize &size)
-{
-    auto &reg = getRegistry();
-    auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
-    const auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
-    for (auto &[entity, velocity] : reg.getAll<ecs::Velocity>())
+    void Lobby::createLobbyEntities()
     {
-        if (auto *pixel = reg.getComponent<ecs::Pixel>(entity))
-        {
-            if (auto *transform = reg.getComponent<ecs::Transform>(entity))
-            {
-                transform->x += velocity.x * dt;
-                transform->y += velocity.y * dt;
+        auto &registry = getRegistry();
 
-                if (transform->x < 2.F || transform->y < 2.F)
-                {
-                    transform->x = static_cast<float>(std::rand() % (size.width * 2));
-                    transform->y = static_cast<float>(std::rand() % size.height);
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("lobby_title_transform", 200.F, 50.F, 0.F)
+            .with<ecs::Color>("lobby_title_color", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
+            .with<ecs::Text>("lobby_title", "Multiplayer Lobby", 50U)
+            .build();
+
+        auto createEntity = registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("create_room_transform", 220.F, 150.F, 0.F)
+            .with<ecs::Color>("create_room_color", 200, 200, 200, 255)
+            .with<ecs::Text>("create_room", "Create Room", 30U)
+            .build();
+        m_rooms.push_back({createEntity, "create"});
+
+        auto joinEntity = registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("join_room_transform", 220.F, 200.F, 0.F)
+            .with<ecs::Color>("join_room_color", 200, 200, 200, 255)
+            .with<ecs::Text>("join_room", "Join Room", 30U)
+            .build();
+        m_rooms.push_back({joinEntity, "join"});
+
+        auto backEntity = registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("back_menu_transform", 220.F, 250.F, 0.F)
+            .with<ecs::Color>("back_menu_color", 200, 200, 200, 255)
+            .with<ecs::Text>("back_menu", "Return to Menu", 30U)
+            .build();
+        m_rooms.push_back({backEntity, "back"});
+
+        updateHighlight();
+
+        std::cout << "Lobby entities created!" << std::endl;
+    }
+
+    void Lobby::updateHighlight()
+    {
+        auto &registry = getRegistry();
+
+        for (int i = 0; i < static_cast<int>(m_rooms.size()); i++) {
+            auto *color = registry.getComponent<ecs::Color>(m_rooms[i].entity);
+            auto *text = registry.getComponent<ecs::Text>(m_rooms[i].entity);
+            if (!color || !text) continue;
+
+            if (i == m_selectedIndex) {
+                color->r = color->g = color->b = 255;
+                text->font_size = 40;
+            } else {
+                color->r = color->g = color->b = 200;
+                text->font_size = 30;
+            }
+        }
+    }
+
+    void Lobby::event(const eng::Event &event)
+    {
+        if (event.type == eng::EventType::KeyPressed) {
+            if (event.key == eng::Key::Up) {
+                m_selectedIndex = (m_selectedIndex - 1 + m_rooms.size()) % m_rooms.size();
+                updateHighlight();
+            }
+            else if (event.key == eng::Key::Down) {
+                m_selectedIndex = (m_selectedIndex + 1) % m_rooms.size();
+                updateHighlight();
+            }
+            else if (event.key == eng::Key::Enter) {
+                if (m_rooms[m_selectedIndex].id == "create") {
+                    m_startRoom = true;
+                    std::cout << "Creating new room..." << std::endl;
+                }
+                else if (m_rooms[m_selectedIndex].id == "join") {
+                    std::cout << "Joining existing room..." << std::endl;
+                }
+                else if (m_rooms[m_selectedIndex].id == "back") {
+                    m_returnMenu = true;
+                    std::cout << "Returning to menu..." << std::endl;
                 }
             }
         }
     }
-    if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
-    {
-        fpsText->content = "FPS " + std::to_string(static_cast<int>(1 / dt));
-    }
-    if (m_keysPressed[eng::Key::Up])
-    {
-        playerTransform->y -= playerVelocity->y * dt;
-    }
-    if (m_keysPressed[eng::Key::Down])
-    {
-        playerTransform->y += playerVelocity->y * dt;
-    }
-    if (m_keysPressed[eng::Key::Left])
-    {
-        playerTransform->x -= playerVelocity->x * dt;
-    }
-    if (m_keysPressed[eng::Key::Right])
-    {
-        playerTransform->x += playerVelocity->x * dt;
-    }
-    playerTransform->x = std::max(playerTransform->x, 0.F);
-    playerTransform->y = std::max(playerTransform->y, 0.F);
-    playerTransform->x =
-        std::min(playerTransform->x, static_cast<float>(size.width) - 66.F); // TODO(bobis33): getTextureSize.x
-    playerTransform->y =
-        std::min(playerTransform->y, static_cast<float>(size.height) - 40.F); // TODO(bobis33): getTextureSize.y
-}
 
-void cli::Lobby::event(const eng::Event &event)
-{
-    auto &reg = getRegistry();
-    switch (event.type)
+    void Lobby::update(float, const eng::WindowSize &)
     {
-        case eng::EventType::KeyPressed:
-            if (event.key == eng::Key::Up)
-                m_keysPressed[eng::Key::Up] = true;
-            if (event.key == eng::Key::Down)
-                m_keysPressed[eng::Key::Down] = true;
-            if (event.key == eng::Key::Left)
-                m_keysPressed[eng::Key::Left] = true;
-            if (event.key == eng::Key::Right)
-                m_keysPressed[eng::Key::Right] = true;
-            break;
-
-        case eng::EventType::KeyReleased:
-            if (event.key == eng::Key::Up)
-                m_keysPressed[eng::Key::Up] = false;
-            if (event.key == eng::Key::Down)
-                m_keysPressed[eng::Key::Down] = false;
-            if (event.key == eng::Key::Left)
-                m_keysPressed[eng::Key::Left] = false;
-            if (event.key == eng::Key::Right)
-                m_keysPressed[eng::Key::Right] = false;
-            break;
-
-        default:
-            break;
     }
 }

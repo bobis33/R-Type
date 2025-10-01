@@ -1,6 +1,6 @@
 ///
 /// @file Game.hpp
-/// @brief Declaration of the Game scene
+/// @brief Declaration of the Game scene (solo gameplay)
 /// @namespace cli
 ///
 
@@ -9,6 +9,7 @@
 #include "Engine/IScene.hpp"
 #include "Interfaces/IRenderer.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <unordered_map>
 
 namespace cli
 {
@@ -28,6 +29,9 @@ namespace cli
         void event(const eng::Event &event) override;
 
     private:
+        std::unordered_map<eng::Key, bool> m_keysPressed;
+
+        ecs::Entity m_playerEntity{};
         ecs::Entity m_fpsEntity{};
         eng::IRenderer &m_renderer;
     };
