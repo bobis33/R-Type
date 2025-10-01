@@ -27,9 +27,11 @@ namespace cli
 
         void update(float dt, const eng::WindowSize &size) override;
         void event(const eng::Event &event) override;
+        bool shouldReturnMenu() const { return m_returnMenu; }
 
     private:
         std::unordered_map<eng::Key, bool> m_keysPressed;
+        bool m_returnMenu = false;
 
         ecs::Entity m_playerEntity{};
         ecs::Entity m_fpsEntity{};

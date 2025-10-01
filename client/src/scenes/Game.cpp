@@ -155,5 +155,9 @@ namespace cli
             default:
                 break;
         }
+        if (event.type == eng::EventType::KeyPressed && event.key == eng::Key::Escape) {
+            std::cout << "Returning to menu..." << std::endl;
+            m_returnMenu = true;
+        }
     }
 }

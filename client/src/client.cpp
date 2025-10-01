@@ -48,6 +48,7 @@ void cli::Client::run()
         auto &scene = *m_engine->getSceneManager()->getCurrentScene();
         auto *menu = dynamic_cast<Menu*>(&scene);
         auto *lobby = dynamic_cast<Lobby*>(&scene);
+        auto *game = dynamic_cast<Game*>(&scene);
 
         eng::Event event;
         while (m_engine->getRenderer()->pollEvent(event))
@@ -83,6 +84,15 @@ void cli::Client::run()
         if (lobby) {
             if (lobby->shouldReturnMenu()) {
                 std::cout << "Returning to MENU" << std::endl;
+                auto menuScene = std::make_unique<cli::Menu>(m_engine->getRenderer(), m_engine->getAudio());
+                const auto menuId = menuScene->getId();
+                m_engine->getSceneManager()->addScene(std::move(menuScene));
+                m_engine->getSceneManager()->switchToScene(menuId);
+            }
+        }
+        if (game) {
+            if (game->shouldReturnMenu()) {
+                std::cout << "Returning to MENU from Game" << std::endl;
                 auto menuScene = std::make_unique<cli::Menu>(m_engine->getRenderer(), m_engine->getAudio());
                 const auto menuId = menuScene->getId();
                 m_engine->getSceneManager()->addScene(std::move(menuScene));
