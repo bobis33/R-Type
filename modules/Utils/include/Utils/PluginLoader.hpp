@@ -14,13 +14,12 @@
 #ifdef _WIN32
 #include <windows.h>
 #define PLUGINS_EXTENSION ".dll"
-#else
+#elif __linux__
 #include <dlfcn.h>
-    #ifdef __linux__
-    #define PLUGINS_EXTENSION ".so"
-    #elif __APPLE__
-    #define PLUGINS_EXTENSION ".dylib"
-    #endif
+#define PLUGINS_EXTENSION ".so"
+#elif __APPLE__
+#include <dlfcn.h>
+#define PLUGINS_EXTENSION ".dylib"
 #endif
 #include "Utils/Interfaces/IPlugin.hpp"
 #include "Utils/Logger.hpp"
@@ -31,7 +30,7 @@ namespace utl
     using LibHandle =
 #ifdef _WIN32
         HMODULE;
-#elif
+#else
         void *;
 #endif
 

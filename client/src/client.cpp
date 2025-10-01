@@ -19,15 +19,9 @@ cli::Client::Client(const ArgsConfig &cfg)
               << "\tGit commit hash: " GIT_COMMIT_HASH "\n";
 
     m_pluginLoader = std::make_unique<utl::PluginLoader>();
-    const std::filesystem::path sfmlRendererPath =
-        std::filesystem::path(PLUGINS_DIR) / ("renderer_sfml" + std::string(PLUGINS_EXTENSION));
-    const std::filesystem::path sfmlAudioPath =
-        std::filesystem::path(PLUGINS_DIR) / ("audio_sfml" + std::string(PLUGINS_EXTENSION));
-    const std::filesystem::path asioNetworkPath =
-        std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
-    const auto renderer = m_pluginLoader->loadPlugin<eng::IRenderer>(sfmlRendererPath);
-    const auto audio = m_pluginLoader->loadPlugin<eng::IAudio>(sfmlAudioPath);
-    const auto network = m_pluginLoader->loadPlugin<eng::INetworkClient>(asioNetworkPath);
+    const auto renderer = m_pluginLoader->loadPlugin<eng::IRenderer>(cfg.renderer_lib_path);
+    const auto audio = m_pluginLoader->loadPlugin<eng::IAudio>(cfg.audio_lib_path);
+    const auto network = m_pluginLoader->loadPlugin<eng::INetworkClient>(cfg.network_lib_path);
     m_engine = std::make_unique<eng::Engine>([audio]() { return audio; }, [network]() { return network; },
                                              [renderer]() { return renderer; });
     // m_game = std::make_unique<gme::RTypeClient>();
