@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    std::unique_ptr<eng::IAudio> entryPoint() { return std::make_unique<eng::SFMLAudio>(); }
+    eng::IAudio *entryPoint() { return std::make_unique<eng::SFMLAudio>().release(); }
 }

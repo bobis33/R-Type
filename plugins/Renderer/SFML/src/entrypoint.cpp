@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    std::unique_ptr<eng::IRenderer> entryPoint() { return std::make_unique<eng::SFMLRenderer>(); }
+    eng::IRenderer *entryPoint() { return std::make_unique<eng::SFMLRenderer>().release(); }
 }

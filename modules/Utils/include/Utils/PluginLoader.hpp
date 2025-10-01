@@ -1,26 +1,30 @@
 ///
 /// @file PluginLoader.hpp
-/// @brief This file contains the PluginLoader class declaration
+/// @brief Modern, cross-platform plugin loader
 /// @namespace utl
 ///
 
 #pragma once
 
+#include <concepts>
 #include <memory>
-#include <ranges>
+#include <mutex>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 
 #ifdef _WIN32
 #include <windows.h>
 #define PLUGINS_EXTENSION ".dll"
-#elif __linux__
+#else
 #include <dlfcn.h>
-#define PLUGINS_EXTENSION ".so"
-#elif __APPLE__
-#include <dlfcn.h>
+#if __APPLE__
 #define PLUGINS_EXTENSION ".dylib"
+#else
+#define PLUGINS_EXTENSION ".so"
 #endif
+#endif
+
 #include "Utils/Interfaces/IPlugin.hpp"
 #include "Utils/Logger.hpp"
 
@@ -34,79 +38,127 @@ namespace utl
         void *;
 #endif
 
-    using EntryPointFn = std::unique_ptr<IPlugin> (*)();
+    /// Handle to a dynamic library with RAII
+    struct SharedLib
+    {
+            LibHandle handle = nullptr;
+
+            explicit SharedLib(const LibHandle h = nullptr) : handle(h) {}
+            ~SharedLib() { close(); }
+
+            SharedLib(const SharedLib &) = delete;
+            SharedLib &operator=(const SharedLib &) = delete;
+            SharedLib(SharedLib &&other) noexcept : handle(other.handle) { other.handle = nullptr; }
+            SharedLib &operator=(SharedLib &&other) noexcept
+            {
+                if (this != &other)
+                {
+                    close();
+                    handle = other.handle;
+                    other.handle = nullptr;
+                }
+                return *this;
+            }
+
+            void close()
+            {
+                if (!handle)
+                    return;
+#ifdef _WIN32
+                FreeLibrary(handle);
+#else
+                dlclose(handle);
+#endif
+                handle = nullptr;
+            }
+
+            explicit operator bool() const { return handle != nullptr; }
+    };
+
+    using EntryPointFn = IPlugin *(*)();
 
     ///
     /// @class PluginLoader
-    /// @brief Class for managing plugins
+    /// @brief Modern, type-safe plugin loader
     /// @namespace utl
     ///
     class PluginLoader
     {
         public:
             PluginLoader() = default;
-
-            ~PluginLoader()
-            {
-                m_plugins.clear();
-                for (auto &handle : m_handles | std::views::values)
-                {
-#ifdef _WIN32
-                    FreeLibrary(handle);
-#else
-                    dlclose(handle);
-#endif
-                }
-            }
+            ~PluginLoader() = default;
 
             PluginLoader(const PluginLoader &) = delete;
             PluginLoader &operator=(const PluginLoader &) = delete;
             PluginLoader(PluginLoader &&) = delete;
             PluginLoader &operator=(PluginLoader &&) = delete;
 
-            template <typename T> std::shared_ptr<T> loadPlugin(const std::string &path)
+            ///
+            /// Load a plugin of type T
+            /// @tparam T Expected plugin interface (must derive from IPlugin)
+            /// @param path Path to the dynamic library
+            /// @return shared_ptr<T> instance
+            ///
+            template <std::derived_from<IPlugin> T> std::shared_ptr<T> loadPlugin(const std::string &path)
             {
-#ifdef _WIN32
-                LibHandle handle = LoadLibraryA(path.c_str());
-#else
-                LibHandle handle = dlopen(path.c_str(), RTLD_LAZY);
-#endif
-                if (handle == nullptr)
-                {
-                    throw std::runtime_error("Impossible to load plugin: " + path);
-                }
+                std::scoped_lock lock(m_mutex);
 
-#ifdef _WIN32
-                const auto entry = reinterpret_cast<EntryPointFn>(GetProcAddress(handle, "entryPoint"));
-#else
-                const auto entry = reinterpret_cast<EntryPointFn>(dlsym(handle, "entryPoint"));
-#endif
-                if (entry == nullptr)
-                {
-                    throw std::runtime_error("EntryPoint not found in plugin: " + path);
-                }
+                if (m_plugins.contains(path))
+                    throw std::runtime_error("Plugin already loaded: " + path);
 
-                std::unique_ptr<IPlugin> plugin = entry();
+                SharedLib lib = loadLibrary(path);
+                const EntryPointFn entry = getEntryPoint(lib, path);
+
+                std::unique_ptr<IPlugin> plugin(entry());
                 if (!plugin)
-                {
-                    throw std::runtime_error("EntryPoint failed to create plugin instance: " + path);
-                }
+                    throw std::runtime_error("EntryPoint failed: " + path);
 
-                IPlugin *rawPtr = plugin.get();
-
-                m_handles[path] = handle;
-                m_plugins[path] = std::move(plugin);
-
-                Logger::log("Plugin loaded:\t name: " + rawPtr->getName() + "\t path: " + path, LogLevel::INFO);
-                T *typed = dynamic_cast<T *>(rawPtr);
+                T *typed = dynamic_cast<T *>(plugin.get());
                 if (!typed)
                     throw std::runtime_error("Plugin type mismatch: " + path);
-                return std::shared_ptr<T>(typed, [](T *) {});
+
+                auto [it, inserted] = m_plugins.emplace(path, std::move(plugin));
+                if (!inserted)
+                    throw std::runtime_error("Failed to store plugin: " + path);
+
+                m_handles[path] = std::move(lib);
+
+                Logger::log("Plugin loaded:\t name: " + it->second->getName() + "\t path: " + path, LogLevel::INFO);
+
+                std::shared_ptr<IPlugin> baseShared(it->second.get(), [](IPlugin *) {});
+                return std::shared_ptr<T>(baseShared, typed);
             }
 
         private:
-            std::unordered_map<std::string, LibHandle> m_handles;
+            std::mutex m_mutex;
+            std::unordered_map<std::string, SharedLib> m_handles;
             std::unordered_map<std::string, std::unique_ptr<IPlugin>> m_plugins;
-    }; // class PluginLoader
+
+            SharedLib loadLibrary(const std::string &path)
+            {
+                LibHandle handle =
+#ifdef _WIN32
+                    LoadLibraryA(path.c_str());
+#else
+                    dlopen(path.c_str(), RTLD_LAZY);
+#endif
+                if (!handle)
+                    throw std::runtime_error("Cannot load library: " + path);
+                return SharedLib(handle);
+            }
+
+            EntryPointFn getEntryPoint(SharedLib &lib, const std::string &path)
+            {
+                EntryPointFn entry =
+#ifdef _WIN32
+                    reinterpret_cast<EntryPointFn>(GetProcAddress(lib.handle, "entryPoint"));
+#else
+                    reinterpret_cast<EntryPointFn>(dlsym(lib.handle, "entryPoint"));
+#endif
+                if (!entry)
+                    throw std::runtime_error("EntryPoint not found in plugin: " + path);
+                return entry;
+            }
+    };
 
 } // namespace utl
