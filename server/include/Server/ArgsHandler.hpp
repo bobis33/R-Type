@@ -8,7 +8,9 @@
 
 #include <fstream>
 
-#include "nlohmann/json.hpp"
+#include <nlohmann/json.hpp>
+
+#include "Server/Common.hpp"
 
 namespace srv
 {
@@ -18,8 +20,9 @@ namespace srv
     struct ArgsConfig
     {
             bool exit = false;
-            std::string host = "0.0.0.0";
-            unsigned int port = 2560;
+            std::string host = Config::Network::DEFAULT_NETWORK_HOST;
+            unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+            std::string network_lib_path;
 
             static ArgsConfig fromFile(const std::string &path);
     }; // struct Config

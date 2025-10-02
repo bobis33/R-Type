@@ -5,6 +5,15 @@
 ///
 
 #pragma once
+#include <filesystem>
+
+#ifdef _WIN32
+#define PLUGINS_EXTENSION ".dll"
+#elif __linux__
+#define PLUGINS_EXTENSION ".so"
+#elif __APPLE__
+#define PLUGINS_EXTENSION ".dylib"
+#endif
 
 namespace cli
 {
@@ -40,6 +49,15 @@ namespace cli
         {
             inline constexpr auto FONTS_RTYPE = "assets/fonts/r-type.otf";
         } // namespace Font
+        namespace Plugin
+        {
+            inline auto PLUGIN_AUDIO_SFML =
+                std::filesystem::path(PLUGINS_DIR) / ("audio_sfml" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_NETWORK_ASIO_CLIENT =
+                std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_RENDERER_SFML =
+                std::filesystem::path(PLUGINS_DIR) / ("renderer_sfml" + std::string(PLUGINS_EXTENSION));
+        } // namespace Plugin
         namespace Texture
         {
             inline constexpr auto TEXTURE_PLAYER = "assets/sprites/r-typesheet42.gif";

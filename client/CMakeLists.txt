@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0.0)
 project(r-type_client
         VERSION 0.0.0
-        DESCRIPTION "R-TYPE Client"
+        DESCRIPTION "R-Type Client"
         LANGUAGES C CXX
 )
 set(PATH_VERSION "${PROJECT_SOURCE_DIR}/include/Client/Generated/Version.hpp")
@@ -19,10 +19,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
         "${CMAKE_SOURCE_DIR}/third-party/json/single_include"
         "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include" ## TODO(Bobis33): to remove
-        "${CMAKE_SOURCE_DIR}/modules/Renderer/SFMLRenderer/include"
         "${CMAKE_SOURCE_DIR}/modules/Audio/SFMLAudio/include"
         "${CMAKE_SOURCE_DIR}/modules/Game/R-Type/Client/include"
-        "${CMAKE_SOURCE_DIR}/modules/ECS/include" ## to remove
+        "${CMAKE_SOURCE_DIR}/modules/ECS/include"
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
         r-type_modules_client

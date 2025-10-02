@@ -11,6 +11,11 @@ Here is an example configuration file:
     "server_port": 4242,
     "player_name": "Player"
   },
+  "plugins": {
+    "audio": "/plugins/my_audio_plugin.so",
+    "network": "/plugins/my_network_client_plugin.so",
+    "renderer": "/plugins/my_renderer_plugin.so"
+  },
   "window": {
     "fullscreen": false,
     "width": 920,
@@ -21,14 +26,13 @@ Here is an example configuration file:
 ```
 
 ## Key Bindings
-| Action        | Key          |
-|---------------|--------------|
-| Move Up       | Z            |
-| Move Down     | S            |
-| Move Left     | Q            |
-| Move Right    | D            |
-| Shoot         | Space        |
-| Pause         | Escape       |
+| Action     | Key    |
+|------------|--------|
+| Move Up    | ↑      |
+| Move Down  | ↓      |
+| Move Left  | ←      |
+| Move Right | →      |
+| Pause      | Escape |
 
 ## Audio
 Found original R-Type audio files [here](https://downloads.khinsider.com/game-soundtracks/album/r-type-original-sound-box).

@@ -9,12 +9,12 @@ std::vector<char> utl::readFile(const std::string &filename)
     {
         throw std::runtime_error("failed to open file " + filename);
     }
-    const size_t fileSize = file.tellg();
+    const long int fileSize = file.tellg();
     if (fileSize <= 0)
     {
         throw std::runtime_error("file " + filename + " is empty");
     }
-    std::vector<char> buffer(fileSize);
+    std::vector<char> buffer(static_cast<long unsigned int>(fileSize));
     file.seekg(0, std::ios::beg);
     if (!file.read(buffer.data(), fileSize))
     {

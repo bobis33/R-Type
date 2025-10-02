@@ -1,0 +1,31 @@
+///
+/// @file Common.hpp
+/// @brief This file contains common definitions and constants
+/// @namespace srv
+///
+
+#pragma once
+
+#include <filesystem>
+
+#ifdef _WIN32
+#define PLUGINS_EXTENSION ".dll"
+#elif __linux__
+#define PLUGINS_EXTENSION ".so"
+#elif __APPLE__
+#define PLUGINS_EXTENSION ".dylib"
+#endif
+
+namespace srv
+{
+    namespace Config::Network
+    {
+        inline constexpr auto DEFAULT_NETWORK_HOST = "0.0.0.0";
+        inline constexpr auto DEFAULT_NETWORK_PORT = 2560;
+    } // namespace Config::Network
+    namespace Path::Plugin
+    {
+        inline auto PLUGINS_NETWORK_ASIO_SERVER =
+            std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
+    }
+} // namespace srv

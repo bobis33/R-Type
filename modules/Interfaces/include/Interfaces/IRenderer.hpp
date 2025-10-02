@@ -8,6 +8,8 @@
 
 #include <string>
 
+#include "Utils/Interfaces/IPlugin.hpp"
+
 namespace eng
 {
     struct Color
@@ -99,12 +101,10 @@ namespace eng
     /// @brief Interface for the renderer
     /// @namespace eng
     ///
-    class IRenderer
+    class IRenderer : public utl::IPlugin
     {
 
         public:
-            virtual ~IRenderer() = default;
-
             virtual void createWindow(const std::string &title, unsigned int height, unsigned int width,
                                       unsigned int frameLimit, bool fullscreen) = 0;
             [[nodiscard]] virtual bool windowIsOpen() const = 0;
