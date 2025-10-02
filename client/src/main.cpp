@@ -2,7 +2,7 @@
 #include "Client/Client.hpp"
 #include "Utils/Logger.hpp"
 
-int main(const int argc, const char *const argv[], const char *const env[])
+int main(const int argc, const char *const *argv, const char *const *env)
 {
     utl::Logger::init();
 

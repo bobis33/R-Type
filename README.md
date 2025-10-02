@@ -23,18 +23,18 @@ flowchart LR
     subgraph App
         subgraph client [Client]
             A[Client]
-            A -->|.a/.lib| E[IGameClient]
             A -->|.a/.lib| B[Engine]
-            B -->|.a/.lib| D[IRenderer]
-            B -->|.a/.lib| F[INetworkClient]
-            B -->|.a/.lib| G[IAudio]
-            B -->|.a/.lib| K[ECS]
+            B -->|.a/.lib| C[ECS]
+            A -->|.a/.lib| D[IGameClient]
+            B -->|.so/.dll| E[IAudio]
+            B -->|.so/.dll| F[INetworkClient]
+            B -->|.so/.dll| G[IRenderer]
         end
     
         subgraph server [Server]
             H[Server]
-            H -->|.a/.lib| I[INetworkServer]
-            H -->|.a/.lib| J[IGameServer]
+            H -->|.so/.dll| I[IGameServer]
+            H -->|.so/.dll| J[INetworkServer]
         end
     
         A <==>|TCP/UDP| H
@@ -46,7 +46,8 @@ R-Type
 ├── cmake                   # Cmake configs
 ├── client                  # Client source code
 ├── documentation           # Project documentation
-├── modules                 # Static libraries for the project
+├── modules                 # Static libraries
+├── plugins                 # Dynamic libraries
 ├── scripts                 # Build and utility scripts
 ├── server                  # Server source code
 ├── tests                   # Unit and integration tests
@@ -75,8 +76,8 @@ Make sure you have the following dependencies installed on your system:
 cmake -S . -B cmake-build-release -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
 cmake --build cmake-build-release -- -j4
 ## Then
-./cmake-build-release/r-type_client ## client
-./cmake-build-release/r-type_server ## server
+./cmake-build-release/bin/r-type_client ## client
+./cmake-build-release/bin/r-type_server ## server
 ```
 
 ### Windows

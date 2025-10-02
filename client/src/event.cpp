@@ -17,6 +17,7 @@ void cli::Client::handleEvents(eng::Event &event)
             case eng::EventType::KeyPressed:
                 if (event.key == eng::Key::Escape)
                 {
+                    m_engine->getRenderer()->closeWindow();
                     m_engine->setState(eng::State::STOP);
                 }
                 else

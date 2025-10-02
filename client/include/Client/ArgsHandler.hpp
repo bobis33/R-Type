@@ -24,6 +24,10 @@ namespace cli
             bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
             std::string host = Config::Network::DEFAULT_NETWORK_HOST;
             unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+            std::string audio_lib_path = Path::Plugin::PLUGIN_AUDIO_SFML.string();
+            std::string network_lib_path = Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string();
+            std::string renderer_lib_path = Path::Plugin::PLUGIN_RENDERER_SFML.string();
+
             static ArgsConfig fromFile(const std::string &path);
     }; // struct Config
     struct EnvConfig

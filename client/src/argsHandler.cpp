@@ -54,6 +54,28 @@ cli::ArgsConfig cli::ArgsConfig::fromFile(const std::string &path)
         {
             cfg.fullscreen = w["fullscreen"];
         }
+        const auto &p = j["plugins"];
+        if (p.contains("audio"))
+        {
+            cfg.audio_lib_path = p["audio"];
+        }
+        if (p.contains("network"))
+        {
+            cfg.network_lib_path = p["network"];
+        }
+        if (p.contains("renderer"))
+        {
+            cfg.renderer_lib_path = p["renderer"];
+        }
+        const auto &c = j["client"];
+        if (c.contains("host"))
+        {
+            cfg.host = c["host"];
+        }
+        if (c.contains("port"))
+        {
+            cfg.port = c["port"];
+        }
     }
     return cfg;
 }
@@ -61,7 +83,9 @@ cli::ArgsConfig cli::ArgsConfig::fromFile(const std::string &path)
 cli::ArgsConfig cli::ArgsHandler::ParseArgs(const int argc, const char *const argv[])
 {
     if (argc <= 1)
+    {
         return {};
+    }
 
     using ArgHandler = std::function<void(const char *arg)>;
     std::unordered_map<std::string_view, ArgHandler> handlers;

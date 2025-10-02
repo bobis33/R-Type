@@ -10,6 +10,7 @@
 
 #include "Interfaces/INetworkServer.hpp"
 #include "Server/ArgsHandler.hpp"
+#include "Utils/PluginLoader.hpp"
 
 namespace srv
 {
@@ -34,7 +35,8 @@ namespace srv
             void run() const;
 
         private:
-            std::unique_ptr<INetworkServer> m_network;
+            std::unique_ptr<utl::PluginLoader> m_pluginLoader;
+            std::shared_ptr<INetworkServer> m_network;
     }; // class Server
 
 } // namespace srv

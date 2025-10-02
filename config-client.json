@@ -4,10 +4,15 @@
     "server_port": 2560,
     "player_name": "Player"
   },
+  "plugins": {
+    "audio": "cmake-build-release/bin/lib/audio_sfml.so",
+    "network": "cmake-build-release/bin/lib/network_asio_client.so",
+    "renderer": "cmake-build-release/bin/lib/renderer_sfml.so"
+  },
   "window": {
     "fullscreen": false,
-    "width": 920,
-    "height": 580,
+    "width": 1920,
+    "height": 1080,
     "frame_limit": 10000
   }
 }

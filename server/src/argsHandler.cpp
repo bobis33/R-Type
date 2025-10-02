@@ -43,6 +43,10 @@ srv::ArgsConfig srv::ArgsConfig::fromFile(const std::string &path)
     {
         cfg.port = j["port"];
     }
+    if (const auto &p = j["plugins"]; p.contains("network"))
+    {
+        cfg.network_lib_path = p["network"];
+    }
     return cfg;
 }
 

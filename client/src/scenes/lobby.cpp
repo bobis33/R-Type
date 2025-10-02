@@ -5,7 +5,7 @@
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 
-cli::Lobby::Lobby(const std::unique_ptr<eng::IRenderer> &renderer, const std::unique_ptr<eng::IAudio> &audio)
+cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
 {
     auto &registry = AScene::getRegistry();
 

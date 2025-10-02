@@ -36,9 +36,9 @@ namespace eng
     {
 
         public:
-            Engine(const std::function<std::unique_ptr<IAudio>()> &audioFactory,
-                   const std::function<std::unique_ptr<INetworkClient>()> &networkFactory,
-                   const std::function<std::unique_ptr<IRenderer>()> &rendererFactory);
+            Engine(const std::function<std::shared_ptr<IAudio>()> &audioFactory,
+                   const std::function<std::shared_ptr<INetworkClient>()> &networkFactory,
+                   const std::function<std::shared_ptr<IRenderer>()> &rendererFactory);
             ~Engine() = default;
 
             Engine(const Engine &) = delete;
@@ -46,9 +46,9 @@ namespace eng
             Engine(Engine &&) = delete;
             Engine &operator=(Engine &&) = delete;
 
-            std::unique_ptr<IAudio> &getAudio() { return m_audio; }
-            std::unique_ptr<INetworkClient> &getNetwork() { return m_network; }
-            std::unique_ptr<IRenderer> &getRenderer() { return m_renderer; }
+            std::shared_ptr<IAudio> &getAudio() { return m_audio; }
+            std::shared_ptr<INetworkClient> &getNetwork() { return m_network; }
+            std::shared_ptr<IRenderer> &getRenderer() { return m_renderer; }
             std::unique_ptr<utl::Clock> &getClock() { return m_clock; }
             std::unique_ptr<SceneManager> &getSceneManager() { return m_sceneManager; }
             State getState() const { return m_state; }
@@ -66,9 +66,9 @@ namespace eng
             std::unique_ptr<utl::Clock> m_clock;
             std::unique_ptr<SceneManager> m_sceneManager;
             std::vector<std::unique_ptr<ISystem>> m_systems;
-            std::unique_ptr<IAudio> m_audio;
-            std::unique_ptr<INetworkClient> m_network;
-            std::unique_ptr<IRenderer> m_renderer;
+            std::shared_ptr<IAudio> m_audio;
+            std::shared_ptr<INetworkClient> m_network;
+            std::shared_ptr<IRenderer> m_renderer;
     }; // class Engine
 
 } // namespace eng
