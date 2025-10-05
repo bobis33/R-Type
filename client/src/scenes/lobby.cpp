@@ -30,7 +30,6 @@ namespace cli
                     .name = textComp->id});
             }
         });
-
         createLobbyEntities();
     }
 
@@ -70,7 +69,6 @@ namespace cli
         m_rooms.push_back({backEntity, "back"});
 
         updateHighlight();
-
         std::cout << "Lobby entities created!" << std::endl;
     }
 
