@@ -60,9 +60,17 @@ namespace cli
             .build();
         m_items.push_back({multiEntity, "multi"});
 
+        auto settingsEntity = registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_settings", 220.F, 280.F, 0.F)
+            .with<ecs::Color>("color_settings", 200, 200, 200, 255)
+            .with<ecs::Text>("settings", "Settings", 30U)
+            .build();
+        m_items.push_back({settingsEntity, "settings"});
+
         auto quitEntity = registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_quit", 220.F, 280.F, 0.F)
+            .with<ecs::Transform>("transform_quit", 220.F, 330.F, 0.F)
             .with<ecs::Color>("color_quit", 200, 200, 200, 255)
             .with<ecs::Text>("quit", "Quit", 30U)
             .build();
@@ -115,11 +123,14 @@ namespace cli
                 updateHighlight();
             }
             else if (event.key == eng::Key::Enter) {
-                if (m_items[m_selectedIndex].id == "solo")
+                const auto &id = m_items[m_selectedIndex].id;
+                if (id == "solo")
                     m_startSolo = true;
-                else if (m_items[m_selectedIndex].id == "multi")
+                else if (id == "multi")
                     m_startMulti = true;
-                else if (m_items[m_selectedIndex].id == "quit")
+                else if (id == "settings")
+                    m_openSettings = true;
+                else if (id == "quit")
                     m_exitGame = true;
             }
         }
@@ -140,11 +151,5 @@ namespace cli
                 }
             }
         }
-        if (m_exitGame)
-            std::cout << "Exiting game..." << std::endl;
-        if (m_startSolo)
-            std::cout << "Starting SOLO game..." << std::endl;
-        if (m_startMulti)
-            std::cout << "Starting MULTIPLAYER game..." << std::endl;
     }
 }

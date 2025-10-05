@@ -30,6 +30,7 @@ namespace cli
 
         bool shouldStartSolo() const { return m_startSolo; }
         bool shouldStartMulti() const { return m_startMulti; }
+        bool shouldOpenSettings() const { return m_openSettings; }
         bool shouldExitGame() const { return m_exitGame; }
 
     private:
@@ -43,9 +44,10 @@ namespace cli
 
         bool m_startSolo = false;
         bool m_startMulti = false;
+        bool m_openSettings = false;
         bool m_exitGame = false;
 
         void createMenuEntities();
         void updateHighlight();
     };
-} // namespace cli
+}

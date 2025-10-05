@@ -2,12 +2,13 @@
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Menu.hpp"
 #include "Client/Scenes/Game.hpp"
+#include "Client/Scenes/Lobby.hpp"
+#include "Client/Scenes/Settings.hpp"
 #include "Client/Systems/Systems.hpp"
 #include "SFMLAudio/SFMLAudio.hpp"
 #include "SFMLRenderer/SFMLRenderer.hpp"
 #include "Utils/Clock.hpp"
 #include "Utils/Logger.hpp"
-#include "Client/Scenes/Lobby.hpp"
 
 static constexpr eng::Color DARK = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
 
@@ -49,6 +50,7 @@ void cli::Client::run()
         auto *menu = dynamic_cast<Menu*>(&scene);
         auto *lobby = dynamic_cast<Lobby*>(&scene);
         auto *game = dynamic_cast<Game*>(&scene);
+        auto *settings = dynamic_cast<Settings*>(&scene);
 
         eng::Event event;
         while (m_engine->getRenderer()->pollEvent(event))
@@ -79,6 +81,22 @@ void cli::Client::run()
                 const auto lobbyId = lobbyScene->getId();
                 m_engine->getSceneManager()->addScene(std::move(lobbyScene));
                 m_engine->getSceneManager()->switchToScene(lobbyId);
+            }
+            if (menu->shouldOpenSettings()) {
+                std::cout << "Switching to SETTINGS" << std::endl;
+                auto settingsScene = std::make_unique<cli::Settings>(m_engine->getRenderer(), m_engine->getAudio());
+                const auto settingsId = settingsScene->getId();
+                m_engine->getSceneManager()->addScene(std::move(settingsScene));
+                m_engine->getSceneManager()->switchToScene(settingsId);
+            }
+        }
+        if (settings) {
+            if (settings->shouldReturnMenu()) {
+                std::cout << "Returning to MENU" << std::endl;
+                auto menuScene = std::make_unique<cli::Menu>(m_engine->getRenderer(), m_engine->getAudio());
+                const auto menuId = menuScene->getId();
+                m_engine->getSceneManager()->addScene(std::move(menuScene));
+                m_engine->getSceneManager()->switchToScene(menuId);
             }
         }
         if (lobby) {
