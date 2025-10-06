@@ -1,91 +1,199 @@
-R-Type Protocol Specification
-=============================
+R-Type ProR-Type Protocol Specification (Draft)
 Author: Elliot Mas
-Version: 0.1
-Date: 2025-09-26
-Status: Draft
+Date: 2025-10-02
 
 1. Introduction
 ---------------
 This document specifies the R-Type multiplayer game protocol.
-The protocol is designed to run over UDP, with a custom binary format
-for efficient real-time communication.
+It targets fast, bandwidth-efficient client/server communication over UDP with:
+- application-level reliability,
+- compact binary payloads,
+- extensibility for future features.
 
 2. Terminology
 --------------
-- Client: a game instance controlled by a player.
-- Server: the authoritative game host managing the world state.
-- Packet: a unit of data transmitted between client and server.
+Client   : a game instance controlled by a player
+Server   : the authoritative game host managing the world state
+Packet   : a datagram transmitted between client and server
+Session  : an authenticated association between client and server, identified by a Session ID
 
 3. Transport
 ------------
-- Transport protocol: UDP (default port TBD)
-- Endianness: Little Endian
-- Reliability: Implemented at application level
-- Message size: max 512 bytes
+Protocol        : UDP
+Default Port    : 4567
+Byte Order      : Big Endian (network byte order)
+Max Msg Size    : 512 bytes (after compression)
+Reliability     : Implemented at application level
+Rate Limits     : <= 200 packets/sec per client recommended
 
-4. Packet Structure
--------------------
-All packets share a common header:
+4. Packet Header
+----------------
+All packets share this structure:
 
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   Version     |   Type        |          Length               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                        Sequence Number                        |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                        Payload ...                            |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+Type (8b)            : packet type
+Length (16b)         : payload length in bytes
+Flags (16b)          : bitfield
+  0x0001 = ACK_REQ
+  0x0002 = RELIABLE
+  0x0004 = FRAG
+  0x0008 = COMPRESSED
+Reserved (16b)       : must be 0
+Sequence Number (32b): per-session, monotonic
+Session ID (32b)     : server-assigned after CONNECT
+Payload              : type-specific data
 
-- Version (8 bits): Protocol version (currently 1)
-- Type (8 bits): Packet type (see section 5)
-- Length (16 bits): Length of payload in bytes
-- Sequence Number (32 bits): Monotonic counter for reliability
-- Payload: Type-specific data
+All multi-byte fields are encoded in big endian.
 
 5. Packet Types
 ---------------
-Type codes:
+0x01 - CONNECT
+0x02 - DISCONNECT
+0x03 - WORLD_STATE
+0x04 - PING
+0x05 - PONG
+0x06 - ERROR
+0x07 - ACK
+0x08 - ENTITY_EVENT
+0x09 - CONNECT_ACCEPT
 
-    0x01 - CONNECT
-    0x02 - DISCONNECT
-    0x03 - PLAYER_INPUT
-    0x04 - WORLD_STATE
-    0x05 - PING
-    0x06 - PONG
-    0x07 - ERROR
+CONNECT (0x01)
+Payload:
+  uint8  name_len
+  bytes  player_name[name_len]
+  uint32 client_caps
 
-6. Reliability
+CONNECT_ACCEPT (0x09)
+Payload:
+  uint32 session_id
+  uint16 tick_rate_hz
+  uint16 mtu_payload_bytes
+  uint32 server_caps
+
+DISCONNECT (0x02)
+Payload:
+  uint16 reason_code
+
+WORLD_STATE (0x03)
+Payload:
+  uint32 server_tick
+  uint16 entity_count
+  repeated entity {
+    uint32 id
+    uint16 type
+    float32 x, y, vx, vy
+    uint8  state_flags
+  }
+
+ENTITY_EVENT (0x08)
+Payload:
+  uint32 server_tick
+  uint16 event_count
+  repeated event {
+    uint8  event_type   // see EventType enum below
+    uint32 entity_id
+    uint8  data_len
+    bytes  data[data_len]
+  }
+
+PING (0x04) / PONG (0x05)
+Payload:
+  uint32 nonce
+  uint32 send_time_ms
+
+ACK (0x07)
+Payload:
+  uint32 cumulative_ack
+  uint32 ack_bits (32-bit SACK window)
+
+ERROR (0x06)
+Payload:
+  uint16 error_code
+  uint16 msg_len
+  bytes  description[msg_len]
+
+6. Reliability & Fragmentation
+------------------------------
+- Sequence numbers: 32-bit, wraparound
+- ACK packets: selective ACK
+- Retransmission timeout: 200ms -> 1.6s max
+- Max retries: 6
+- Fragmentation if FRAG flag set:
+  uint16 frag_id
+  uint16 frag_index
+  uint16 frag_count
+
+7. Disconnect & Error Codes
+---------------------------
+Disconnect Reasons:
+  0 unspecified
+  1 client_request
+  2 timeout
+  3 protocol_error
+  4 server_shutdown
+  5 server_full
+  6 banned
+
+Error Codes:
+  1 invalid_payload
+  2 unauthorized_session
+  3 rate_limited
+  4 internal_error
+
+8. Event Types
 --------------
-Since UDP is unreliable, the protocol implements:
-- Sequence numbers to detect loss/reordering
-- Optional ACK packets
-- Retransmission on timeout
+enum class EventType : uint8
+{
+    SPAWN   = 0x01,
+    DESPAWN = 0x02,
+    DAMAGE  = 0x03,
+    SCORE   = 0x04,
+    POWERUP = 0x05,
+    INPUT   = 0x06,
+    CUSTOM  = 0xFF
+};
 
-7. Example Messages
--------------------
-CONNECT (Client → Server)
-- Type: 0x01
-- Payload: player name (null-terminated string)
+Each event in ENTITY_EVENT payload has:
+  - event_type (uint8)
+  - entity_id (uint32)
+  - data_len (uint8)
+  - data[data_len] (event-specific content)
 
-PLAYER_INPUT (Client → Server)
-- Type: 0x03
-- Payload:
-    uint8  direction (0=none,1=up,2=down,3=left,4=right)
-    uint8  shooting (0/1)
+Example per-type data:
+- SPAWN: { uint16 entity_type; float32 x; float32 y; }
+- DESPAWN: { uint8 reason; }
+- DAMAGE: { uint16 amount; uint32 source_id; }
+- SCORE: { uint16 points; }
+- POWERUP: { uint16 powerup_type; }
+- INPUT: { uint16 buttons; uint8 direction; uint8 shooting; uint32 client_time_ms; }
+- CUSTOM: opaque blob
 
-WORLD_STATE (Server → Client)
-- Type: 0x04
-- Payload: serialized entity list
+9. Security
+-----------
+- Session ID bound to (IP, port)
+- Sequence numbers prevent replay
 
-8. Security Considerations
---------------------------
-- No authentication in this draft version
-- Spoofed UDP packets possible
-- Mitigation: future version may add HMAC or token exchange
+10. Timing
+----------
+- Tick rate: advertised by server
+- Keepalive: PING every 5s, disconnect if no PONG after 15s
+- Clients interpolate WORLD_STATE, corrected by ENTITY_EVENT
 
-9. References
--------------
-- RFC 768: User Datagram Protocol
-- Boost.Asio Documentation
+Appendix A: Example Packets
+---------------------------
+CONNECT (client → server)
+Type=0x01, Flags=0, Seq=1, SID=0
+Payload: [05][“Elliot”][0x00000001]
+
+CONNECT_ACCEPT (server → client)
+Type=0x09, Flags=RELIABLE|ACK_REQ
+Payload: session_id=0xA1B2C3D4, tick=50, mtu=508, caps=...
+
+ENTITY_EVENT (client → server, example INPUT)
+Type=0x08
+Payload: tick=1234, event_count=1
+Event[0]: INPUT, entity_id=42, data={buttons=0x01, dir=4, shoot=1, time=56789}
+
+ENTITY_EVENT (server → client, example SPAWN)
+Type=0x08
+Payload: tick=1250, event_count=1
+Event[0]: SPAWN, entity_id=99, data={type=enemy, x=100.0, y=200.0}
