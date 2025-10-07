@@ -18,7 +18,7 @@ void eng::AsioClient::connect(const std::string &host, uint16_t port)
 
         m_socket.open(udp::v4());
 
-        m_workGuard.emplace(asio::make_work_guard(m_ioContext));
+        m_workGuard = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(asio::make_work_guard(m_ioContext));
         m_ioThread = std::thread(
             [this]()
             {
@@ -49,7 +49,7 @@ void eng::AsioClient::disconnect()
     {
         sendDisconnect();
 
-        if (m_workGuard.has_value())
+        if (m_workGuard)
         {
             asio::post(m_ioContext,
                        [this]()

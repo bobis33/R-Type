@@ -26,13 +26,13 @@ namespace eng
     /// @brief Network implementation with asio for client
     /// @namespace eng
     ///
-    class AsioClient final : public INetworkClient
+    class AsioClient : public INetworkClient
     {
         public:
             using PacketHandler = std::function<void(const rnp::PacketHeader &, const std::vector<uint8_t> &)>;
 
             AsioClient();
-            ~AsioClient() override = default;
+            ~AsioClient() override;
 
             AsioClient(const AsioClient &) = delete;
             AsioClient(AsioClient &&) = delete;
@@ -58,10 +58,8 @@ namespace eng
 
             void setPacketHandler(rnp::PacketType type, PacketHandler handler);
 
-            // Gestion dédiée aux événements
             void setEventsHandler(std::function<void(const std::vector<rnp::EventRecord> &)> handler);
             
-            // Getters
             std::uint32_t getSessionId() const { return m_sessionId; }
             std::uint16_t getServerTickRate() const { return m_serverTickRate; }
 
@@ -83,7 +81,7 @@ namespace eng
             asio::ip::udp::endpoint m_serverEndpoint;
             std::array<uint8_t, rnp::MAX_PAYLOAD + 16> m_recvBuffer;
 
-            std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
+            std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
             std::thread m_ioThread;
             std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
             std::function<void(const std::vector<rnp::EventRecord> &)> m_eventsHandler;
