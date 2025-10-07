@@ -1,23 +1,32 @@
 ///
-/// @file Lobby.hpp
-/// @brief Multiplayer lobby scene (room management)
+/// @file LobbyScene.hpp
+/// @brief This file contains the lobby scene
+/// @namespace eng
 ///
 
 #pragma once
 
 #include "Engine/IScene.hpp"
+#include "Engine/SceneManager.hpp"
 #include "Interfaces/IRenderer.hpp"
 #include "Interfaces/IAudio.hpp"
 #include <vector>
 #include <string>
+#include <memory>
 
 namespace cli
-{
+{   
+    ///
+    /// @class Lobby
+    /// @brief Lobby scene
+    /// @namespace cli
+    ///
     class Lobby final : public eng::AScene
     {
     public:
-        Lobby(const std::unique_ptr<eng::IRenderer> &renderer,
-              const std::unique_ptr<eng::IAudio> &audio);
+        Lobby(const std::shared_ptr<eng::IRenderer> &renderer,
+              const std::shared_ptr<eng::IAudio> &audio,
+              eng::SceneManager *sceneManager);
         ~Lobby() override = default;
 
         Lobby(const Lobby &) = delete;
@@ -28,22 +37,19 @@ namespace cli
         void update(float dt, const eng::WindowSize &size) override;
         void event(const eng::Event &event) override;
 
-        bool shouldReturnMenu() const { return m_returnMenu; }
-        bool shouldStartRoom() const { return m_startRoom; }
-
     private:
-        struct Room {
+        struct RoomOption {
             ecs::Entity entity;
             std::string id;
         };
 
-        std::vector<Room> m_rooms;
-        int m_selectedIndex = 0;
-
-        bool m_returnMenu = false;
-        bool m_startRoom = false;
-
         void createLobbyEntities();
         void updateHighlight();
-    };
+
+        std::vector<RoomOption> m_rooms;
+        int m_selectedIndex = 0;
+
+        eng::SceneManager *m_sceneManager = nullptr;
+        ecs::Entity m_titleEntity{};
+    }; // class Lobby
 } // namespace cli

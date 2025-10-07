@@ -7,20 +7,20 @@
 #pragma once
 
 #include "Engine/IScene.hpp"
+#include "Engine/SceneManager.hpp"
 #include "Interfaces/IRenderer.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "ECS/Entity.hpp"
 #include <vector>
 #include <string>
-#include <unordered_map>
 
 namespace cli
 {
     class Settings final : public eng::AScene
     {
     public:
-        Settings(const std::unique_ptr<eng::IRenderer> &renderer,
-                 const std::unique_ptr<eng::IAudio> &audio);
+        Settings(const std::shared_ptr<eng::IRenderer> &renderer,
+                 const std::shared_ptr<eng::IAudio> &audio,
+                 eng::SceneManager *sceneManager);
         ~Settings() override = default;
 
         Settings(const Settings &) = delete;
@@ -30,11 +30,9 @@ namespace cli
 
         void update(float dt, const eng::WindowSize &size) override;
         void event(const eng::Event &event) override;
-        bool shouldReturnMenu() const { return m_returnMenu; }
 
     private:
-        struct Item
-        {
+        struct Item {
             ecs::Entity entity;
             std::string id;
         };
@@ -44,12 +42,13 @@ namespace cli
 
         std::vector<Item> m_items;
         int m_selectedIndex = 0;
-        bool m_returnMenu = false;
+        bool m_fullscreen = false;
         int m_volume = 50;
         int m_fps = 240;
-        bool m_fullscreen = false;
 
+        ecs::Entity m_titleEntity{};
         eng::IRenderer &m_renderer;
         eng::IAudio &m_audio;
-    };
+        eng::SceneManager *m_sceneManager = nullptr;
+    }; // class Settings
 } // namespace cli

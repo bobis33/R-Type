@@ -1,17 +1,20 @@
 #include "Client/Scenes/Settings.hpp"
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include <iostream>
 #include <algorithm>
+#include <cmath>
 
+static constexpr eng::Color CYAN_GLOW = {0U, 200U, 255U, 255U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
+static constexpr eng::Color GRAY = {180U, 180U, 180U, 255U};
 
 namespace cli
 {
-    Settings::Settings(const std::unique_ptr<eng::IRenderer> &renderer,
-                       const std::unique_ptr<eng::IAudio> &audio)
-        : m_renderer(*renderer), m_audio(*audio)
+    Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer,
+                       const std::shared_ptr<eng::IAudio> &audio,
+                       eng::SceneManager *sceneManager)
+        : m_renderer(*renderer), m_audio(*audio), m_sceneManager(sceneManager)
     {
         auto &registry = AScene::getRegistry();
 
@@ -23,7 +26,8 @@ namespace cli
                 const auto *text = registry.getComponent<ecs::Text>(e);
                 const auto *transform = registry.getComponent<ecs::Transform>(e);
 
-                if (type == typeid(ecs::Text) && text && transform && font) {
+                if (type == typeid(ecs::Text) && text && transform && font)
+                {
                     renderer->createFont(font->id, font->path);
                     renderer->createText({
                         .font_name = font->id,
@@ -35,7 +39,6 @@ namespace cli
                         .name = text->id});
                 }
             });
-
         createSettingsEntities();
     }
 
@@ -43,11 +46,14 @@ namespace cli
     {
         auto &reg = getRegistry();
 
-        reg.createEntity()
+        constexpr float windowWidth = static_cast<float>(cli::Config::Window::DEFAULT_WINDOW_WIDTH);
+        constexpr float windowHeight = static_cast<float>(cli::Config::Window::DEFAULT_WINDOW_HEIGHT);
+
+        m_titleEntity = reg.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("title", 180.F, 50.F, 0.F)
-            .with<ecs::Color>("title_color", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-            .with<ecs::Text>("title_text", "Settings", 50U)
+            .with<ecs::Transform>("title_transform", windowWidth / 2.F - 140.F, 60.F, 0.F)
+            .with<ecs::Color>("title_color", CYAN_GLOW.r, CYAN_GLOW.g, CYAN_GLOW.b, CYAN_GLOW.a)
+            .with<ecs::Text>("title_text", "SETTINGS", 50U)
             .build();
 
         const std::vector<std::pair<std::string, std::string>> settings = {
@@ -56,78 +62,116 @@ namespace cli
             {"fps", "Framerate: 240"},
             {"back", "Return to Menu"}};
 
-        float y = 180.F;
-        for (const auto &[id, label] : settings) {
+        const float spacing = 60.F;
+        const float totalHeight = spacing * static_cast<float>(settings.size() - 1);
+        float startY = (windowHeight / 2.F) - (totalHeight / 2.F) + 30.F;
+
+        for (const auto &[id, label] : settings)
+        {
             ecs::Entity entity = reg.createEntity()
                 .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                .with<ecs::Transform>("tr_" + id, 220.F, y, 0.F)
-                .with<ecs::Color>("color_" + id, 200, 200, 200, 255)
-                .with<ecs::Text>(id, label, 30U)
+                .with<ecs::Transform>("transform_" + id, windowWidth / 2.F - 160.F, startY, 0.F)
+                .with<ecs::Color>("color_" + id, GRAY.r, GRAY.g, GRAY.b, 255)
+                .with<ecs::Text>(id, label, 32U)
                 .build();
 
             m_items.push_back({entity, id});
-            y += 50.F;
+            startY += spacing;
         }
         updateHighlight();
-        std::cout << "Settings entities created!" << std::endl;
+        std::cout << "[Settings] Entities created (centered layout)\n";
     }
 
     void Settings::updateHighlight()
     {
         auto &reg = getRegistry();
 
-        for (std::size_t i = 0; i < m_items.size(); ++i) {
+        for (std::size_t i = 0; i < m_items.size(); ++i)
+        {
             auto *color = reg.getComponent<ecs::Color>(m_items[i].entity);
             auto *text = reg.getComponent<ecs::Text>(m_items[i].entity);
             if (!color || !text)
                 continue;
-            if (static_cast<int>(i) == m_selectedIndex) {
-                color->r = 100;
-                color->g = 255;
-                color->b = 255;
+
+            if (static_cast<int>(i) == m_selectedIndex)
+            {
+                color->r = CYAN_GLOW.r;
+                color->g = CYAN_GLOW.g;
+                color->b = CYAN_GLOW.b;
                 text->font_size = 40;
-            } else {
-                color->r = color->g = color->b = 200;
-                text->font_size = 30;
+            }
+            else
+            {
+                color->r = GRAY.r;
+                color->g = GRAY.g;
+                color->b = GRAY.b;
+                text->font_size = 32;
             }
         }
     }
 
     void Settings::event(const eng::Event &event)
     {
-        if (event.type == eng::EventType::KeyPressed) {
-            if (event.key == eng::Key::Up) {
-                m_selectedIndex = static_cast<int>((m_selectedIndex - 1 + static_cast<int>(m_items.size())) % static_cast<int>(m_items.size()));
-            } else if (event.key == eng::Key::Down) {
-                m_selectedIndex = static_cast<int>((m_selectedIndex + 1) % static_cast<int>(m_items.size()));
-            } else if (event.key == eng::Key::Enter) {
-                const std::string &id = m_items[static_cast<std::size_t>(m_selectedIndex)].id;
+        if (event.type != eng::EventType::KeyPressed)
+            return;
 
-                if (id == "volume") {
-                    m_volume = (m_volume + 10) % 110;
-                    auto *text = getRegistry().getComponent<ecs::Text>(m_items[static_cast<std::size_t>(m_selectedIndex)].entity);
-                    if (text)
-                        text->content = "Volume: " + std::to_string(m_volume);
-                    m_audio.setVolume("title_music", static_cast<float>(m_volume));
-                } else if (id == "fullscreen") {
-                    m_fullscreen = !m_fullscreen;
-                    auto *text = getRegistry().getComponent<ecs::Text>(m_items[static_cast<std::size_t>(m_selectedIndex)].entity);
-                    if (text)
-                        text->content = std::string("Fullscreen: ") + (m_fullscreen ? "On" : "Off");
-                } else if (id == "fps") {
-                    m_fps = (m_fps == 60 ? 240 : 60);
-                    auto *text = getRegistry().getComponent<ecs::Text>(m_items[static_cast<std::size_t>(m_selectedIndex)].entity);
-                    if (text)
-                        text->content = "Framerate: " + std::to_string(m_fps);
-                } else if (id == "back") {
-                    m_returnMenu = true;
-                }
+        if (event.key == eng::Key::Up)
+        {
+            m_selectedIndex = (m_selectedIndex - 1 + static_cast<int>(m_items.size())) % static_cast<int>(m_items.size());
+        }
+        else if (event.key == eng::Key::Down)
+        {
+            m_selectedIndex = (m_selectedIndex + 1) % static_cast<int>(m_items.size());
+        }
+        else if (event.key == eng::Key::Enter)
+        {
+            const std::string &id = m_items[static_cast<std::size_t>(m_selectedIndex)].id;
+
+            if (id == "volume")
+            {
+                m_volume = (m_volume + 10) % 110;
+                auto *text = getRegistry().getComponent<ecs::Text>(m_items[m_selectedIndex].entity);
+                if (text)
+                    text->content = "Volume: " + std::to_string(m_volume);
+                m_audio.setVolume("title_music", static_cast<float>(m_volume));
             }
-            updateHighlight();
+            else if (id == "fullscreen")
+            {
+                m_fullscreen = !m_fullscreen;
+                auto *text = getRegistry().getComponent<ecs::Text>(m_items[m_selectedIndex].entity);
+                if (text)
+                    text->content = std::string("Fullscreen: ") + (m_fullscreen ? "On" : "Off");
+            }
+            else if (id == "fps")
+            {
+                m_fps = (m_fps == 60 ? 240 : 60);
+                auto *text = getRegistry().getComponent<ecs::Text>(m_items[m_selectedIndex].entity);
+                if (text)
+                    text->content = "Framerate: " + std::to_string(m_fps);
+            }
+            else if (id == "back")
+            {
+                std::cout << "[Settings] Returning to MENU...\n";
+                if (m_sceneManager)
+                    m_sceneManager->switchToScene(1);
+            }
+        }
+
+        updateHighlight();
+    }
+
+    void Settings::update(float dt, const eng::WindowSize &)
+    {
+        auto &reg = getRegistry();
+        static float t = 0.F;
+        t += dt * 2.0F;
+
+        auto *color = reg.getComponent<ecs::Color>(m_titleEntity);
+        if (color)
+        {
+            color->r = static_cast<unsigned char>((std::sin(t) + 1.F) * 120.F);
+            color->g = static_cast<unsigned char>(200 + std::sin(t) * 30.F);
+            color->b = 255;
         }
     }
-
-    void Settings::update(float, const eng::WindowSize &)
-    {
-    }
-}
+} // namespace cli
