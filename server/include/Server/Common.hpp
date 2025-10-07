@@ -22,7 +22,13 @@ namespace srv
     {
         inline constexpr auto DEFAULT_NETWORK_HOST = "0.0.0.0";
         inline constexpr auto DEFAULT_NETWORK_PORT = 2560;
+        inline constexpr auto DEFAULT_MAX_CLIENT = 4;
     } // namespace Config::Network
+    namespace Game
+    {
+        inline constexpr auto DEFAULT_TICK_RATE = 60;
+        inline constexpr auto DEFAULT_UPDATE_INTERVAL = 1 / 20.F;
+    }
     namespace Path::Plugin
     {
         inline auto PLUGINS_NETWORK_ASIO_SERVER =

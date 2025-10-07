@@ -1,7 +1,7 @@
 ///
 /// @file SceneManager.hpp
 /// @brief This file contains the SceneManager class declaration
-/// @namespace eng
+/// @namespace srv
 ///
 
 #pragma once
@@ -9,15 +9,15 @@
 #include <memory>
 #include <unordered_map>
 
-#include "Engine/Interfaces/IScene.hpp"
+#include "Server/Interfaces/IScene.hpp"
 
-namespace eng
+namespace srv
 {
 
     ///
     /// @class SceneManager
     /// @brief Class for managing scenes
-    /// @namespace eng
+    /// @namespace srv
     ///
     class SceneManager
     {
@@ -56,4 +56,4 @@ namespace eng
             std::unordered_map<id, std::unique_ptr<IScene>> m_scenes;
             id m_currentSceneId = 1;
     }; // class SceneManager
-} // namespace eng
+} // namespace srv

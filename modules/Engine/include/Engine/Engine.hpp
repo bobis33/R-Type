@@ -11,7 +11,7 @@
 
 #include "ECS/Registry.hpp"
 #include "Engine/SceneManager.hpp"
-#include "Engine/Systems.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Interfaces/INetworkClient.hpp"
 #include "Interfaces/IRenderer.hpp"
