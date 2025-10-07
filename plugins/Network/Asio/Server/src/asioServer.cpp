@@ -17,7 +17,7 @@ srv::AsioServer::AsioServer(const uint16_t port, const std::string &address) : m
 
 void srv::AsioServer::start()
 {
-    m_workGuard.emplace(asio::make_work_guard(m_ioContext));
+    m_workGuard = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(asio::make_work_guard(m_ioContext));
 
     startReceive();
 
@@ -37,7 +37,7 @@ void srv::AsioServer::start()
 
 void srv::AsioServer::stop()
 {
-    if (m_workGuard.has_value())
+    if (m_workGuard)
     {
         asio::post(m_ioContext,
                    [this]

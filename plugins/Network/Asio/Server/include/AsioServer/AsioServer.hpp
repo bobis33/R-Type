@@ -27,7 +27,7 @@ namespace srv
     /// @brief Network implementation with asio for server
     /// @namespace srv
     ///
-    class AsioServer final : public INetworkServer
+    class AsioServer : public INetworkServer
     {
         public:
             using PacketHandler = std::function<void(const asio::ip::udp::endpoint &, const rnp::PacketHeader &,
@@ -44,7 +44,7 @@ namespace srv
             };
 
             AsioServer(uint16_t port, const std::string &address);
-            ~AsioServer() override = default;
+            ~AsioServer() override;
 
             AsioServer(const AsioServer &) = delete;
             AsioServer(AsioServer &&) = delete;
@@ -100,7 +100,7 @@ namespace srv
             asio::ip::udp::endpoint m_remoteEndpoint;
             std::array<uint8_t, rnp::MAX_PAYLOAD + 16> m_recvBuffer;
 
-            std::optional<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
+            std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
             std::thread m_ioThread;
             std::unordered_map<asio::ip::udp::endpoint, ClientInfo> m_clients;
             std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
