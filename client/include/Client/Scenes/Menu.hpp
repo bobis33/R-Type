@@ -1,6 +1,7 @@
 ///
 /// @file Menu.hpp
 /// @brief Menu scene (main menu of the game)
+/// @namespace cli
 ///
 
 #pragma once
@@ -19,6 +20,7 @@ namespace cli
     ///
     /// @file Menu.hpp
     /// @brief Menu scene (main menu of the game)
+    /// @namespace cli
     ///
     class Menu final : public eng::AScene
     {
@@ -52,5 +54,5 @@ namespace cli
         int m_selectedIndex = 0;
 
         eng::SceneManager *m_sceneManager = nullptr;
-    };
+    }; // class Menu
 } // namespace cli

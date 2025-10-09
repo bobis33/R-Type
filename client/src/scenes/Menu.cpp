@@ -81,8 +81,13 @@ namespace cli
         constexpr float W = static_cast<float>(cli::Config::Window::DEFAULT_WINDOW_WIDTH);
         constexpr float H = static_cast<float>(cli::Config::Window::DEFAULT_WINDOW_HEIGHT);
 
+        // Applique le volume global du SettingsManager à la musique du menu
+        float menuVolume = 50.f;
+        if (m_sceneManager && m_sceneManager->getSettingsManager()) {
+            menuVolume = static_cast<float>(m_sceneManager->getSettingsManager()->getVolume());
+        }
         reg.createEntity()
-            .with<ecs::Audio>("menu_music", Path::Audio::AUDIO_TITLE, 5.F, true, true)
+            .with<ecs::Audio>("menu_music", Path::Audio::AUDIO_TITLE, menuVolume, true, true)
             .build();
 
         const float logoX = W / 2.f - 128.f;

@@ -40,7 +40,7 @@ namespace cli
                 }
             });
 
-        createRoomEntities();
+    createRoomEntities();
     }
 
     void Room::createRoomEntities()

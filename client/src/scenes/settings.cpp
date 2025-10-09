@@ -56,10 +56,18 @@ namespace cli
             .with<ecs::Text>("title_text", "SETTINGS", 50U)
             .build();
 
+        int volume = 50;
+        bool fullscreen = false;
+        int fps = 240;
+        if (m_sceneManager && m_sceneManager->getSettingsManager()) {
+            volume = m_sceneManager->getSettingsManager()->getVolume();
+            fullscreen = m_sceneManager->getSettingsManager()->isFullscreen();
+            fps = m_sceneManager->getSettingsManager()->getFps();
+        }
         const std::vector<std::pair<std::string, std::string>> settings = {
-            {"volume", "Volume: 50"},
-            {"fullscreen", "Fullscreen: Off"},
-            {"fps", "Framerate: 240"},
+            {"volume", "Volume: " + std::to_string(volume)},
+            {"fullscreen", std::string("Fullscreen: ") + (fullscreen ? "On" : "Off")},
+            {"fps", "Framerate: " + std::to_string(fps)},
             {"back", "Return to Menu"}};
 
         const float spacing = 60.F;
@@ -126,28 +134,34 @@ namespace cli
         else if (event.key == eng::Key::Enter)
         {
             const std::string &id = m_items[static_cast<std::size_t>(m_selectedIndex)].id;
+            auto settings = m_sceneManager ? m_sceneManager->getSettingsManager() : nullptr;
 
-            if (id == "volume")
+            if (id == "volume" && settings)
             {
-                m_volume = (m_volume + 10) % 110;
+                int newVolume = (settings->getVolume() + 10) % 110;
+                settings->setVolume(newVolume);
                 auto *text = getRegistry().getComponent<ecs::Text>(m_items[m_selectedIndex].entity);
                 if (text)
-                    text->content = "Volume: " + std::to_string(m_volume);
-                m_audio.setVolume("title_music", static_cast<float>(m_volume));
+                    text->content = "Volume: " + std::to_string(newVolume);
+                m_audio.setVolume("title_music", static_cast<float>(newVolume));
             }
-            else if (id == "fullscreen")
+            else if (id == "fullscreen" && settings)
             {
-                m_fullscreen = !m_fullscreen;
+                bool newFullscreen = !settings->isFullscreen();
+                settings->setFullscreen(newFullscreen);
                 auto *text = getRegistry().getComponent<ecs::Text>(m_items[m_selectedIndex].entity);
                 if (text)
-                    text->content = std::string("Fullscreen: ") + (m_fullscreen ? "On" : "Off");
+                    text->content = std::string("Fullscreen: ") + (newFullscreen ? "On" : "Off");
+                // Ici, il faudrait appeler une méthode sur le renderer pour appliquer le fullscreen
             }
-            else if (id == "fps")
+            else if (id == "fps" && settings)
             {
-                m_fps = (m_fps == 60 ? 240 : 60);
+                int newFps = (settings->getFps() == 60 ? 240 : 60);
+                settings->setFps(newFps);
                 auto *text = getRegistry().getComponent<ecs::Text>(m_items[m_selectedIndex].entity);
                 if (text)
-                    text->content = "Framerate: " + std::to_string(m_fps);
+                    text->content = "Framerate: " + std::to_string(newFps);
+                m_renderer.setFrameLimit(static_cast<unsigned int>(newFps));
             }
             else if (id == "back")
             {

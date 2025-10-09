@@ -43,5 +43,5 @@ namespace cli
         ecs::Entity m_playerEntity{};
         ecs::Entity m_fpsEntity{};
         eng::IRenderer &m_renderer;
-    };
+    }; // class Game
 } // namespace cli

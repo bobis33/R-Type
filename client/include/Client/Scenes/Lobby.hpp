@@ -1,7 +1,7 @@
 ///
 /// @file LobbyScene.hpp
 /// @brief This file contains the lobby scene
-/// @namespace eng
+/// @namespace cli
 ///
 
 #pragma once

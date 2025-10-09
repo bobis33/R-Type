@@ -40,15 +40,12 @@ namespace cli
         void createSettingsEntities();
         void updateHighlight();
 
-        std::vector<Item> m_items;
-        int m_selectedIndex = 0;
-        bool m_fullscreen = false;
-        int m_volume = 50;
-        int m_fps = 240;
+    std::vector<Item> m_items;
+    int m_selectedIndex = 0;
 
-        ecs::Entity m_titleEntity{};
-        eng::IRenderer &m_renderer;
-        eng::IAudio &m_audio;
-        eng::SceneManager *m_sceneManager = nullptr;
+    ecs::Entity m_titleEntity{};
+    eng::IRenderer &m_renderer;
+    eng::IAudio &m_audio;
+    eng::SceneManager *m_sceneManager = nullptr;
     }; // class Settings
 } // namespace cli

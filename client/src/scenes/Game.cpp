@@ -77,8 +77,12 @@ namespace cli
                                        audioComp->id + std::to_string(e));
                 }
             });
+        float gameVolume = 50.f;
+        if (m_sceneManager && m_sceneManager->getSettingsManager()) {
+            gameVolume = static_cast<float>(m_sceneManager->getSettingsManager()->getVolume());
+        }
         registry.createEntity()
-            .with<ecs::Audio>("game_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true)
+            .with<ecs::Audio>("game_audio", Path::Audio::AUDIO_TITLE, gameVolume, true, true)
             .build();
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)

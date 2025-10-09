@@ -1,6 +1,7 @@
 ///
 /// @file Room.hpp
 /// @brief Multiplayer Room scene
+/// @namespace cli
 ///
 
 #pragma once
@@ -48,7 +49,7 @@ namespace cli
         int m_selectedIndex = 0;
         bool m_isHost = false;
 
-        eng::SceneManager *m_sceneManager = nullptr; // 🔁 gestion des transitions
+        eng::SceneManager *m_sceneManager = nullptr;
         ecs::Entity m_titleEntity{};
-    };
+    }; // class Room
 } // namespace cli

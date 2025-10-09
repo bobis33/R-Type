@@ -39,7 +39,7 @@ namespace cli
                 }
             });
 
-        createLobbyEntities();
+    createLobbyEntities();
     }
 
     void Lobby::createLobbyEntities()
