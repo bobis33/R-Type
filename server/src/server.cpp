@@ -8,7 +8,7 @@
 
 srv::Server::Server(const ArgsConfig &config)
     : m_pluginLoader(std::make_unique<utl::PluginLoader>()),
-      m_network(m_pluginLoader->loadPlugin<INetworkServer>(Path::Plugin::PLUGINS_NETWORK_ASIO_SERVER.string()))
+      m_network(m_pluginLoader->loadPlugin<INetworkServer>(!config.network_lib_path.empty() ? config.network_lib_path : Path::Plugin::PLUGINS_NETWORK_ASIO_SERVER.string()))
 {
     utl::Logger::log("PROJECT INFO:", utl::LogLevel::INFO);
     std::cout << "\tName: " PROJECT_NAME "\n"

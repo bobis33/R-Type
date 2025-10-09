@@ -22,9 +22,9 @@ cli::Client::Client(const ArgsConfig &cfg)
 
     m_pluginLoader = std::make_unique<utl::PluginLoader>();
     m_engine = std::make_unique<eng::Engine>(
-        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::IAudio>(cfg.audio_lib_path); },
-        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::INetworkClient>(cfg.network_lib_path); },
-        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::IRenderer>(cfg.renderer_lib_path); });
+        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::IAudio>(!cfg.audio_lib_path.empty() ? cfg.audio_lib_path : Path::Plugin::PLUGIN_AUDIO_SFML.string()); },
+        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::INetworkClient>(!cfg.network_lib_path.empty() ? cfg.network_lib_path : Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string()); },
+        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::IRenderer>(!cfg.renderer_lib_path.empty() ? cfg.renderer_lib_path : Path::Plugin::PLUGIN_RENDERER_SFML.string()); });
     // m_game = std::make_unique<gme::RTypeClient>();
     m_engine->getRenderer()->createWindow("R-Type Client", cfg.height, cfg.width, cfg.frameLimit, cfg.fullscreen);
 

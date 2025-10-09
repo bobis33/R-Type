@@ -1,4 +1,7 @@
 {
   "host": "0.0.0.0",
-  "port": 2560
+  "port": 2560,
+  "plugins": {
+    "network": "cmake-build-release/bin/lib/network_asio_server.so"
+  }
 }

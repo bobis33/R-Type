@@ -9,7 +9,7 @@
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
 
-#include "Engine/Systems.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
 
 namespace cli
 {
