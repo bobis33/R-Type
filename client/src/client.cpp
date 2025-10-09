@@ -21,28 +21,29 @@ cli::Client::Client(const ArgsConfig &cfg)
               << "\tGit commit hash: " GIT_COMMIT_HASH "\n";
 
     m_pluginLoader = std::make_unique<utl::PluginLoader>();
-    const auto renderer = m_pluginLoader->loadPlugin<eng::IRenderer>(cfg.renderer_lib_path);
-    const auto audio = m_pluginLoader->loadPlugin<eng::IAudio>(cfg.audio_lib_path);
-    const auto network = m_pluginLoader->loadPlugin<eng::INetworkClient>(cfg.network_lib_path);
-    m_engine = std::make_unique<eng::Engine>([audio]() { return audio; }, [network]() { return network; },
-                                             [renderer]() { return renderer; });
+    m_engine = std::make_unique<eng::Engine>(
+        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::IAudio>(cfg.audio_lib_path); },
+        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::INetworkClient>(cfg.network_lib_path); },
+        [this, cfg]() { return m_pluginLoader->loadPlugin<eng::IRenderer>(cfg.renderer_lib_path); });
     // m_game = std::make_unique<gme::RTypeClient>();
     m_engine->getRenderer()->createWindow("R-Type Client", cfg.height, cfg.width, cfg.frameLimit, cfg.fullscreen);
 
-    m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
-    m_engine->addSystem(std::make_unique<PixelSystem>(*m_engine->getRenderer()));
-    // m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer())); TODO(bobis33): only in game
-    m_engine->addSystem(std::make_unique<EnemySystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<AsteroidSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<CollisionSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<ExplosionSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<PlayerDirectionSystem>());
     m_engine->addSystem(std::make_unique<AnimationSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<LoadingAnimationSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<ProjectileSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<SpriteSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
+    // m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer())); TODO(bobis33): only in game
+    m_engine->addSystem(std::make_unique<AsteroidSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<BeamSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<TextSyStem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<CollisionSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<EnemySystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<ExplosionSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<LoadingAnimationSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<PixelSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<PlayerDirectionSystem>());
+    m_engine->addSystem(std::make_unique<ProjectileSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<SpriteSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<TextSystem>(*m_engine->getRenderer()));
+    // m_engine->addSystem(std::make_unique<WeaponSystem>(*m_engine->getRenderer())); TODO(bobis33): tofix
 
     auto lobby = std::make_unique<Lobby>(m_engine->getRenderer(), m_engine->getAudio());
     auto game = std::make_unique<Game>(m_engine->getRenderer(), m_engine->getAudio());

@@ -16,7 +16,6 @@ namespace rnp
 
     inline constexpr std::uint8_t PROTOCOL_VERSION = 1;
     inline constexpr std::size_t MAX_PAYLOAD = 512;
-    inline constexpr std::uint16_t DEFAULT_PORT = 4567;
 
     ///
     /// @brief Packet types according to RNP specification
@@ -28,7 +27,7 @@ namespace rnp
         WORLD_STATE = 0x03,
         PING = 0x04,
         PONG = 0x05,
-        ERROR = 0x06,
+        PACKET_ERROR = 0x06,
         ACK = 0x07,
         ENTITY_EVENT = 0x08,
         CONNECT_ACCEPT = 0x09,

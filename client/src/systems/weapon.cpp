@@ -4,9 +4,9 @@
 /// @namespace cli
 ///
 
+#include "Client/Systems/Weapon.hpp"
 #include "Client/Common.hpp"
 #include "Client/ProjectileManager.hpp"
-#include "Client/Systems/Weapon.hpp"
 
 namespace cli
 {

@@ -1,6 +1,6 @@
 ///
 /// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @brief This file contains the TextSystem definitions
 /// @namespace cli
 ///
 
@@ -18,16 +18,16 @@ namespace cli
     /// @brief Class for managing entities and their components
     /// @namespace ecs
     ///
-    class TextSyStem final : public eng::ASystem
+    class TextSystem final : public eng::ASystem
     {
         public:
-            explicit TextSyStem(eng::IRenderer &renderer) : m_renderer(renderer) {}
-            ~TextSyStem() override = default;
+            explicit TextSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            ~TextSystem() override = default;
 
-            TextSyStem(const TextSyStem &) = delete;
-            TextSyStem &operator=(const TextSyStem &) = delete;
-            TextSyStem(TextSyStem &&) = delete;
-            TextSyStem &operator=(TextSyStem &&) = delete;
+            TextSystem(const TextSystem &) = delete;
+            TextSystem &operator=(const TextSystem &) = delete;
+            TextSystem(TextSystem &&) = delete;
+            TextSystem &operator=(TextSystem &&) = delete;
 
             void update(ecs::Registry &registry, float /* dt */) override
             {

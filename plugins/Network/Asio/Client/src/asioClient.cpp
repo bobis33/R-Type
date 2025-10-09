@@ -500,7 +500,7 @@ void eng::AsioClient::processPacket(const std::vector<uint8_t> &data)
                 processAck(payload);
                 break;
             }
-            case rnp::PacketType::ERROR:
+            case rnp::PacketType::PACKET_ERROR:
             {
                 if (payload.size() >= 4)
                 {
