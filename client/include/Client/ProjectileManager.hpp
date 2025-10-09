@@ -37,7 +37,8 @@ namespace cli
             /// @param velocityY Y velocity
             /// @return The created entity
             ///
-            static ecs::Entity createBasicProjectile(ecs::Registry &registry, float x, float y, float velocityX, float velocityY);
+            static ecs::Entity createBasicProjectile(ecs::Registry &registry, float x, float y, float velocityX,
+                                                     float velocityY);
 
             ///
             /// @brief Create a supercharged projectile
@@ -48,7 +49,8 @@ namespace cli
             /// @param velocityY Y velocity
             /// @return The created entity
             ///
-            static ecs::Entity createSuperchargedProjectile(ecs::Registry &registry, float x, float y, float velocityX, float velocityY);
+            static ecs::Entity createSuperchargedProjectile(ecs::Registry &registry, float x, float y, float velocityX,
+                                                            float velocityY);
 
         private:
             ///
@@ -61,6 +63,7 @@ namespace cli
             /// @param velocityY Y velocity
             /// @return The created entity
             ///
-            static ecs::Entity createProjectile(ecs::Registry &registry, ecs::Projectile::Type type, float x, float y, float velocityX, float velocityY);
+            static ecs::Entity createProjectile(ecs::Registry &registry, ecs::Projectile::Type type, float x, float y,
+                                                float velocityX, float velocityY);
     }; // class ProjectileManager
 } // namespace cli

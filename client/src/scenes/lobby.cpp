@@ -5,6 +5,13 @@
 #include "Interfaces/IAudio.hpp"
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
+static constexpr eng::Color BLACK = {.r = 0, .g = 0, .b = 0, .a = 255U};
+static constexpr eng::Color WHITE_TRANS = {.r = 255U, .g = 255U, .b = 255U, .a = 100U};
+static constexpr eng::Color BLUE = {.r = 200U, .g = 200U, .b = 255U, .a = 150U};
+static constexpr eng::Color BLUE_SECOND = {.r = 50U, .g = 100U, .b = 200U, .a = 60U};
+static constexpr eng::Color YELLOW = {.r = 255U, .g = 255U, .b = 200U, .a = 200U};
+static constexpr eng::Color PURPLE = {.r = 100U, .g = 50U, .b = 150U, .a = 80U};
+static constexpr eng::Color GREEN = {.r = 200U, .g = 255U, .b = 200U, .a = 180U};
 
 cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
 {
@@ -85,25 +92,25 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
 
     // Compteur d'ennemis
     m_enemyCounterEntity = registry.createEntity()
-                              .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                              .with<ecs::Transform>("transform_enemy_counter", 10.F, 100.F, 0.F)
-                              .with<ecs::Color>("color_enemy_counter", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-                              .with<ecs::Text>("id_enemy_counter", std::string("Enemies: 0"), 20U)
-                              .build();
+                               .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+                               .with<ecs::Transform>("transform_enemy_counter", 10.F, 100.F, 0.F)
+                               .with<ecs::Color>("color_enemy_counter", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
+                               .with<ecs::Text>("id_enemy_counter", std::string("Enemies: 0"), 20U)
+                               .build();
 
     // Compteur d'astéroïdes
     m_asteroidCounterEntity = registry.createEntity()
-                                 .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                                 .with<ecs::Transform>("transform_asteroid_counter", 10.F, 130.F, 0.F)
-                                 .with<ecs::Color>("color_asteroid_counter", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-                                 .with<ecs::Text>("id_asteroid_counter", std::string("Asteroids: 0"), 20U)
-                                 .build();
-
+                                  .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+                                  .with<ecs::Transform>("transform_asteroid_counter", 10.F, 130.F, 0.F)
+                                  .with<ecs::Color>("color_asteroid_counter", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
+                                  .with<ecs::Text>("id_asteroid_counter", std::string("Asteroids: 0"), 20U)
+                                  .build();
 
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", 200.F, 100.F, 0.F)
                          .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
-                         .with<ecs::Rect>("player_rect", 0.F, 0.F, GameConfig::Player::SPRITE_WIDTH, GameConfig::Player::SPRITE_HEIGHT)
+                         .with<ecs::Rect>("player_rect", 0.F, 0.F, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
+                                          static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
                          .with<ecs::Scale>("player_scale", GameConfig::Player::SCALE, GameConfig::Player::SCALE)
                          .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
                          .with<ecs::Player>("player", true)
@@ -111,106 +118,106 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
                          .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS)
                          .build();
 
-        // La barre de Beam sera affichée directement au-dessus du joueur
-        // Pas besoin d'une entité séparée
+    // La barre de Beam sera affichée directement au-dessus du joueur
+    // Pas besoin d'une entité séparée
     // Créer des étoiles pour l'effet de parallax simple
     const int screenWidth = 1920;
     const int screenHeight = 1080;
-    
+
     // Étoiles lointaines (lentes)
-    for (int i = 0; i < 50; ++i) {
+    for (int i = 0; i < 50; ++i)
+    {
         registry.createEntity()
             .with<ecs::Pixel>("star_far")
-            .with<ecs::Transform>("star_far_transform", 
-                static_cast<float>(std::rand() % screenWidth), 
-                static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_far_color", 255, 255, 255, 100) // Blanc transparent
+            .with<ecs::Transform>("star_far_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("star_far_color", WHITE_TRANS.r, WHITE_TRANS.g, WHITE_TRANS.b, WHITE_TRANS.a)
             .with<ecs::Velocity>("star_far_vel", -20.0f, 0.0f)
             .build();
     }
-    
+
     // Étoiles moyennes
-    for (int i = 0; i < 30; ++i) {
+    for (int i = 0; i < 30; ++i)
+    {
         registry.createEntity()
             .with<ecs::Pixel>("star_mid")
-            .with<ecs::Transform>("star_mid_transform", 
-                static_cast<float>(std::rand() % screenWidth), 
-                static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_mid_color", 200, 200, 255, 150) // Bleu clair
+            .with<ecs::Transform>("star_mid_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("star_mid_color", BLUE.r, BLUE.g, BLUE.b, BLUE.a)
             .with<ecs::Velocity>("star_mid_vel", -40.0f, 0.0f)
             .build();
     }
-    
+
     // Étoiles proches (rapides)
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 20; ++i)
+    {
         registry.createEntity()
             .with<ecs::Pixel>("star_near")
-            .with<ecs::Transform>("star_near_transform", 
-                static_cast<float>(std::rand() % screenWidth), 
-                static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_near_color", 255, 255, 200, 200) // Jaune clair
+            .with<ecs::Transform>("star_near_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("star_near_color", YELLOW.r, YELLOW.g, YELLOW.b, YELLOW.a)
             .with<ecs::Velocity>("star_near_vel", -80.0f, 0.0f)
             .build();
     }
-    
+
     // Étoiles filantes
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10; ++i)
+    {
         registry.createEntity()
             .with<ecs::Pixel>("star_shooting")
-            .with<ecs::Transform>("star_shooting_transform", 
-                static_cast<float>(std::rand() % screenWidth), 
-                static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_shooting_color", 255, 100, 100, 255) // Rouge
+            .with<ecs::Transform>("star_shooting_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("star_shooting_color", GREEN.r, GREEN.g, GREEN.b, GREEN.a)
             .with<ecs::Velocity>("star_shooting_vel", -120.0f, static_cast<float>((std::rand() % 20) - 10))
             .build();
     }
 
     // Planètes lointaines (très lentes)
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; ++i)
+    {
         registry.createEntity()
             .with<ecs::Pixel>("planet_far")
-            .with<ecs::Transform>("planet_far_transform", 
-                static_cast<float>(std::rand() % screenWidth), 
-                static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("planet_far_color", 100, 50, 150, 80) // Violet foncé
+            .with<ecs::Transform>("planet_far_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("planet_far_color", PURPLE.r, PURPLE.g, PURPLE.b, PURPLE.a)
             .with<ecs::Velocity>("planet_far_vel", -5.0f, 0.0f)
             .build();
     }
 
     // Nébuleuses (très lentes, grandes)
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i)
+    {
         registry.createEntity()
             .with<ecs::Pixel>("nebula")
-            .with<ecs::Transform>("nebula_transform", 
-                static_cast<float>(std::rand() % screenWidth), 
-                static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("nebula_color", 50, 100, 200, 60) // Bleu transparent
+            .with<ecs::Transform>("nebula_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("nebula_color", BLUE_SECOND.r, BLUE_SECOND.g, BLUE_SECOND.b, BLUE_SECOND.a)
             .with<ecs::Velocity>("nebula_vel", -8.0f, 0.0f)
             .build();
     }
 
     // Comètes (mouvement diagonal)
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; ++i)
+    {
         registry.createEntity()
             .with<ecs::Pixel>("comet")
-            .with<ecs::Transform>("comet_transform", 
-                static_cast<float>(std::rand() % screenWidth), 
-                static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("comet_color", 200, 255, 200, 180) // Vert clair
+            .with<ecs::Transform>("comet_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("comet_color", GREEN.r, GREEN.g, GREEN.b, GREEN.a)
             .with<ecs::Velocity>("comet_vel", -60.0f, static_cast<float>((std::rand() % 40) - 20))
             .build();
     }
-
 }
 
-    void cli::Lobby::update(const float dt, const eng::WindowSize &size)
-    {
-        auto &reg = getRegistry();
-        auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
-        auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
+void cli::Lobby::update(const float dt, const eng::WindowSize &size)
+{
+    auto &reg = getRegistry();
+    auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
+    auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
 
-
-        m_weaponSystem.update(reg, dt, m_keysPressed[eng::Key::Space]);
+    //if (m_keysPressed[eng::Key::Space])
+    //    m_weaponSystem.update(reg, dt);
+    //m_weaponSystem.update(reg, dt, m_keysPressed[eng::Key::Space]); TODO(bobis33): tofix
     // Mise à jour des étoiles simples
     for (auto &[entity, pixel] : reg.getAll<ecs::Pixel>())
     {
@@ -223,8 +230,8 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
                 transform->y += velocity->y * dt;
 
                 // Réinitialiser si l'étoile sort de l'écran
-                if (transform->x < -10.0f || transform->x > size.width + 10.0f || 
-                    transform->y < -10.0f || transform->y > size.height + 10.0f)
+                if (transform->x < -10.0f || transform->x > size.width + 10.0f || transform->y < -10.0f ||
+                    transform->y > size.height + 10.0f)
                 {
                     transform->x = static_cast<float>(size.width + std::rand() % 200);
                     transform->y = static_cast<float>(std::rand() % size.height);
@@ -260,15 +267,15 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
     }
     float speed = GameConfig::Player::SPEED;
     float diagonal_speed = speed * GameConfig::Player::DIAGONAL_SPEED_MULTIPLIER;
-    
+
     playerVelocity->x = 0.0f;
     playerVelocity->y = 0.0f;
-    
+
     bool up = m_keysPressed[eng::Key::Up];
     bool down = m_keysPressed[eng::Key::Down];
     bool left = m_keysPressed[eng::Key::Left];
     bool right = m_keysPressed[eng::Key::Right];
-    
+
     if (up && right)
     {
         playerVelocity->x = diagonal_speed;
@@ -291,22 +298,26 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
     }
     else
     {
-        if (up) playerVelocity->y = -speed;
-        if (down) playerVelocity->y = speed;
-        if (left) playerVelocity->x = -speed;
-        if (right) playerVelocity->x = speed;
+        if (up)
+            playerVelocity->y = -speed;
+        if (down)
+            playerVelocity->y = speed;
+        if (left)
+            playerVelocity->x = -speed;
+        if (right)
+            playerVelocity->x = speed;
     }
-    
+
     playerTransform->x += playerVelocity->x * dt;
     playerTransform->y += playerVelocity->y * dt;
     playerTransform->x = std::max(playerTransform->x, 0.F);
     playerTransform->y = std::max(playerTransform->y, 0.F);
-    playerTransform->x =
-        std::min(playerTransform->x, static_cast<float>(size.width) - GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
+    playerTransform->x = std::min(playerTransform->x, static_cast<float>(size.width) -
+                                                          GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
     playerTransform->y =
-        std::min(playerTransform->y, static_cast<float>(size.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
+        std::min(playerTransform->y,
+                 static_cast<float>(size.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
 }
-
 
 void cli::Lobby::event(const eng::Event &event)
 {

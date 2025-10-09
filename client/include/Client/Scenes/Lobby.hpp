@@ -8,9 +8,9 @@
 
 #include <unordered_map>
 
+#include "Client/Systems/Weapon.hpp"
 #include "Engine/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "Client/WeaponSystem.hpp"
 
 namespace cli
 {
@@ -40,8 +40,7 @@ namespace cli
             ecs::Entity m_fpsEntity;
             ecs::Entity m_enemyCounterEntity;
             ecs::Entity m_asteroidCounterEntity;
-            
-            // Système d'armes
-            WeaponSystem m_weaponSystem;
+
+            // WeaponSystem m_weaponSystem; TODO(bobis33): tofix
     }; // class Lobby
 } // namespace cli

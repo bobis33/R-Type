@@ -4,9 +4,9 @@
 /// @namespace cli
 ///
 
-#include "Client/WeaponSystem.hpp"
-#include "Client/ProjectileManager.hpp"
+#include "Client/Systems/Weapon.hpp"
 #include "Client/Common.hpp"
+#include "Client/ProjectileManager.hpp"
 
 namespace cli
 {
@@ -16,16 +16,19 @@ namespace cli
         using namespace GameConfig::Beam;
 
         // Update cooldowns
-        if (m_fireCooldown > 0.0f) m_fireCooldown -= dt;
+        if (m_fireCooldown > 0.0f)
+            m_fireCooldown -= dt;
 
         // Get player entity and position
         auto playerEntities = registry.getAll<ecs::Player>();
-        if (playerEntities.empty()) return;
+        if (playerEntities.empty())
+            return;
 
         auto &[playerEntity, player] = *playerEntities.begin();
         auto *transform = registry.getComponent<ecs::Transform>(playerEntity);
         auto *beamCharge = registry.getComponent<ecs::BeamCharge>(playerEntity);
-        if (!transform || !beamCharge) return;
+        if (!transform || !beamCharge)
+            return;
 
         float projectileX = transform->x + GameConfig::Player::SPRITE_WIDTH;
         float projectileY = transform->y + GameConfig::Player::SPRITE_HEIGHT / 2.0f;
@@ -52,7 +55,7 @@ namespace cli
             {
                 hideLoadingAnimation(registry, playerEntity);
             }
-            
+
             // PENDANT LE CHARGEMENT : NE RIEN TIRER DU TOUT
             return; // Sortir de la fonction sans rien tirer
         }
@@ -62,7 +65,7 @@ namespace cli
             if (m_isCharging)
             {
                 m_isCharging = false;
-                
+
                 // Cacher l'animation de chargement
                 hideLoadingAnimation(registry, playerEntity);
 
@@ -99,7 +102,8 @@ namespace cli
     {
         using namespace GameConfig::Projectile;
 
-        if (m_fireCooldown > 0.0f) return false;
+        if (m_fireCooldown > 0.0f)
+            return false;
 
         ProjectileManager::createBasicProjectile(registry, x, y, Basic::SPEED, 0.0f);
         m_fireCooldown = Basic::FIRE_COOLDOWN;
@@ -114,7 +118,8 @@ namespace cli
         return true;
     }
 
-    void WeaponSystem::showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity, const ecs::Transform *playerTransform)
+    void WeaponSystem::showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
+                                            const ecs::Transform *playerTransform)
     {
         using namespace GameConfig::LoadingAnimation;
 
@@ -133,18 +138,17 @@ namespace cli
         }
 
         // Créer une nouvelle animation de chargement
-        auto loadingEntity = registry.createEntity()
-            .with<ecs::Transform>("loading_transform", 
-                                 playerTransform->x + OFFSET_X, 
-                                 playerTransform->y + OFFSET_Y, 0.0f)
-            .with<ecs::Rect>("loading_rect", 0.0f, 0.0f, 
-                            static_cast<int>(SPRITE_WIDTH), static_cast<int>(SPRITE_HEIGHT))
-            .with<ecs::Scale>("loading_scale", 1.0f, 1.0f)
-            .with<ecs::Texture>("loading_texture", Path::Texture::TEXTURE_SHOOT_LOADING)
-            .with<ecs::LoadingAnimation>("loading_animation", 0, ANIMATION_FRAMES, 
-                                        ANIMATION_DURATION, 0.0f, 
-                                        SPRITE_WIDTH, SPRITE_HEIGHT, ANIMATION_FRAMES)
-            .build();
+        auto loadingEntity =
+            registry.createEntity()
+                .with<ecs::Transform>("loading_transform", playerTransform->x + OFFSET_X, playerTransform->y + OFFSET_Y,
+                                      0.0f)
+                .with<ecs::Rect>("loading_rect", 0.0f, 0.0f, static_cast<int>(SPRITE_WIDTH),
+                                 static_cast<int>(SPRITE_HEIGHT))
+                .with<ecs::Scale>("loading_scale", 1.0f, 1.0f)
+                .with<ecs::Texture>("loading_texture", Path::Texture::TEXTURE_SHOOT_LOADING)
+                .with<ecs::LoadingAnimation>("loading_animation", 0, ANIMATION_FRAMES, ANIMATION_DURATION, 0.0f,
+                                             SPRITE_WIDTH, SPRITE_HEIGHT, ANIMATION_FRAMES)
+                .build();
     }
 
     void WeaponSystem::hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity)
@@ -152,12 +156,12 @@ namespace cli
         // Supprimer toutes les animations de chargement
         auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
         std::vector<ecs::Entity> toRemove;
-        
+
         for (auto &[entity, animation] : loadingEntities)
         {
             toRemove.push_back(entity);
         }
-        
+
         for (auto entity : toRemove)
         {
             if (registry.hasComponent<ecs::Transform>(entity))

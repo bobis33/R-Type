@@ -8,8 +8,8 @@
 
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
-#include "GameConfig.hpp"
-#include "ProjectileManager.hpp"
+
+#include "Engine/Systems.hpp"
 
 namespace cli
 {
@@ -18,7 +18,7 @@ namespace cli
     /// @brief Manages weapon firing and charging
     /// @namespace cli
     ///
-    class WeaponSystem
+    class WeaponSystem : public eng::ASystem
     {
         public:
             WeaponSystem() = default;
@@ -36,15 +36,16 @@ namespace cli
             /// @param spacePressed Whether space is pressed
             ///
             void update(ecs::Registry &registry, float dt, bool spacePressed);
+            void update(ecs::Registry &registry, float dt) override;
 
             ///
             /// @brief Reset weapon state
             ///
             void reset();
 
-    private:
-        float m_fireCooldown = 0.0f;
-        bool m_isCharging = false;
+        private:
+            float m_fireCooldown = 0.0f;
+            bool m_isCharging = false;
 
             ///
             /// @brief Try to fire basic projectile
@@ -70,7 +71,8 @@ namespace cli
             /// @param playerEntity The player entity
             /// @param playerTransform The player transform
             ///
-            void showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity, const ecs::Transform *playerTransform);
+            void showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
+                                      const ecs::Transform *playerTransform);
 
             ///
             /// @brief Hide loading animation
