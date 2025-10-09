@@ -13,6 +13,7 @@
 #include <thread>
 #include <vector>
 
+#define ASIO_STANDALONE
 #include "asio.hpp"
 
 #include "Interfaces/INetworkClient.hpp"
@@ -26,13 +27,13 @@ namespace eng
     /// @brief Network implementation with asio for client
     /// @namespace eng
     ///
-    class AsioClient : public INetworkClient
+    class AsioClient final : public INetworkClient
     {
         public:
             using PacketHandler = std::function<void(const rnp::PacketHeader &, const std::vector<uint8_t> &)>;
 
             AsioClient();
-            ~AsioClient() override;
+            ~AsioClient() override = default;
 
             AsioClient(const AsioClient &) = delete;
             AsioClient(AsioClient &&) = delete;
@@ -51,7 +52,7 @@ namespace eng
             void sendDisconnect(rnp::DisconnectReason reason);
             void sendPlayerInput(uint8_t direction, uint8_t shooting);
             void sendPlayerInputAsEvent(std::uint16_t playerId, uint8_t direction, uint8_t shooting,
-                                       uint32_t clientTimeMs);
+                                        uint32_t clientTimeMs);
             void sendPing();
             void sendPing(std::uint32_t nonce, std::uint32_t sendTimeMs);
             void sendAck(std::uint32_t cumulative, std::uint32_t ackBits);
@@ -59,7 +60,7 @@ namespace eng
             void setPacketHandler(rnp::PacketType type, PacketHandler handler);
 
             void setEventsHandler(std::function<void(const std::vector<rnp::EventRecord> &)> handler);
-            
+
             std::uint32_t getSessionId() const { return m_sessionId; }
             std::uint16_t getServerTickRate() const { return m_serverTickRate; }
 

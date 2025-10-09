@@ -31,7 +31,7 @@ namespace srv
         public:
             virtual ~INetworkServer() = default;
 
-            // Server lifecycle
+            virtual void init(const std::string &host, uint16_t port) = 0;
             virtual void start() = 0;
             virtual void stop() = 0;
 

@@ -18,7 +18,8 @@ void eng::AsioClient::connect(const std::string &host, uint16_t port)
 
         m_socket.open(udp::v4());
 
-        m_workGuard = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(asio::make_work_guard(m_ioContext));
+        m_workGuard = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+            asio::make_work_guard(m_ioContext));
         m_ioThread = std::thread(
             [this]()
             {
@@ -72,60 +73,53 @@ void eng::AsioClient::disconnect()
     }
 }
 
-void eng::AsioClient::sendConnect(const std::string &playerName)
-{
-    sendConnectWithCaps(playerName, 0);
-}
+void eng::AsioClient::sendConnect(const std::string &playerName) { sendConnectWithCaps(playerName, 0); }
 
 void eng::AsioClient::sendConnectWithCaps(const std::string &playerName, std::uint32_t clientCaps)
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::CONNECT);
-    
+
     // Payload: name_len(1) | player_name[name_len] | client_caps(4, BE)
     std::vector<uint8_t> payload;
-    std::uint8_t nameLen = std::min(static_cast<std::uint8_t>(playerName.size()),
-                                   static_cast<std::uint8_t>(31));
+    std::uint8_t nameLen = std::min(static_cast<std::uint8_t>(playerName.size()), static_cast<std::uint8_t>(31));
     payload.push_back(nameLen);
     payload.insert(payload.end(), playerName.begin(), playerName.begin() + nameLen);
-    
+
     // client_caps (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((clientCaps >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((clientCaps >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((clientCaps >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(clientCaps & 0xFF));
-    
+
     header.length = payload.size();
-    header.flags = static_cast<std::uint16_t>(rnp::PacketFlags::RELIABLE) |
-                  static_cast<std::uint16_t>(rnp::PacketFlags::ACK_REQ);
+    header.flags =
+        static_cast<std::uint16_t>(rnp::PacketFlags::RELIABLE) | static_cast<std::uint16_t>(rnp::PacketFlags::ACK_REQ);
     header.reserved = 0;
     header.sequence = ++m_sequenceNumber;
-    header.sessionId = 0;  // Pas encore de session
+    header.sessionId = 0; // Pas encore de session
 
     m_clientCaps = clientCaps;
     std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
 
     m_socket.async_send_to(asio::buffer(buffer), m_serverEndpoint,
-                          [this](const asio::error_code &error, std::size_t bytesTransferred)
-                          { handleSend(error, bytesTransferred); });
+                           [this](const asio::error_code &error, std::size_t bytesTransferred)
+                           { handleSend(error, bytesTransferred); });
 }
 
-void eng::AsioClient::sendDisconnect()
-{
-    sendDisconnect(rnp::DisconnectReason::CLIENT_REQUEST);
-}
+void eng::AsioClient::sendDisconnect() { sendDisconnect(rnp::DisconnectReason::CLIENT_REQUEST); }
 
 void eng::AsioClient::sendDisconnect(rnp::DisconnectReason reason)
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::DISCONNECT);
-    
+
     // Payload: reason_code(2, BE)
     std::vector<uint8_t> payload;
     std::uint16_t reasonCode = static_cast<std::uint16_t>(reason);
     payload.push_back(static_cast<uint8_t>((reasonCode >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(reasonCode & 0xFF));
-    
+
     header.length = payload.size();
     header.flags = 0;
     header.reserved = 0;
@@ -163,9 +157,9 @@ void eng::AsioClient::sendPlayerInputAsEvent(std::uint16_t playerId, uint8_t dir
     rnp::EventRecord ev;
     ev.type = rnp::EventType::INPUT;
     ev.entityId = playerId;
-    
+
     // Data: buttons(2, BE) | direction(1) | shooting(1) | client_time_ms(4, BE)
-    std::uint16_t buttons = 0;  // TODO: map from direction/shooting to buttons
+    std::uint16_t buttons = 0; // TODO: map from direction/shooting to buttons
     ev.data.push_back(static_cast<uint8_t>((buttons >> 8) & 0xFF));
     ev.data.push_back(static_cast<uint8_t>(buttons & 0xFF));
     ev.data.push_back(direction);
@@ -174,12 +168,12 @@ void eng::AsioClient::sendPlayerInputAsEvent(std::uint16_t playerId, uint8_t dir
     ev.data.push_back(static_cast<uint8_t>((clientTimeMs >> 16) & 0xFF));
     ev.data.push_back(static_cast<uint8_t>((clientTimeMs >> 8) & 0xFF));
     ev.data.push_back(static_cast<uint8_t>(clientTimeMs & 0xFF));
-    
+
     std::vector<rnp::EventRecord> events;
     events.push_back(ev);
-    
+
     const std::vector<uint8_t> eventsPayload = rnp::serializeEvents(events);
-    
+
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::ENTITY_EVENT);
     header.length = static_cast<std::uint16_t>(eventsPayload.size());
@@ -216,22 +210,22 @@ void eng::AsioClient::sendPing(std::uint32_t nonce, std::uint32_t sendTimeMs)
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::PING);
-    
+
     // Payload: nonce(4, BE) | send_time_ms(4, BE)
     std::vector<uint8_t> payload;
-    
+
     // nonce (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((nonce >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((nonce >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((nonce >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(nonce & 0xFF));
-    
+
     // send_time_ms (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((sendTimeMs >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((sendTimeMs >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((sendTimeMs >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(sendTimeMs & 0xFF));
-    
+
     header.length = payload.size();
     header.flags = 0;
     header.reserved = 0;
@@ -249,22 +243,22 @@ void eng::AsioClient::sendAck(std::uint32_t cumulative, std::uint32_t ackBits)
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::ACK);
-    
+
     // Payload: cumulative_ack(4, BE) | ack_bits(4, BE)
     std::vector<uint8_t> payload;
-    
+
     // cumulative_ack (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((cumulative >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((cumulative >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((cumulative >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(cumulative & 0xFF));
-    
+
     // ack_bits (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((ackBits >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((ackBits >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((ackBits >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(ackBits & 0xFF));
-    
+
     header.length = payload.size();
     header.flags = 0;
     header.reserved = 0;
@@ -298,28 +292,21 @@ void eng::AsioClient::handleConnectAccept(const std::vector<uint8_t> &payload)
     }
 
     // session_id(4, BE)
-    m_sessionId = (static_cast<std::uint32_t>(payload[0]) << 24) |
-                  (static_cast<std::uint32_t>(payload[1]) << 16) |
-                  (static_cast<std::uint32_t>(payload[2]) << 8) |
-                  static_cast<std::uint32_t>(payload[3]);
+    m_sessionId = (static_cast<std::uint32_t>(payload[0]) << 24) | (static_cast<std::uint32_t>(payload[1]) << 16) |
+                  (static_cast<std::uint32_t>(payload[2]) << 8) | static_cast<std::uint32_t>(payload[3]);
 
     // tick_rate_hz(2, BE)
-    m_serverTickRate = (static_cast<std::uint16_t>(payload[4]) << 8) |
-                       static_cast<std::uint16_t>(payload[5]);
+    m_serverTickRate = (static_cast<std::uint16_t>(payload[4]) << 8) | static_cast<std::uint16_t>(payload[5]);
 
     // mtu_payload_bytes(2, BE)
-    m_serverMtu = (static_cast<std::uint16_t>(payload[6]) << 8) |
-                  static_cast<std::uint16_t>(payload[7]);
+    m_serverMtu = (static_cast<std::uint16_t>(payload[6]) << 8) | static_cast<std::uint16_t>(payload[7]);
 
     // server_caps(4, BE)
-    m_serverCaps = (static_cast<std::uint32_t>(payload[8]) << 24) |
-                   (static_cast<std::uint32_t>(payload[9]) << 16) |
-                   (static_cast<std::uint32_t>(payload[10]) << 8) |
-                   static_cast<std::uint32_t>(payload[11]);
+    m_serverCaps = (static_cast<std::uint32_t>(payload[8]) << 24) | (static_cast<std::uint32_t>(payload[9]) << 16) |
+                   (static_cast<std::uint32_t>(payload[10]) << 8) | static_cast<std::uint32_t>(payload[11]);
 
-    std::cout << "[AsioClient] Connection accepted - Session ID: " << m_sessionId
-              << ", Tick Rate: " << m_serverTickRate << " Hz"
-              << ", MTU: " << m_serverMtu << " bytes\n";
+    std::cout << "[AsioClient] Connection accepted - Session ID: " << m_sessionId << ", Tick Rate: " << m_serverTickRate
+              << " Hz" << ", MTU: " << m_serverMtu << " bytes\n";
 }
 
 void eng::AsioClient::handleReliablePacket(const rnp::PacketHeader &header)
@@ -338,14 +325,12 @@ void eng::AsioClient::processAck(const std::vector<uint8_t> &payload)
     // cumulative_ack (4 bytes, big endian)
     std::uint32_t cumulative = (static_cast<std::uint32_t>(payload[0]) << 24) |
                                (static_cast<std::uint32_t>(payload[1]) << 16) |
-                               (static_cast<std::uint32_t>(payload[2]) << 8) |
-                               static_cast<std::uint32_t>(payload[3]);
+                               (static_cast<std::uint32_t>(payload[2]) << 8) | static_cast<std::uint32_t>(payload[3]);
 
     // ack_bits (4 bytes, big endian)
     std::uint32_t ackBits = (static_cast<std::uint32_t>(payload[4]) << 24) |
                             (static_cast<std::uint32_t>(payload[5]) << 16) |
-                            (static_cast<std::uint32_t>(payload[6]) << 8) |
-                            static_cast<std::uint32_t>(payload[7]);
+                            (static_cast<std::uint32_t>(payload[6]) << 8) | static_cast<std::uint32_t>(payload[7]);
 
     // Remove acknowledged packets from pending reliable
     m_pendingReliable.erase(cumulative);
@@ -370,15 +355,12 @@ void eng::AsioClient::processWorldState(const std::vector<uint8_t> &payload)
     // server_tick (4 bytes, big endian)
     std::uint32_t serverTick = (static_cast<std::uint32_t>(payload[0]) << 24) |
                                (static_cast<std::uint32_t>(payload[1]) << 16) |
-                               (static_cast<std::uint32_t>(payload[2]) << 8) |
-                               static_cast<std::uint32_t>(payload[3]);
+                               (static_cast<std::uint32_t>(payload[2]) << 8) | static_cast<std::uint32_t>(payload[3]);
 
     // entity_count (2 bytes, big endian)
-    std::uint16_t entityCount = (static_cast<std::uint16_t>(payload[4]) << 8) |
-                                static_cast<std::uint16_t>(payload[5]);
+    std::uint16_t entityCount = (static_cast<std::uint16_t>(payload[4]) << 8) | static_cast<std::uint16_t>(payload[5]);
 
-    std::cout << "[AsioClient] World state received - Tick: " << serverTick
-              << ", Entities: " << entityCount << "\n";
+    std::cout << "[AsioClient] World state received - Tick: " << serverTick << ", Entities: " << entityCount << "\n";
 
     // TODO: Parse entities and call appropriate handler
 }
@@ -400,20 +382,18 @@ void eng::AsioClient::processEntityEvent(const std::vector<uint8_t> &payload)
 
         // New format with server_tick
         // server_tick (4 bytes, big endian)
-        std::uint32_t serverTick = (static_cast<std::uint32_t>(payload[0]) << 24) |
-                                   (static_cast<std::uint32_t>(payload[1]) << 16) |
-                                   (static_cast<std::uint32_t>(payload[2]) << 8) |
-                                   static_cast<std::uint32_t>(payload[3]);
+        std::uint32_t serverTick =
+            (static_cast<std::uint32_t>(payload[0]) << 24) | (static_cast<std::uint32_t>(payload[1]) << 16) |
+            (static_cast<std::uint32_t>(payload[2]) << 8) | static_cast<std::uint32_t>(payload[3]);
 
         // event_count (2 bytes, big endian)
-        std::uint16_t eventCount = (static_cast<std::uint16_t>(payload[4]) << 8) |
-                                   static_cast<std::uint16_t>(payload[5]);
+        std::uint16_t eventCount =
+            (static_cast<std::uint16_t>(payload[4]) << 8) | static_cast<std::uint16_t>(payload[5]);
 
         // Events serialized
         const std::vector<rnp::EventRecord> events = rnp::deserializeEvents(payload.data() + 6, payload.size() - 6);
 
-        std::cout << "[AsioClient] Entity events received - Tick: " << serverTick
-                  << ", Events: " << eventCount << "\n";
+        std::cout << "[AsioClient] Entity events received - Tick: " << serverTick << ", Events: " << eventCount << "\n";
 
         if (m_eventsHandler)
         {
@@ -433,8 +413,8 @@ void eng::AsioClient::retransmitReliable()
     for (const auto &[seq, data] : m_pendingReliable)
     {
         m_socket.async_send_to(asio::buffer(data), m_serverEndpoint,
-                              [this](const asio::error_code &error, std::size_t bytesTransferred)
-                              { handleSend(error, bytesTransferred); });
+                               [this](const asio::error_code &error, std::size_t bytesTransferred)
+                               { handleSend(error, bytesTransferred); });
     }
 }
 
@@ -481,8 +461,8 @@ void eng::AsioClient::processPacket(const std::vector<uint8_t> &data)
         }
 
         // Vérifier la session ID (sauf pour CONNECT_ACCEPT)
-        if (static_cast<rnp::PacketType>(header.type) != rnp::PacketType::CONNECT_ACCEPT &&
-            m_sessionId != 0 && header.sessionId != m_sessionId)
+        if (static_cast<rnp::PacketType>(header.type) != rnp::PacketType::CONNECT_ACCEPT && m_sessionId != 0 &&
+            header.sessionId != m_sessionId)
         {
             std::cerr << "[AsioClient] Invalid session ID in packet\n";
             return;
@@ -524,10 +504,10 @@ void eng::AsioClient::processPacket(const std::vector<uint8_t> &data)
             {
                 if (payload.size() >= 4)
                 {
-                    std::uint16_t errorCode = (static_cast<std::uint16_t>(payload[0]) << 8) |
-                                             static_cast<std::uint16_t>(payload[1]);
-                    std::uint16_t msgLen = (static_cast<std::uint16_t>(payload[2]) << 8) |
-                                          static_cast<std::uint16_t>(payload[3]);
+                    std::uint16_t errorCode =
+                        (static_cast<std::uint16_t>(payload[0]) << 8) | static_cast<std::uint16_t>(payload[1]);
+                    std::uint16_t msgLen =
+                        (static_cast<std::uint16_t>(payload[2]) << 8) | static_cast<std::uint16_t>(payload[3]);
                     if (payload.size() >= 4 + msgLen)
                     {
                         std::string errorMsg(payload.begin() + 4, payload.begin() + 4 + msgLen);
@@ -541,13 +521,13 @@ void eng::AsioClient::processPacket(const std::vector<uint8_t> &data)
                 if (payload.size() >= 8)
                 {
                     std::uint32_t nonce = (static_cast<std::uint32_t>(payload[0]) << 24) |
-                                         (static_cast<std::uint32_t>(payload[1]) << 16) |
-                                         (static_cast<std::uint32_t>(payload[2]) << 8) |
-                                         static_cast<std::uint32_t>(payload[3]);
+                                          (static_cast<std::uint32_t>(payload[1]) << 16) |
+                                          (static_cast<std::uint32_t>(payload[2]) << 8) |
+                                          static_cast<std::uint32_t>(payload[3]);
                     std::uint32_t sendTime = (static_cast<std::uint32_t>(payload[4]) << 24) |
-                                            (static_cast<std::uint32_t>(payload[5]) << 16) |
-                                            (static_cast<std::uint32_t>(payload[6]) << 8) |
-                                            static_cast<std::uint32_t>(payload[7]);
+                                             (static_cast<std::uint32_t>(payload[5]) << 16) |
+                                             (static_cast<std::uint32_t>(payload[6]) << 8) |
+                                             static_cast<std::uint32_t>(payload[7]);
                     std::cout << "[AsioClient] PONG received - nonce: " << nonce << ", time: " << sendTime << "\n";
                 }
                 break;

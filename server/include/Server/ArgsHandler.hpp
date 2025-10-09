@@ -21,7 +21,7 @@ namespace srv
     {
             bool exit = false;
             std::string host = Config::Network::DEFAULT_NETWORK_HOST;
-            unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+            uint16_t port = Config::Network::DEFAULT_NETWORK_PORT;
             std::string network_lib_path;
 
             static ArgsConfig fromFile(const std::string &path);
