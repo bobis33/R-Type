@@ -5,9 +5,11 @@
 
 using asio::ip::udp;
 
-srv::AsioServer::AsioServer(const uint16_t port, const std::string &address) : m_socket(m_ioContext), m_recvBuffer()
+srv::AsioServer::AsioServer() : m_socket(m_ioContext), m_recvBuffer() {}
+
+void srv::AsioServer::init(const std::string &host, const uint16_t port)
 {
-    const asio::ip::address addr = asio::ip::make_address(address);
+    const asio::ip::address addr = asio::ip::make_address(host);
     const udp::endpoint ep(addr, port);
 
     m_socket.open(ep.protocol());
@@ -17,7 +19,8 @@ srv::AsioServer::AsioServer(const uint16_t port, const std::string &address) : m
 
 void srv::AsioServer::start()
 {
-    m_workGuard = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(asio::make_work_guard(m_ioContext));
+    m_workGuard = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
+        asio::make_work_guard(m_ioContext));
 
     startReceive();
 
@@ -57,10 +60,7 @@ void srv::AsioServer::stop()
     }
 }
 
-srv::AsioServer::~AsioServer()
-{
-    stop();
-}
+srv::AsioServer::~AsioServer() { stop(); }
 
 void srv::AsioServer::startReceive()
 {
@@ -146,8 +146,9 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
                         std::uint32_t sessionId = m_nextSessionId++;
                         addClient(sender, playerName, clientCaps, sessionId);
                         sendConnectAccept(sender, sessionId);
-                        std::cout << "[AsioServer] Client connecté: " << playerName << " (" << sender.address().to_string()
-                                  << ":" << sender.port() << ") - Session: " << sessionId << "\n";
+                        std::cout << "[AsioServer] Client connecté: " << playerName << " ("
+                                  << sender.address().to_string() << ":" << sender.port()
+                                  << ") - Session: " << sessionId << "\n";
                     }
                 }
                 break;
@@ -156,8 +157,8 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
             {
                 if (payload.size() >= 2)
                 {
-                    std::uint16_t reason = (static_cast<std::uint16_t>(payload[0]) << 8) |
-                                          static_cast<std::uint16_t>(payload[1]);
+                    std::uint16_t reason =
+                        (static_cast<std::uint16_t>(payload[0]) << 8) | static_cast<std::uint16_t>(payload[1]);
                     std::cout << "[AsioServer] Client déconnecté: " << sender.address().to_string() << ":"
                               << sender.port() << " - Reason: " << reason << "\n";
                 }
@@ -174,7 +175,7 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
                 try
                 {
                     const std::vector<rnp::EventRecord> events = rnp::deserializeEvents(payload.data(), payload.size());
-                    
+
                     // Broadcast les events aux autres clients
                     for (const auto &[endpoint, clientInfo] : m_clients)
                     {
@@ -220,13 +221,13 @@ void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const
                 if (payload.size() >= 8)
                 {
                     std::uint32_t nonce = (static_cast<std::uint32_t>(payload[0]) << 24) |
-                                         (static_cast<std::uint32_t>(payload[1]) << 16) |
-                                         (static_cast<std::uint32_t>(payload[2]) << 8) |
-                                         static_cast<std::uint32_t>(payload[3]);
+                                          (static_cast<std::uint32_t>(payload[1]) << 16) |
+                                          (static_cast<std::uint32_t>(payload[2]) << 8) |
+                                          static_cast<std::uint32_t>(payload[3]);
                     std::uint32_t sendTime = (static_cast<std::uint32_t>(payload[4]) << 24) |
-                                            (static_cast<std::uint32_t>(payload[5]) << 16) |
-                                            (static_cast<std::uint32_t>(payload[6]) << 8) |
-                                            static_cast<std::uint32_t>(payload[7]);
+                                             (static_cast<std::uint32_t>(payload[5]) << 16) |
+                                             (static_cast<std::uint32_t>(payload[6]) << 8) |
+                                             static_cast<std::uint32_t>(payload[7]);
                     sendPong(sender, nonce, sendTime);
                 }
                 else
@@ -292,33 +293,33 @@ void srv::AsioServer::sendConnectAccept(const asio::ip::udp::endpoint &client, s
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::CONNECT_ACCEPT);
-    
+
     // Payload: session_id(4, BE) | tick_rate_hz(2, BE) | mtu_payload_bytes(2, BE) | server_caps(4, BE)
     std::vector<uint8_t> payload;
-    
+
     // session_id (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((sessionId >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((sessionId >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((sessionId >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(sessionId & 0xFF));
-    
+
     // tick_rate_hz (2 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((m_tickRateHz >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(m_tickRateHz & 0xFF));
-    
+
     // mtu_payload_bytes (2 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((m_mtuPayloadBytes >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(m_mtuPayloadBytes & 0xFF));
-    
+
     // server_caps (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((m_serverCaps >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((m_serverCaps >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((m_serverCaps >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(m_serverCaps & 0xFF));
-    
+
     header.length = payload.size();
-    header.flags = static_cast<std::uint16_t>(rnp::PacketFlags::RELIABLE) |
-                  static_cast<std::uint16_t>(rnp::PacketFlags::ACK_REQ);
+    header.flags =
+        static_cast<std::uint16_t>(rnp::PacketFlags::RELIABLE) | static_cast<std::uint16_t>(rnp::PacketFlags::ACK_REQ);
     header.reserved = 0;
     header.sequence = ++m_sequenceNumber;
     header.sessionId = sessionId;
@@ -326,30 +327,30 @@ void srv::AsioServer::sendConnectAccept(const asio::ip::udp::endpoint &client, s
     std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
 
     m_socket.async_send_to(asio::buffer(buffer), client,
-                          [this](const asio::error_code &error, std::size_t bytesTransferred)
-                          { handleSend(error, bytesTransferred); });
+                           [this](const asio::error_code &error, std::size_t bytesTransferred)
+                           { handleSend(error, bytesTransferred); });
 }
 
 void srv::AsioServer::sendAck(const asio::ip::udp::endpoint &client, std::uint32_t cumulative, std::uint32_t ackBits)
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::ACK);
-    
+
     // Payload: cumulative_ack(4, BE) | ack_bits(4, BE)
     std::vector<uint8_t> payload;
-    
+
     // cumulative_ack (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((cumulative >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((cumulative >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((cumulative >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(cumulative & 0xFF));
-    
+
     // ack_bits (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((ackBits >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((ackBits >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((ackBits >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(ackBits & 0xFF));
-    
+
     header.length = payload.size();
     header.flags = 0;
     header.reserved = 0;
@@ -359,8 +360,8 @@ void srv::AsioServer::sendAck(const asio::ip::udp::endpoint &client, std::uint32
     std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
 
     m_socket.async_send_to(asio::buffer(buffer), client,
-                          [this](const asio::error_code &error, std::size_t bytesTransferred)
-                          { handleSend(error, bytesTransferred); });
+                           [this](const asio::error_code &error, std::size_t bytesTransferred)
+                           { handleSend(error, bytesTransferred); });
 }
 
 void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, const std::vector<uint8_t> &worldData)
@@ -381,25 +382,25 @@ void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, cons
 }
 
 void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, std::uint32_t serverTick,
-                                    const std::vector<rnp::EntityState> &entities)
+                                     const std::vector<rnp::EntityState> &entities)
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::WORLD_STATE);
-    
+
     // Payload: server_tick(4, BE) | entity_count(2, BE) | entities...
     std::vector<uint8_t> payload;
-    
+
     // server_tick (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((serverTick >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((serverTick >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((serverTick >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(serverTick & 0xFF));
-    
+
     // entity_count (2 bytes, big endian)
     std::uint16_t entityCount = static_cast<std::uint16_t>(entities.size());
     payload.push_back(static_cast<uint8_t>((entityCount >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(entityCount & 0xFF));
-    
+
     // Pour chaque entité: id(4) | type(2) | x(4) | y(4) | vx(4) | vy(4) | state_flags(1)
     for (const auto &entity : entities)
     {
@@ -408,27 +409,31 @@ void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, std:
         payload.push_back(static_cast<uint8_t>((entity.id >> 16) & 0xFF));
         payload.push_back(static_cast<uint8_t>((entity.id >> 8) & 0xFF));
         payload.push_back(static_cast<uint8_t>(entity.id & 0xFF));
-        
+
         // type (2 bytes, big endian)
         payload.push_back(static_cast<uint8_t>((entity.type >> 8) & 0xFF));
         payload.push_back(static_cast<uint8_t>(entity.type & 0xFF));
-        
+
         // x, y, vx, vy (floats en big endian)
         const uint8_t *xBytes = reinterpret_cast<const uint8_t *>(&entity.x);
         const uint8_t *yBytes = reinterpret_cast<const uint8_t *>(&entity.y);
         const uint8_t *vxBytes = reinterpret_cast<const uint8_t *>(&entity.vx);
         const uint8_t *vyBytes = reinterpret_cast<const uint8_t *>(&entity.vy);
-        
+
         // Note: Assuming little endian system, reverse for big endian network order
-        for (int i = 3; i >= 0; --i) payload.push_back(xBytes[i]);
-        for (int i = 3; i >= 0; --i) payload.push_back(yBytes[i]);
-        for (int i = 3; i >= 0; --i) payload.push_back(vxBytes[i]);
-        for (int i = 3; i >= 0; --i) payload.push_back(vyBytes[i]);
-        
+        for (int i = 3; i >= 0; --i)
+            payload.push_back(xBytes[i]);
+        for (int i = 3; i >= 0; --i)
+            payload.push_back(yBytes[i]);
+        for (int i = 3; i >= 0; --i)
+            payload.push_back(vxBytes[i]);
+        for (int i = 3; i >= 0; --i)
+            payload.push_back(vyBytes[i]);
+
         // state_flags (1 byte)
         payload.push_back(entity.stateFlags);
     }
-    
+
     header.length = payload.size();
     header.flags = 0;
     header.reserved = 0;
@@ -465,21 +470,21 @@ void srv::AsioServer::sendEntityEvent(const asio::ip::udp::endpoint &client, std
                                       const std::vector<rnp::EventRecord> &events)
 {
     const std::vector<uint8_t> eventsPayload = rnp::serializeEvents(events);
-    
+
     // Payload: server_tick(4, BE) | event_count(2, BE) | events...
     std::vector<uint8_t> payload;
-    
+
     // server_tick (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((serverTick >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((serverTick >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((serverTick >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(serverTick & 0xFF));
-    
+
     // event_count (2 bytes, big endian)
     std::uint16_t eventCount = static_cast<std::uint16_t>(events.size());
     payload.push_back(static_cast<uint8_t>((eventCount >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(eventCount & 0xFF));
-    
+
     // Events serialized
     payload.insert(payload.end(), eventsPayload.begin(), eventsPayload.end());
 
@@ -519,22 +524,22 @@ void srv::AsioServer::sendPong(const asio::ip::udp::endpoint &client, std::uint3
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::PONG);
-    
+
     // Payload: nonce(4, BE) | send_time_ms(4, BE)
     std::vector<uint8_t> payload;
-    
+
     // nonce (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((nonce >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((nonce >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((nonce >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(nonce & 0xFF));
-    
+
     // send_time_ms (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((sendTimeMs >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((sendTimeMs >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((sendTimeMs >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(sendTimeMs & 0xFF));
-    
+
     header.length = payload.size();
     header.flags = 0;
     header.reserved = 0;
@@ -558,19 +563,19 @@ void srv::AsioServer::sendError(const asio::ip::udp::endpoint &client, rnp::Erro
 {
     rnp::PacketHeader header;
     header.type = static_cast<std::uint8_t>(rnp::PacketType::ERROR);
-    
+
     // Payload: error_code(2, BE) | msg_len(2, BE) | message
     std::vector<uint8_t> payload;
     std::uint16_t code = static_cast<std::uint16_t>(errorCode);
     payload.push_back(static_cast<uint8_t>((code >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(code & 0xFF));
-    
+
     std::uint16_t msgLen = static_cast<std::uint16_t>(errorMessage.size());
     payload.push_back(static_cast<uint8_t>((msgLen >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(msgLen & 0xFF));
-    
+
     payload.insert(payload.end(), errorMessage.begin(), errorMessage.end());
-    
+
     header.length = payload.size();
     header.flags = 0;
     header.reserved = 0;
@@ -614,7 +619,7 @@ void srv::AsioServer::broadcastEvents(const std::vector<rnp::EventRecord> &event
         {
             header.sessionId = clientInfo.sessionId;
             const std::vector<uint8_t> frame = rnp::serialize(header, payload.data());
-            
+
             m_socket.async_send_to(asio::buffer(frame), endpoint,
                                    [this](const asio::error_code &error, std::size_t bytesTransferred)
                                    { handleSend(error, bytesTransferred); });
@@ -625,21 +630,21 @@ void srv::AsioServer::broadcastEvents(const std::vector<rnp::EventRecord> &event
 void srv::AsioServer::broadcastEntityEvents(std::uint32_t serverTick, const std::vector<rnp::EventRecord> &events)
 {
     const std::vector<uint8_t> eventsPayload = rnp::serializeEvents(events);
-    
+
     // Payload: server_tick(4, BE) | event_count(2, BE) | events...
     std::vector<uint8_t> payload;
-    
+
     // server_tick (4 bytes, big endian)
     payload.push_back(static_cast<uint8_t>((serverTick >> 24) & 0xFF));
     payload.push_back(static_cast<uint8_t>((serverTick >> 16) & 0xFF));
     payload.push_back(static_cast<uint8_t>((serverTick >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(serverTick & 0xFF));
-    
+
     // event_count (2 bytes, big endian)
     std::uint16_t eventCount = static_cast<std::uint16_t>(events.size());
     payload.push_back(static_cast<uint8_t>((eventCount >> 8) & 0xFF));
     payload.push_back(static_cast<uint8_t>(eventCount & 0xFF));
-    
+
     // Events serialized
     payload.insert(payload.end(), eventsPayload.begin(), eventsPayload.end());
 
@@ -656,7 +661,7 @@ void srv::AsioServer::broadcastEntityEvents(std::uint32_t serverTick, const std:
         {
             header.sessionId = clientInfo.sessionId;
             const std::vector<uint8_t> frame = rnp::serialize(header, payload.data());
-            
+
             m_socket.async_send_to(asio::buffer(frame), endpoint,
                                    [this](const asio::error_code &error, std::size_t bytesTransferred)
                                    { handleSend(error, bytesTransferred); });
@@ -686,22 +691,20 @@ void srv::AsioServer::processAck(const asio::ip::udp::endpoint &sender, const st
     {
         return;
     }
-    
+
     // cumulative_ack (4 bytes, big endian)
     std::uint32_t cumulative = (static_cast<std::uint32_t>(payload[0]) << 24) |
                                (static_cast<std::uint32_t>(payload[1]) << 16) |
-                               (static_cast<std::uint32_t>(payload[2]) << 8) |
-                               static_cast<std::uint32_t>(payload[3]);
-    
+                               (static_cast<std::uint32_t>(payload[2]) << 8) | static_cast<std::uint32_t>(payload[3]);
+
     // ack_bits (4 bytes, big endian)
     std::uint32_t ackBits = (static_cast<std::uint32_t>(payload[4]) << 24) |
                             (static_cast<std::uint32_t>(payload[5]) << 16) |
-                            (static_cast<std::uint32_t>(payload[6]) << 8) |
-                            static_cast<std::uint32_t>(payload[7]);
-    
+                            (static_cast<std::uint32_t>(payload[6]) << 8) | static_cast<std::uint32_t>(payload[7]);
+
     // Remove acknowledged packets from pending reliable
     m_pendingReliable.erase(cumulative);
-    
+
     // Process ack bits for selective acknowledgment
     for (int i = 0; i < 32; ++i)
     {
@@ -710,7 +713,7 @@ void srv::AsioServer::processAck(const asio::ip::udp::endpoint &sender, const st
             m_pendingReliable.erase(cumulative - i - 1);
         }
     }
-    
+
     m_clientLastAck[sender] = cumulative;
 }
 
@@ -726,8 +729,8 @@ void srv::AsioServer::retransmitReliable()
             if (clientInfo.connected)
             {
                 m_socket.async_send_to(asio::buffer(data), endpoint,
-                                      [this](const asio::error_code &error, std::size_t bytesTransferred)
-                                      { handleSend(error, bytesTransferred); });
+                                       [this](const asio::error_code &error, std::size_t bytesTransferred)
+                                       { handleSend(error, bytesTransferred); });
             }
         }
     }

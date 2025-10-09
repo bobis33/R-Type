@@ -136,14 +136,27 @@ namespace utl
 
             SharedLib loadLibrary(const std::string &path)
             {
-                LibHandle handle =
+
 #ifdef _WIN32
-                    LoadLibraryA(path.c_str());
-#else
-                    dlopen(path.c_str(), RTLD_LAZY);
-#endif
+                const LibHandle handle = LoadLibraryA(path.c_str());
                 if (!handle)
+                {
                     throw std::runtime_error("Cannot load library: " + path);
+                }
+#else
+                dlerror();
+                const LibHandle handle = dlopen(path.c_str(), RTLD_LAZY);
+                if (!handle)
+                {
+                    const char *error = dlerror();
+                    std::string msg = "Cannot load library: " + path;
+                    if (error)
+                    {
+                        msg += " (" + std::string(error) + ")";
+                    }
+                    throw std::runtime_error(msg);
+                }
+#endif
                 return SharedLib(handle);
             }
 

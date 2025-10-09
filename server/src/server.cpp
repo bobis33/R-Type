@@ -17,7 +17,7 @@ srv::Server::Server(const ArgsConfig &config)
                  "\tGit tag: " GIT_TAG "\n"
                  "\tGit commit hash: " GIT_COMMIT_HASH "\n";
 
-    m_network->init(config.port, config.host);
+    m_network->init(config.host, config.port);
 }
 
 void srv::Server::run() const

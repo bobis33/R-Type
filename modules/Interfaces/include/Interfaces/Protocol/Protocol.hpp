@@ -32,7 +32,7 @@ namespace rnp
         ACK = 0x07,
         ENTITY_EVENT = 0x08,
         CONNECT_ACCEPT = 0x09,
-        PLAYER_INPUT = 0x03  // Deprecated: use ENTITY_EVENT with INPUT type
+        PLAYER_INPUT = 0x03 // Deprecated: use ENTITY_EVENT with INPUT type
     };
 
     ///
@@ -103,9 +103,9 @@ namespace rnp
     ///
     struct EventRecord
     {
-        EventType type;
-        std::uint32_t entityId;
-        std::vector<std::uint8_t> data;
+            EventType type;
+            std::uint32_t entityId;
+            std::vector<std::uint8_t> data;
     };
 
     ///
@@ -114,12 +114,12 @@ namespace rnp
     ///
     struct PacketHeader
     {
-        std::uint8_t type;           // PacketType
-        std::uint16_t length;        // Payload length in bytes
-        std::uint16_t flags;         // PacketFlags bitfield
-        std::uint16_t reserved;      // Must be 0
-        std::uint32_t sequence;      // Per-session, monotonic sequence number
-        std::uint32_t sessionId;     // Server-assigned session ID
+            std::uint8_t type;       // PacketType
+            std::uint16_t length;    // Payload length in bytes
+            std::uint16_t flags;     // PacketFlags bitfield
+            std::uint16_t reserved;  // Must be 0
+            std::uint32_t sequence;  // Per-session, monotonic sequence number
+            std::uint32_t sessionId; // Server-assigned session ID
     };
 
     ///
@@ -127,9 +127,9 @@ namespace rnp
     ///
     struct PacketConnect
     {
-        std::uint8_t nameLen;
-        char playerName[32];
-        std::uint32_t clientCaps;
+            std::uint8_t nameLen;
+            char playerName[32];
+            std::uint32_t clientCaps;
     };
 
     ///
@@ -137,10 +137,10 @@ namespace rnp
     ///
     struct PacketConnectAccept
     {
-        std::uint32_t sessionId;
-        std::uint16_t tickRateHz;
-        std::uint16_t mtuPayloadBytes;
-        std::uint32_t serverCaps;
+            std::uint32_t sessionId;
+            std::uint16_t tickRateHz;
+            std::uint16_t mtuPayloadBytes;
+            std::uint32_t serverCaps;
     };
 
     ///
@@ -148,7 +148,7 @@ namespace rnp
     ///
     struct PacketDisconnect
     {
-        std::uint16_t reasonCode;  // DisconnectReason
+            std::uint16_t reasonCode; // DisconnectReason
     };
 
     ///
@@ -156,11 +156,11 @@ namespace rnp
     ///
     struct EntityState
     {
-        std::uint32_t id;
-        std::uint16_t type;        // EntityType
-        float x, y;
-        float vx, vy;
-        std::uint8_t stateFlags;
+            std::uint32_t id;
+            std::uint16_t type; // EntityType
+            float x, y;
+            float vx, vy;
+            std::uint8_t stateFlags;
     };
 
     ///
@@ -168,9 +168,9 @@ namespace rnp
     ///
     struct PacketWorldState
     {
-        std::uint32_t serverTick;
-        std::uint16_t entityCount;
-        std::vector<EntityState> entities;
+            std::uint32_t serverTick;
+            std::uint16_t entityCount;
+            std::vector<EntityState> entities;
     };
 
     ///
@@ -178,8 +178,8 @@ namespace rnp
     ///
     struct PacketPingPong
     {
-        std::uint32_t nonce;
-        std::uint32_t sendTimeMs;
+            std::uint32_t nonce;
+            std::uint32_t sendTimeMs;
     };
 
     ///
@@ -187,8 +187,8 @@ namespace rnp
     ///
     struct PacketAck
     {
-        std::uint32_t cumulativeAck;
-        std::uint32_t ackBits;  // 32-bit SACK window
+            std::uint32_t cumulativeAck;
+            std::uint32_t ackBits; // 32-bit SACK window
     };
 
     ///
@@ -196,9 +196,9 @@ namespace rnp
     ///
     struct PacketError
     {
-        std::uint16_t errorCode;   // ErrorCode
-        std::uint16_t msgLen;
-        std::string description;
+            std::uint16_t errorCode; // ErrorCode
+            std::uint16_t msgLen;
+            std::string description;
     };
 
     ///
@@ -206,9 +206,9 @@ namespace rnp
     ///
     struct FragmentHeader
     {
-        std::uint16_t fragId;
-        std::uint16_t fragIndex;
-        std::uint16_t fragCount;
+            std::uint16_t fragId;
+            std::uint16_t fragIndex;
+            std::uint16_t fragCount;
     };
 
     ///
@@ -223,19 +223,19 @@ namespace rnp
         for (const auto &ev : events)
         {
             const std::uint8_t dataLen = static_cast<std::uint8_t>(ev.data.size());
-            
+
             // Event type (1 byte)
             payload.push_back(static_cast<std::uint8_t>(ev.type));
-            
+
             // Entity ID (4 bytes, big endian)
             payload.push_back(static_cast<std::uint8_t>((ev.entityId >> 24) & 0xFF));
             payload.push_back(static_cast<std::uint8_t>((ev.entityId >> 16) & 0xFF));
             payload.push_back(static_cast<std::uint8_t>((ev.entityId >> 8) & 0xFF));
             payload.push_back(static_cast<std::uint8_t>(ev.entityId & 0xFF));
-            
+
             // Data length (1 byte)
             payload.push_back(dataLen);
-            
+
             // Data (dataLen bytes)
             payload.insert(payload.end(), ev.data.begin(), ev.data.end());
 
@@ -258,17 +258,16 @@ namespace rnp
 
         while (offset < length)
         {
-            if (length - offset < 6)  // type(1) + entity_id(4) + data_len(1)
+            if (length - offset < 6) // type(1) + entity_id(4) + data_len(1)
             {
                 throw std::runtime_error("Truncated event header in payload");
             }
 
             const EventType type = static_cast<EventType>(payload[offset]);
-            const std::uint32_t entityId = 
-                (static_cast<std::uint32_t>(payload[offset + 1]) << 24) |
-                (static_cast<std::uint32_t>(payload[offset + 2]) << 16) |
-                (static_cast<std::uint32_t>(payload[offset + 3]) << 8) |
-                static_cast<std::uint32_t>(payload[offset + 4]);
+            const std::uint32_t entityId = (static_cast<std::uint32_t>(payload[offset + 1]) << 24) |
+                                           (static_cast<std::uint32_t>(payload[offset + 2]) << 16) |
+                                           (static_cast<std::uint32_t>(payload[offset + 3]) << 8) |
+                                           static_cast<std::uint32_t>(payload[offset + 4]);
             const std::uint8_t dataLen = payload[offset + 5];
             offset += 6;
 
@@ -293,36 +292,36 @@ namespace rnp
     ///
     inline std::vector<uint8_t> serializeHeader(const PacketHeader &header)
     {
-        std::vector<uint8_t> buffer(16);  // Fixed header size
-        
+        std::vector<uint8_t> buffer(16); // Fixed header size
+
         buffer[0] = header.type;
-        
+
         // length (2 bytes, big endian)
         buffer[1] = static_cast<uint8_t>((header.length >> 8) & 0xFF);
         buffer[2] = static_cast<uint8_t>(header.length & 0xFF);
-        
+
         // flags (2 bytes, big endian)
         buffer[3] = static_cast<uint8_t>((header.flags >> 8) & 0xFF);
         buffer[4] = static_cast<uint8_t>(header.flags & 0xFF);
-        
+
         // reserved (2 bytes)
         buffer[5] = static_cast<uint8_t>((header.reserved >> 8) & 0xFF);
         buffer[6] = static_cast<uint8_t>(header.reserved & 0xFF);
-        
+
         // sequence (4 bytes, big endian)
         buffer[7] = static_cast<uint8_t>((header.sequence >> 24) & 0xFF);
         buffer[8] = static_cast<uint8_t>((header.sequence >> 16) & 0xFF);
         buffer[9] = static_cast<uint8_t>((header.sequence >> 8) & 0xFF);
         buffer[10] = static_cast<uint8_t>(header.sequence & 0xFF);
-        
+
         // sessionId (4 bytes, big endian)
         buffer[11] = static_cast<uint8_t>((header.sessionId >> 24) & 0xFF);
         buffer[12] = static_cast<uint8_t>((header.sessionId >> 16) & 0xFF);
         buffer[13] = static_cast<uint8_t>((header.sessionId >> 8) & 0xFF);
         buffer[14] = static_cast<uint8_t>(header.sessionId & 0xFF);
-        
+
         buffer[15] = 0; // Padding to 16 bytes
-        
+
         return buffer;
     }
 
@@ -332,12 +331,12 @@ namespace rnp
     inline std::vector<uint8_t> serialize(const PacketHeader &header, const uint8_t *payload = nullptr)
     {
         std::vector<uint8_t> buffer = serializeHeader(header);
-        
+
         if (payload && header.length > 0)
         {
             buffer.insert(buffer.end(), payload, payload + header.length);
         }
-        
+
         return buffer;
     }
 
@@ -350,35 +349,28 @@ namespace rnp
         {
             throw std::runtime_error("Buffer too small for header");
         }
-        
+
         PacketHeader header;
-        
+
         header.type = data[0];
-        
+
         // length (2 bytes, big endian)
-        header.length = (static_cast<std::uint16_t>(data[1]) << 8) |
-                       static_cast<std::uint16_t>(data[2]);
-        
+        header.length = (static_cast<std::uint16_t>(data[1]) << 8) | static_cast<std::uint16_t>(data[2]);
+
         // flags (2 bytes, big endian)
-        header.flags = (static_cast<std::uint16_t>(data[3]) << 8) |
-                      static_cast<std::uint16_t>(data[4]);
-        
+        header.flags = (static_cast<std::uint16_t>(data[3]) << 8) | static_cast<std::uint16_t>(data[4]);
+
         // reserved (2 bytes)
-        header.reserved = (static_cast<std::uint16_t>(data[5]) << 8) |
-                         static_cast<std::uint16_t>(data[6]);
-        
+        header.reserved = (static_cast<std::uint16_t>(data[5]) << 8) | static_cast<std::uint16_t>(data[6]);
+
         // sequence (4 bytes, big endian)
-        header.sequence = (static_cast<std::uint32_t>(data[7]) << 24) |
-                         (static_cast<std::uint32_t>(data[8]) << 16) |
-                         (static_cast<std::uint32_t>(data[9]) << 8) |
-                         static_cast<std::uint32_t>(data[10]);
-        
+        header.sequence = (static_cast<std::uint32_t>(data[7]) << 24) | (static_cast<std::uint32_t>(data[8]) << 16) |
+                          (static_cast<std::uint32_t>(data[9]) << 8) | static_cast<std::uint32_t>(data[10]);
+
         // sessionId (4 bytes, big endian)
-        header.sessionId = (static_cast<std::uint32_t>(data[11]) << 24) |
-                          (static_cast<std::uint32_t>(data[12]) << 16) |
-                          (static_cast<std::uint32_t>(data[13]) << 8) |
-                          static_cast<std::uint32_t>(data[14]);
-        
+        header.sessionId = (static_cast<std::uint32_t>(data[11]) << 24) | (static_cast<std::uint32_t>(data[12]) << 16) |
+                           (static_cast<std::uint32_t>(data[13]) << 8) | static_cast<std::uint32_t>(data[14]);
+
         return header;
     }
 

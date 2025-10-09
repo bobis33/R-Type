@@ -215,10 +215,10 @@ void cli::Lobby::update(const float dt, const eng::WindowSize &size)
     auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
     auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
 
-    //if (m_keysPressed[eng::Key::Space])
-    //    m_weaponSystem.update(reg, dt);
-    //m_weaponSystem.update(reg, dt, m_keysPressed[eng::Key::Space]); TODO(bobis33): tofix
-    // Mise à jour des étoiles simples
+    // if (m_keysPressed[eng::Key::Space])
+    //     m_weaponSystem.update(reg, dt);
+    // m_weaponSystem.update(reg, dt, m_keysPressed[eng::Key::Space]); TODO(bobis33): tofix
+    //  Mise à jour des étoiles simples
     for (auto &[entity, pixel] : reg.getAll<ecs::Pixel>())
     {
         if (auto *transform = reg.getComponent<ecs::Transform>(entity))

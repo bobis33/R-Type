@@ -26,6 +26,6 @@ namespace srv
     namespace Path::Plugin
     {
         inline auto PLUGINS_NETWORK_ASIO_SERVER =
-            std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
+            std::filesystem::path(PLUGINS_DIR) / ("network_asio_server" + std::string(PLUGINS_EXTENSION));
     }
 } // namespace srv

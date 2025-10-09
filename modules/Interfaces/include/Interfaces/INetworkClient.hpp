@@ -40,7 +40,7 @@ namespace eng
             virtual void sendDisconnect(rnp::DisconnectReason reason) = 0;
             virtual void sendPlayerInput(uint8_t direction, uint8_t shooting) = 0;
             virtual void sendPlayerInputAsEvent(std::uint16_t playerId, uint8_t direction, uint8_t shooting,
-                                               uint32_t clientTimeMs) = 0;
+                                                uint32_t clientTimeMs) = 0;
             virtual void sendPing() = 0;
             virtual void sendPing(std::uint32_t nonce, std::uint32_t sendTimeMs) = 0;
             virtual void sendAck(std::uint32_t cumulative, std::uint32_t ackBits) = 0;
