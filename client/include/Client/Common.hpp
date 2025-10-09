@@ -61,6 +61,13 @@ namespace cli
         namespace Texture
         {
             inline constexpr auto TEXTURE_PLAYER = "assets/sprites/r-typesheet42.gif";
+            inline constexpr auto TEXTURE_SHOOT = "assets/sprites/shoot.gif";
+            inline constexpr auto TEXTURE_SHOOT_CHARGED = "assets/sprites/shootcharged.gif";
+            inline constexpr auto TEXTURE_SHOOT_LOADING = "assets/sprites/shootchargedloading.gif";
+            inline constexpr auto TEXTURE_ENEMY_EASY = "assets/sprites/r-typesheet5.gif";
+            inline constexpr auto TEXTURE_ASTEROID = "assets/sprites/r-typesheet3.gif";
+            inline constexpr auto TEXTURE_EXPLOSION = "assets/sprites/r-typesheet44.gif";
+
         } // namespace Texture
     } // namespace Path
 } // namespace cli

@@ -29,7 +29,17 @@ cli::Client::Client(const ArgsConfig &cfg)
 
     m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
     m_engine->addSystem(std::make_unique<PixelSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<EnemySystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<AsteroidSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<CollisionSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<ExplosionSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<PlayerDirectionSystem>());
+    m_engine->addSystem(std::make_unique<AnimationSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<LoadingAnimationSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<ProjectileSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<SpriteSystem>(*m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<BeamSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<TextSyStem>(*m_engine->getRenderer()));
 
     auto lobby = std::make_unique<Lobby>(m_engine->getRenderer(), m_engine->getAudio());

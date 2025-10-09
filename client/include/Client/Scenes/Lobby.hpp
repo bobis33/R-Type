@@ -8,6 +8,7 @@
 
 #include <unordered_map>
 
+#include "Client/Systems/Weapon.hpp"
 #include "Engine/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -37,5 +38,9 @@ namespace cli
 
             ecs::Entity m_playerEntity;
             ecs::Entity m_fpsEntity;
+            ecs::Entity m_enemyCounterEntity;
+            ecs::Entity m_asteroidCounterEntity;
+
+            // WeaponSystem m_weaponSystem; TODO(bobis33): tofix
     }; // class Lobby
 } // namespace cli
