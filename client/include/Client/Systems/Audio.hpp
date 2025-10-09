@@ -9,7 +9,6 @@
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "Interfaces/IRenderer.hpp"
 
 namespace cli
 {

@@ -18,11 +18,11 @@ namespace cli
     /// @brief Manages weapon firing and charging
     /// @namespace cli
     ///
-    class WeaponSystem : public eng::ASystem
+    class WeaponSystem final : public eng::ASystem
     {
         public:
             WeaponSystem() = default;
-            ~WeaponSystem() = default;
+            ~WeaponSystem() override = default;
 
             WeaponSystem(const WeaponSystem &) = delete;
             WeaponSystem &operator=(const WeaponSystem &) = delete;
