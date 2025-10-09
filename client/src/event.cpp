@@ -15,15 +15,15 @@ void cli::Client::handleEvents(eng::Event &event)
                 break;
 
             case eng::EventType::KeyPressed:
-                if (event.key == eng::Key::Escape)
-                {
-                    m_engine->getRenderer()->closeWindow();
-                    m_engine->setState(eng::State::STOP);
-                }
-                else
-                {
-                    m_keysPressed[event.key] = true;
-                }
+                // if (event.key == eng::Key::Escape)
+                //{
+                //     m_engine->getRenderer()->closeWindow();
+                //     m_engine->setState(eng::State::STOP);
+                // }
+                // else
+                //{
+                m_keysPressed[event.key] = true;
+                //}
                 break;
 
             case eng::EventType::KeyReleased:

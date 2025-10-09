@@ -98,6 +98,8 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
     {
         case S::Escape:
             return eng::Key::Escape;
+        case S::Enter:
+            return eng::Key::Enter;
         case S::Space:
             return eng::Key::Space;
         case S::Up:

@@ -34,6 +34,7 @@ namespace eng
     {
         Unknown,
         Escape,
+        Enter,
         Space,
         Up,
         Down,

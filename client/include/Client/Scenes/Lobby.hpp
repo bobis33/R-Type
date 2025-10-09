@@ -1,5 +1,5 @@
 ///
-/// @file LobbyScene.hpp
+/// @file Lobby.hpp
 /// @brief This file contains the lobby scene
 /// @namespace eng
 ///
@@ -8,7 +8,6 @@
 
 #include <unordered_map>
 
-#include "Client/Systems/Weapon.hpp"
 #include "Engine/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -33,14 +32,14 @@ namespace cli
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
+            std::function<void(const std::string &option)> onOptionSelected;
+
         private:
             std::unordered_map<eng::Key, bool> m_keysPressed;
-
-            ecs::Entity m_playerEntity;
             ecs::Entity m_fpsEntity;
-            ecs::Entity m_enemyCounterEntity;
-            ecs::Entity m_asteroidCounterEntity;
+            const std::vector<std::string> m_menuOptions = {"Solo", "Multi", "Settings"};
+            const std::shared_ptr<eng::IAudio> &m_audio;
 
-            // WeaponSystem m_weaponSystem; TODO(bobis33): tofix
+            int m_selectedIndex = 0;
     }; // class Lobby
 } // namespace cli

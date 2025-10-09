@@ -1,6 +1,8 @@
 #include "Client/Client.hpp"
 #include "Client/Generated/Version.hpp"
+#include "Client/Scenes/Game.hpp"
 #include "Client/Scenes/Lobby.hpp"
+#include "Client/Scenes/Settings.hpp"
 #include "Client/Systems/Systems.hpp"
 #include "R-TypeClient/RTypeClient.hpp"
 #include "Utils/Clock.hpp"
@@ -29,7 +31,7 @@ cli::Client::Client(const ArgsConfig &cfg)
 
     m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
     m_engine->addSystem(std::make_unique<PixelSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer()));
+    // m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer())); TODO(bobis33): only in game
     m_engine->addSystem(std::make_unique<EnemySystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<AsteroidSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<CollisionSystem>(*m_engine->getRenderer()));
@@ -43,8 +45,30 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->addSystem(std::make_unique<TextSyStem>(*m_engine->getRenderer()));
 
     auto lobby = std::make_unique<Lobby>(m_engine->getRenderer(), m_engine->getAudio());
+    auto game = std::make_unique<Game>(m_engine->getRenderer(), m_engine->getAudio());
+    auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio());
     const auto lobbyId = lobby->getId();
+    const auto gameId = game->getId();
+    const auto settingsId = settings->getId();
+    lobby->onOptionSelected = [this, gameId, settingsId](const std::string &option)
+    {
+        if (option == "Solo")
+        {
+            m_engine->getSceneManager()->switchToScene(gameId);
+        }
+        else if (option == "Multi")
+        {
+            m_engine->getSceneManager()->switchToScene(gameId);
+        }
+        else if (option == "Settings")
+        {
+            m_engine->getSceneManager()->switchToScene(settingsId);
+        }
+    };
+    settings->onLeave = [this, lobbyId]() { m_engine->getSceneManager()->switchToScene(lobbyId); };
     m_engine->getSceneManager()->addScene(std::move(lobby));
+    m_engine->getSceneManager()->addScene(std::move(game));
+    m_engine->getSceneManager()->addScene(std::move(settings));
     m_engine->getSceneManager()->switchToScene(lobbyId);
 }
 

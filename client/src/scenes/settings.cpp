@@ -1,11 +1,11 @@
-#include "Client/Scenes/Lobby.hpp"
+#include "Client/Scenes/Settings.hpp"
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 
-cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
+cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
@@ -76,26 +76,9 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
         .with<ecs::Color>("color_title", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
         .with<ecs::Text>("id", std::string("RType Client"), 50U)
         .build();
-    m_fpsEntity = registry.createEntity()
-                      .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                      .with<ecs::Transform>("transform_fps", 10.F, 70.F, 0.F)
-                      .with<ecs::Color>("color_fps", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-                      .with<ecs::Text>("id_text", std::string("FPS: 0"), 20U)
-                      .build();
-
-    for (size_t i = 0; i < m_menuOptions.size(); ++i)
-    {
-        registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-            .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
-            .build();
-    }
-    m_selectedIndex = 2;
 }
 
-void cli::Lobby::update(const float dt, const eng::WindowSize &size)
+void cli::Settings::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
 
@@ -111,95 +94,15 @@ void cli::Lobby::update(const float dt, const eng::WindowSize &size)
             m_audio->stopAudio(audio.second.id);
         }
     }
-    size_t i = 0;
-    for (auto &[entity, text] : texts)
-    {
-        if (text.content == "Solo" || text.content == "Multi" || text.content == "Settings")
-        {
-            auto &color = colors.at(entity);
-
-            if (i == m_selectedIndex)
-            {
-                color.r = 255;
-                color.g = 200;
-                color.b = 0;
-            }
-            else
-            {
-                color.r = 255;
-                color.g = 255;
-                color.b = 255;
-            }
-
-            i++;
-        }
-    }
-
-    if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
-    {
-        fpsText->content = "FPS: " + std::to_string(static_cast<int>(1 / dt));
-    }
 }
 
-void cli::Lobby::event(const eng::Event &event)
+void cli::Settings::event(const eng::Event &event)
 {
     switch (event.type)
     {
         case eng::EventType::KeyPressed:
-            if (event.key == eng::Key::Up)
-            {
-                if (m_selectedIndex == 2)
-                {
-                    m_selectedIndex = 0;
-                }
-                else
-                {
-                    m_selectedIndex++;
-                }
-            }
-            else if (event.key == eng::Key::Down)
-            {
-                if (m_selectedIndex == 0)
-                {
-                    m_selectedIndex = 2;
-                }
-                else
-                {
-                    m_selectedIndex--;
-                }
-            }
-            else if (event.key == eng::Key::Enter)
-            {
-                const std::string &selectedOption =
-                    m_menuOptions[static_cast<int>(m_menuOptions.size()) - 1 - m_selectedIndex];
-                if (onOptionSelected)
-                {
-                    onOptionSelected(selectedOption);
-                }
-            }
-            break;
-
-        case eng::EventType::KeyReleased:
-            if (event.key == eng::Key::Up)
-            {
-                m_keysPressed[eng::Key::Up] = false;
-            }
-            if (event.key == eng::Key::Down)
-            {
-                m_keysPressed[eng::Key::Down] = false;
-            }
-            if (event.key == eng::Key::Left)
-            {
-                m_keysPressed[eng::Key::Left] = false;
-            }
-            if (event.key == eng::Key::Right)
-            {
-                m_keysPressed[eng::Key::Right] = false;
-            }
-            if (event.key == eng::Key::Space)
-            {
-                m_keysPressed[eng::Key::Space] = false;
-            }
+            if (event.key == eng::Key::Escape)
+                onLeave();
             break;
 
         default:
