@@ -562,7 +562,7 @@ void srv::AsioServer::sendError(const asio::ip::udp::endpoint &client, rnp::Erro
                                 const std::string &errorMessage)
 {
     rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::ERROR);
+    header.type = static_cast<std::uint8_t>(rnp::PacketType::PACKET_ERROR);
 
     // Payload: error_code(2, BE) | msg_len(2, BE) | message
     std::vector<uint8_t> payload;
