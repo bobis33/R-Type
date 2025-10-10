@@ -50,7 +50,7 @@ namespace cli
             inline constexpr auto FONTS_RTYPE = "assets/fonts/r-type.otf";
         } // namespace Font
         namespace Plugin
-        {
+        { // TODO(bobis33): dont use filesystem here
             inline auto PLUGIN_AUDIO_SFML =
                 std::filesystem::path(PLUGINS_DIR) / ("audio_sfml" + std::string(PLUGINS_EXTENSION));
             inline auto PLUGIN_NETWORK_ASIO_CLIENT =
