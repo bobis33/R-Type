@@ -5,7 +5,7 @@ project(r-type
         LANGUAGES C CXX
 )
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
-execute_process(COMMAND ln -s ${PROJECT_SOURCE_DIR}/cmake-build-release/compile_commands.json ${PROJECT_SOURCE_DIR})
+execute_process(COMMAND ln -s "${PROJECT_SOURCE_DIR}/cmake-build-release/compile_commands.json" ${PROJECT_SOURCE_DIR})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/lib")
@@ -47,7 +47,6 @@ include(ClangFormat)
 add_subdirectory(third-party)
 add_subdirectory(modules)
 add_subdirectory(plugins)
-## include(MakeShaders) ## OPGL / VLK
 add_subdirectory(tests)
 add_subdirectory(client)
 add_subdirectory(server)

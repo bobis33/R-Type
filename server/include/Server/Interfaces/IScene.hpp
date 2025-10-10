@@ -1,0 +1,66 @@
+///
+/// @file IScene.hpp
+/// @brief This file contains the IScene class
+/// @namespace srv
+///
+
+#pragma once
+
+#include <string>
+
+#include "ECS/Registry.hpp"
+
+namespace srv
+{
+
+    using id = unsigned int;
+
+    ///
+    /// @class IScene
+    /// @brief interface class for scene
+    /// @namespace srv
+    ///
+    class IScene
+    {
+        public:
+            virtual ~IScene() = default;
+
+            [[nodiscard]] virtual std::string &getName() = 0;
+            [[nodiscard]] virtual id getId() const = 0;
+            [[nodiscard]] virtual ecs::Registry &getRegistry() = 0;
+
+            virtual void setName(const std::string &newName) = 0;
+
+            virtual void update(float dt) = 0;
+    }; // class IScene
+
+    ///
+    /// @class AScene
+    /// @brief Class for scene
+    /// @namespace srv
+    ///
+    class AScene : public IScene
+    {
+        public:
+            AScene() : m_id(s_nextId++) {}
+            ~AScene() override = default;
+
+            AScene(const AScene &other) = delete;
+            AScene(AScene &&other) = delete;
+            AScene &operator=(const AScene &other) = delete;
+            AScene &operator=(AScene &&other) = delete;
+
+            [[nodiscard]] std::string &getName() override { return m_name; }
+            [[nodiscard]] id getId() const override { return m_id; }
+            [[nodiscard]] ecs::Registry &getRegistry() override { return m_registry; }
+
+            void setName(const std::string &newName) override { m_name = newName; }
+
+        private:
+            std::string m_name = "default_name";
+            id m_id = 1;
+            ecs::Registry m_registry;
+            inline static id s_nextId = 1;
+    }; // class AScene
+
+} // namespace srv

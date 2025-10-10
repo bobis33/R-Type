@@ -8,7 +8,8 @@
 
 #include <unordered_map>
 
-#include "Engine/IScene.hpp"
+#include "Client/Systems/Weapon.hpp"
+#include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
 namespace cli
