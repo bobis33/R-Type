@@ -12,8 +12,6 @@ namespace cli
     {
         namespace Screen
         {
-            inline constexpr int WIDTH = 1920;
-            inline constexpr int HEIGHT = 1080;
             inline constexpr float SPAWN_X = 1950.0f;
             inline constexpr float MIN_Y = 50.0f;
             inline constexpr float MAX_Y = 1030.0f;

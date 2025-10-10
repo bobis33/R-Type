@@ -9,9 +9,9 @@
 #include <functional>
 #include <memory>
 
+#include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Engine/SceneManager.hpp"
-#include "ECS/Interfaces/ISystems.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Interfaces/INetworkClient.hpp"
 #include "Interfaces/IRenderer.hpp"
