@@ -2,6 +2,7 @@
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <cmath>
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 
@@ -70,26 +71,31 @@ cli::ConfigMulti::ConfigMulti(const std::shared_ptr<eng::IRenderer> &renderer,
             }
         });
 
-    registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
+    registry.createEntity().with<ecs::Audio>("id_audio", cli::Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
+    
     registry.createEntity()
-        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 10.F, 10.F, 0.F)
-        .with<ecs::Color>("color_title", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-        .with<ecs::Text>("id", std::string("RType Client"), 50U)
+        .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_title", 250.F, 60.F, 0.F)
+        .with<ecs::Color>("color_title", 255U, 80U, 80U, 255U)
+        .with<ecs::Text>("title", std::string("MULTIPLAYER"), 64U)
         .build();
-    m_fpsEntity = registry.createEntity()
-                      .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                      .with<ecs::Transform>("transform_fps", 10.F, 70.F, 0.F)
-                      .with<ecs::Color>("color_fps", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-                      .with<ecs::Text>("id_text", std::string("FPS: 0"), 20U)
-                      .build();
 
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
         registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
+            .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_arrow_" + std::to_string(i), 60.F, 200.F + i * 60.F, 0.F)
+            .with<ecs::Color>("color_arrow_" + std::to_string(i), 255U, 200U, 0U, 0U)
+            .with<ecs::Text>("arrow_" + std::to_string(i), std::string(">"), 40U)
+            .build();
+    }
+
+    for (size_t i = 0; i < m_menuOptions.size(); ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_menu_" + std::to_string(i), 100.F, 200.F + i * 60.F, 0.F)
+            .with<ecs::Color>("color_menu_" + std::to_string(i), WHITE.r, WHITE.g, WHITE.b, WHITE.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
@@ -104,6 +110,7 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize &size)
     auto &colors = reg.getAll<ecs::Color>();
     auto &texts = reg.getAll<ecs::Text>();
     auto &audios = reg.getAll<ecs::Audio>();
+    m_animationTime += dt;
 
     for (auto &audio : audios)
     {
@@ -112,6 +119,18 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize &size)
             m_audio->stopAudio(audio.second.id);
         }
     }
+    for (auto &[entity, text] : texts)
+    {
+        if (text.content == "MULTIPLAYER")
+        {
+            auto &color = colors.at(entity);
+            float pulsation = std::sin(m_animationTime * 2.0f) * 0.3f + 0.7f;
+            color.r = static_cast<unsigned char>(255 * pulsation);
+            color.g = static_cast<unsigned char>(80 * pulsation);
+            color.b = static_cast<unsigned char>(80 * pulsation);
+        }
+    }
+
     size_t i = 0;
     for (auto &[entity, text] : texts)
     {
@@ -133,6 +152,28 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize &size)
             }
 
             i++;
+        }
+        else if (text.content == ">")
+        {
+            auto &color = colors.at(entity);
+            
+            size_t invertedIndex = (m_menuOptions.size() - 1) - m_selectedIndex;
+            if (text.id == "arrow_" + std::to_string(invertedIndex))
+            {
+                float arrowPulse = (std::sin(m_animationTime * 4.0f) + 1.0f) * 0.5f;
+                color.r = static_cast<unsigned char>(255);
+                color.g = static_cast<unsigned char>(150 + arrowPulse * 105);
+                color.b = static_cast<unsigned char>(arrowPulse * 50);
+                color.a = 255;
+                
+                if (auto *arrowTransform = reg.getComponent<ecs::Transform>(entity))
+                {
+                    float baseX = 60.0f;
+                    arrowTransform->x = baseX + std::sin(m_animationTime * 3.0f) * 5.0f;
+                }
+            } else {
+                color.a = 0;
+            }
         }
     }
 

@@ -72,7 +72,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
 
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
     
-    // Titre principal avec animation
     m_titleEntity = registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
         .with<ecs::Transform>("transform_title", 250.F, 60.F, 0.F)

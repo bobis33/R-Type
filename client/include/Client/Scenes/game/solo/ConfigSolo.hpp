@@ -41,5 +41,6 @@ namespace cli
             const std::shared_ptr<eng::IAudio> &m_audio;
 
             int m_selectedIndex = 0;
+            float m_animationTime = 0.0f;
     }; // class ConfigSolo
 } // namespace cli
