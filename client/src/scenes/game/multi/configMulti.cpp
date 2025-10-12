@@ -75,7 +75,7 @@ cli::ConfigMulti::ConfigMulti(const std::shared_ptr<eng::IRenderer> &renderer,
     
     registry.createEntity()
         .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 250.F, 60.F, 0.F)
+        .with<ecs::Transform>("transform_title", 200.F, 60.F, 0.F)
         .with<ecs::Color>("color_title", 255U, 80U, 80U, 255U)
         .with<ecs::Text>("title", std::string("MULTIPLAYER"), 64U)
         .build();
@@ -110,8 +110,8 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize &size)
     auto &colors = reg.getAll<ecs::Color>();
     auto &texts = reg.getAll<ecs::Text>();
     auto &audios = reg.getAll<ecs::Audio>();
-    m_animationTime += dt;
 
+    m_animationTime += dt;
     for (auto &audio : audios)
     {
         if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
