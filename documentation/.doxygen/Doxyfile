@@ -34,9 +34,16 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/client/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/Asio/Client/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/Asio/Server/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/Asio/Server/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Multi/include \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Multi/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Solo/include \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Solo/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Server/include \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Server/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Renderer/SFMLRenderer/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Renderer/SFMLRenderer/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/CONTRIBUTING.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/LICENSE.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/README.md
 FILE_PATTERNS          = *.hpp \
                          *.cpp \

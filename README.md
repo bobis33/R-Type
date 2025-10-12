@@ -8,7 +8,14 @@
 [![CD - Doxygen documentation](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml)
 [![CD - Mirror](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml)
 
-The Goal of this project is to implement a multithreaded server and a graphical client for a game called R-Type, using an engine of your own design.
+This project reimagines **R-Type** using a **modular game engine** entirely written in **C++23**.  
+It features:
+- A **multithreaded server**
+- A **graphical client**
+- A **plugin-based engine** (audio, rendering, networking)
+- A custom **Entity–Component–System (ECS)**
+
+Each subsystem (client, server, and engine) is completely decoupled and communicates via well-defined interfaces.
 
 ## Supported Platforms
 | Platform | Compiler | Status |
@@ -25,7 +32,7 @@ flowchart LR
             A[Client]
             A -->|.a/.lib| B[Engine]
             B -->|.a/.lib| C[ECS]
-            A -->|.a/.lib| D[IGameClient]
+            A -->|.so/.dll| D[IGameClient]
             B -->|.so/.dll| E[IAudio]
             B -->|.so/.dll| F[INetworkClient]
             B -->|.so/.dll| G[IRenderer]
@@ -40,19 +47,11 @@ flowchart LR
         A <==>|TCP/UDP| H
     end
 ```
-```text
-R-Type
-├── assets                  # Game assets (images, sounds, etc.)
-├── cmake                   # Cmake configs
-├── client                  # Client source code
-├── documentation           # Project documentation
-├── modules                 # Static libraries
-├── plugins                 # Dynamic libraries
-├── scripts                 # Build and utility scripts
-├── server                  # Server source code
-├── tests                   # Unit and integration tests
-└─── third-party            # External libraries as submodules
-```
+
+## Prerequisites
+Make sure you have the following dependencies installed on your system:
+- [CMake 4.0.0](https://cmake.org/)
+- [C++23](https://en.cppreference.com/w/cpp/23)
 
 ## Build and Run
 > [!IMPORTANT]
@@ -64,11 +63,7 @@ R-Type
 > ```bash
 > git submodule update --init --recursive
 > ```
-### Prerequisites
-Make sure you have the following dependencies installed on your system:
 
-- [CMake 4.0.0](https://cmake.org/)
-- [C++23](https://en.cppreference.com/w/cpp/23)
 ### Unix (Linux, macOS)
 ```bash
 ./scripts/unix/build.sh release
@@ -90,7 +85,6 @@ cmake-build-release\bin\r-type_server.exe ## server
 ```
 
 ## Documentation
-
 API documentation is generated using Doxygen and deployed on [GitHub Pages](https://bobis33.github.io/R-Type/).
 You can find the same documentation as PDF [here](https://github.com/bobis33/R-Type/blob/main/documentation/R-Type.pdf).
 More specific documentation for each part of the project can be found in their respective directories:
@@ -102,3 +96,6 @@ All dependencies are included as submodules in the [third-party](https://github.
 
 ## Contributing
 ➡️ Want to contribute? See [CONTRIBUTING.md](https://github.com/bobis33/R-Type/blob/main/CONTRIBUTING.md).
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/bobis33/R-Type/blob/main/LICENSE.md) file for details.
