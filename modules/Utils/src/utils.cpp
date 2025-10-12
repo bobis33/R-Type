@@ -61,4 +61,3 @@ std::unordered_map<std::string, std::string> utl::getEnvMap(const char *const *e
 
     return cpyEnv;
 }
-

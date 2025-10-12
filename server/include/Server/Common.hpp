@@ -28,7 +28,7 @@ namespace srv
     {
         inline constexpr auto DEFAULT_TICK_RATE = 60;
         inline constexpr auto DEFAULT_UPDATE_INTERVAL = 1 / 20.F;
-    }
+    } // namespace Game
     namespace Path::Plugin
     {
         inline auto PLUGINS_NETWORK_ASIO_SERVER =
