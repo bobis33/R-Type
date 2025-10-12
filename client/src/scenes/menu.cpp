@@ -2,6 +2,7 @@
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <cmath>
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 
@@ -70,7 +71,9 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         });
 
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
-    registry.createEntity()
+    
+    // Titre principal avec animation
+    m_titleEntity = registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
         .with<ecs::Transform>("transform_title", 250.F, 60.F, 0.F)
         .with<ecs::Color>("color_title", 255U, 80U, 80U, 255U)
@@ -110,6 +113,22 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
     auto &texts = reg.getAll<ecs::Text>();
     auto &audios = reg.getAll<ecs::Audio>();
 
+    m_animationTime += dt;
+    m_titlePulseTime += dt;
+
+    if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
+    {
+        float pulse = (std::sin(m_titlePulseTime * 1.5f) + 1.0f) * 0.5f;
+        titleColor->r = static_cast<uint8_t>(200 + pulse * 55);
+        titleColor->g = static_cast<uint8_t>(60 + pulse * 40);
+        titleColor->b = static_cast<uint8_t>(60 + pulse * 40);
+    }
+    
+    if (auto *titleTransform = reg.getComponent<ecs::Transform>(m_titleEntity))
+    {
+        titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 3.0f;
+    }
+
     for (auto &audio : audios)
     {
         if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
@@ -146,8 +165,20 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
             size_t invertedIndex = (m_menuOptions.size() - 1) - m_selectedIndex;
             if (text.id == "arrow_" + std::to_string(invertedIndex))
             {
+                float arrowPulse = (std::sin(m_animationTime * 4.0f) + 1.0f) * 0.5f;
+                color.r = static_cast<uint8_t>(255);
+                color.g = static_cast<uint8_t>(150 + arrowPulse * 105);
+                color.b = static_cast<uint8_t>(arrowPulse * 50);
                 color.a = 255;
-            } else {
+                
+                if (auto *arrowTransform = reg.getComponent<ecs::Transform>(entity))
+                {
+                    float baseX = 60.0f;
+                    arrowTransform->x = baseX + std::sin(m_animationTime * 3.0f) * 5.0f;
+                }
+            } 
+            else 
+            {
                 color.a = 0;
             }
         }
