@@ -1,6 +1,6 @@
 ///
-/// @file Lobby.hpp
-/// @brief This file contains the lobby scene
+/// @file Menu.hpp
+/// @brief This file contains the menu scene
 /// @namespace eng
 ///
 
@@ -15,20 +15,20 @@
 namespace cli
 {
     ///
-    /// @class Lobby
-    /// @brief Lobby scene
+    /// @class Menu
+    /// @brief Menu scene
     /// @namespace cli
     ///
-    class Lobby final : public eng::AScene
+    class Menu final : public eng::AScene
     {
         public:
-            Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
-            ~Lobby() override = default;
+            Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
+            ~Menu() override = default;
 
-            Lobby(const Lobby &other) = delete;
-            Lobby &operator=(const Lobby &other) = delete;
-            Lobby(Lobby &&other) = delete;
-            Lobby &operator=(Lobby &&other) = delete;
+            Menu(const Menu &other) = delete;
+            Menu &operator=(const Menu &other) = delete;
+            Menu(Menu &&other) = delete;
+            Menu &operator=(Menu &&other) = delete;
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
@@ -42,5 +42,5 @@ namespace cli
             const std::shared_ptr<eng::IAudio> &m_audio;
 
             int m_selectedIndex = 0;
-    }; // class Lobby
+    }; // class Menu
 } // namespace cli

@@ -1,11 +1,11 @@
-#include "Client/Scenes/Lobby.hpp"
+#include "Client/Scenes/Menu.hpp"
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 
-cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
+cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
@@ -95,7 +95,7 @@ cli::Lobby::Lobby(const std::shared_ptr<eng::IRenderer> &renderer, const std::sh
     m_selectedIndex = 2;
 }
 
-void cli::Lobby::update(const float dt, const eng::WindowSize &size)
+void cli::Menu::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
 
@@ -141,7 +141,7 @@ void cli::Lobby::update(const float dt, const eng::WindowSize &size)
     }
 }
 
-void cli::Lobby::event(const eng::Event &event)
+void cli::Menu::event(const eng::Event &event)
 {
     switch (event.type)
     {

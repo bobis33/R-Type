@@ -1,6 +1,6 @@
 ///
-/// @file Game.hpp
-/// @brief This file contains the Game scene
+/// @file GameSolo.hpp
+/// @brief This file contains the solo Game scene
 /// @namespace eng
 ///
 
@@ -16,19 +16,19 @@ namespace cli
 {
     ///
     /// @class Game
-    /// @brief Game scene
+    /// @brief GameSolo scene
     /// @namespace cli
     ///
-    class Game final : public eng::AScene
+    class GameSolo final : public eng::AScene
     {
         public:
-            Game(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
-            ~Game() override = default;
+            GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
+            ~GameSolo() override = default;
 
-            Game(const Game &other) = delete;
-            Game &operator=(const Game &other) = delete;
-            Game(Game &&other) = delete;
-            Game &operator=(Game &&other) = delete;
+            GameSolo(const GameSolo &other) = delete;
+            GameSolo &operator=(const GameSolo &other) = delete;
+            GameSolo(GameSolo &&other) = delete;
+            GameSolo &operator=(GameSolo &&other) = delete;
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
@@ -43,5 +43,5 @@ namespace cli
             const std::shared_ptr<eng::IAudio> &m_audio;
 
             // WeaponSystem m_weaponSystem; TODO(bobis33): tofix
-    }; // class Game
+    }; // class GameSolo
 } // namespace cli

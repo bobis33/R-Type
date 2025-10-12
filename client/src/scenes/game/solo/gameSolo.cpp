@@ -1,4 +1,4 @@
-#include "Client/Scenes/Game.hpp"
+#include "Client/Scenes/game/solo/GameSolo.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
@@ -12,7 +12,7 @@ static constexpr eng::Color YELLOW = {.r = 255U, .g = 255U, .b = 200U, .a = 200U
 static constexpr eng::Color PURPLE = {.r = 100U, .g = 50U, .b = 150U, .a = 80U};
 static constexpr eng::Color GREEN = {.r = 200U, .g = 255U, .b = 200U, .a = 180U};
 
-cli::Game::Game(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
+cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
@@ -209,7 +209,7 @@ cli::Game::Game(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
     }
 }
 
-void cli::Game::update(const float dt, const eng::WindowSize &size)
+void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
     auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
@@ -327,7 +327,7 @@ void cli::Game::update(const float dt, const eng::WindowSize &size)
                  static_cast<float>(size.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
 }
 
-void cli::Game::event(const eng::Event &event)
+void cli::GameSolo::event(const eng::Event &event)
 {
     switch (event.type)
     {

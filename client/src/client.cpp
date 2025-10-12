@@ -1,8 +1,10 @@
 #include "Client/Client.hpp"
 #include "Client/Generated/Version.hpp"
-#include "Client/Scenes/Game.hpp"
-#include "Client/Scenes/Lobby.hpp"
+#include "Client/Scenes/Menu.hpp"
 #include "Client/Scenes/Settings.hpp"
+#include "Client/Scenes/game/multi/ConfigMulti.hpp"
+#include "Client/Scenes/game/solo/ConfigSolo.hpp"
+#include "Client/Scenes/game/solo/GameSolo.hpp"
 #include "Client/Systems/Systems.hpp"
 #include "R-TypeClient/RTypeClient.hpp"
 #include "Utils/Clock.hpp"
@@ -53,37 +55,72 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->addSystem(std::make_unique<PixelSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<PlayerDirectionSystem>());
     m_engine->addSystem(std::make_unique<ProjectileSystem>(*m_engine->getRenderer()));
-    m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<SpriteSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<TextSystem>(*m_engine->getRenderer()));
     // m_engine->addSystem(std::make_unique<WeaponSystem>(*m_engine->getRenderer())); TODO(bobis33): tofix
 
-    auto lobby = std::make_unique<Lobby>(m_engine->getRenderer(), m_engine->getAudio());
-    auto game = std::make_unique<Game>(m_engine->getRenderer(), m_engine->getAudio());
+    auto menu = std::make_unique<Menu>(m_engine->getRenderer(), m_engine->getAudio());
+    auto configMulti = std::make_unique<ConfigMulti>(m_engine->getRenderer(), m_engine->getAudio());
+    auto configSolo = std::make_unique<ConfigSolo>(m_engine->getRenderer(), m_engine->getAudio());
+    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio());
     auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio());
-    const auto lobbyId = lobby->getId();
-    const auto gameId = game->getId();
+    const auto menuId = menu->getId();
+    const auto configMultiId = configMulti->getId();
+    const auto configSoloId = configSolo->getId();
+    const auto gameSoloId = gameSolo->getId();
     const auto settingsId = settings->getId();
-    lobby->onOptionSelected = [this, gameId, settingsId](const std::string &option)
+    menu->onOptionSelected = [this, configSoloId, configMultiId, settingsId](const std::string &option)
     {
         if (option == "Solo")
         {
-            m_engine->getSceneManager()->switchToScene(gameId);
+            m_engine->getSceneManager()->switchToScene(configSoloId);
         }
         else if (option == "Multi")
         {
-            m_engine->getSceneManager()->switchToScene(gameId);
+            m_engine->getSceneManager()->switchToScene(configMultiId);
         }
         else if (option == "Settings")
         {
             m_engine->getSceneManager()->switchToScene(settingsId);
         }
     };
-    settings->onLeave = [this, lobbyId]() { m_engine->getSceneManager()->switchToScene(lobbyId); };
-    m_engine->getSceneManager()->addScene(std::move(lobby));
-    m_engine->getSceneManager()->addScene(std::move(game));
+    configMulti->onOptionSelected = [this, menuId](const std::string &option)
+    {
+        if (option == "Create room")
+        {
+            // m_engine->getSceneManager()->switchToScene(createRoomId);
+        }
+        else if (option == "Join room")
+        {
+            // m_engine->getSceneManager()->switchToScene(joinRoomId);
+        }
+        else if (option == "Go back to menu")
+        {
+            m_engine->getSceneManager()->switchToScene(menuId);
+        }
+    };
+    configSolo->onOptionSelected = [this, gameSoloId, menuId](const std::string &option)
+    {
+        if (option == "Level easy")
+        {
+            m_engine->getSceneManager()->switchToScene(gameSoloId);
+        }
+        else if (option == "Level medium")
+        {
+            m_engine->getSceneManager()->switchToScene(gameSoloId);
+        }
+        else if (option == "Go back to menu")
+        {
+            m_engine->getSceneManager()->switchToScene(menuId);
+        }
+    };
+    settings->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
+    m_engine->getSceneManager()->addScene(std::move(menu));
+    m_engine->getSceneManager()->addScene(std::move(configMulti));
+    m_engine->getSceneManager()->addScene(std::move(configSolo));
+    m_engine->getSceneManager()->addScene(std::move(gameSolo));
     m_engine->getSceneManager()->addScene(std::move(settings));
-    m_engine->getSceneManager()->switchToScene(lobbyId);
+    m_engine->getSceneManager()->switchToScene(menuId);
 }
 
 void cli::Client::run()
