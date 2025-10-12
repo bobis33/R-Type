@@ -40,19 +40,6 @@ flowchart LR
         A <==>|TCP/UDP| H
     end
 ```
-```text
-R-Type
-├── assets                  # Game assets (images, sounds, etc.)
-├── cmake                   # Cmake configs
-├── client                  # Client source code
-├── documentation           # Project documentation
-├── modules                 # Static libraries
-├── plugins                 # Dynamic libraries
-├── scripts                 # Build and utility scripts
-├── server                  # Server source code
-├── tests                   # Unit and integration tests
-└─── third-party            # External libraries as submodules
-```
 
 ## Build and Run
 > [!IMPORTANT]
