@@ -72,9 +72,9 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
     registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 10.F, 10.F, 0.F)
-        .with<ecs::Color>("color_title", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-        .with<ecs::Text>("id", std::string("RType Client"), 50U)
+        .with<ecs::Transform>("transform_title", 250.F, 60.F, 0.F)
+        .with<ecs::Color>("color_title", 255U, 80U, 80U, 255U)
+        .with<ecs::Text>("id", std::string("RTYPE"), 72U)
         .build();
     m_fpsEntity = registry.createEntity()
                       .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
@@ -85,6 +85,12 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
 
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_arrow_" + std::to_string(i), 60.F, 200.F + i * 60.F, 0.F)
+            .with<ecs::Color>("color_arrow_" + std::to_string(i), 255U, 200U, 0U, 0U)
+            .with<ecs::Text>("arrow_" + std::to_string(i), std::string(">"), 40U)
+            .build();
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
@@ -133,11 +139,22 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
 
             i++;
         }
+        else if (text.content == ">")
+        {
+            auto &color = colors.at(entity);
+            
+            size_t invertedIndex = (m_menuOptions.size() - 1) - m_selectedIndex;
+            if (text.id == "arrow_" + std::to_string(invertedIndex))
+            {
+                color.a = 255;
+            } else {
+                color.a = 0;
+            }
+        }
     }
-
     if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
     {
-        fpsText->content = "FPS: " + std::to_string(static_cast<int>(1 / dt));
+        fpsText->content = "FPS " + std::to_string(static_cast<int>(1 / dt));
     }
 }
 
