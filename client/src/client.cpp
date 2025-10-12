@@ -115,6 +115,7 @@ cli::Client::Client(const ArgsConfig &cfg)
         }
     };
     settings->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
+    
     m_engine->getSceneManager()->addScene(std::move(menu));
     m_engine->getSceneManager()->addScene(std::move(configMulti));
     m_engine->getSceneManager()->addScene(std::move(configSolo));

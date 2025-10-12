@@ -31,13 +31,23 @@ namespace cli
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
+            void updateSettingsDisplay();
 
             std::function<void()> onLeave;
 
         private:
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IAudio> &m_audio;
+            
             int m_selectedIndex = 0;
             const std::vector<std::string> m_settingsOptions = {"Audio Volume", "Video Quality", "Controls", "Back to Menu"};
+            
+            int m_audioVolume = 50;
+            int m_videoQuality = 1;
+            int m_controlScheme = 0;
+            
+            ecs::Entity m_volumeValueEntity;
+            ecs::Entity m_qualityValueEntity;
+            ecs::Entity m_controlValueEntity;
     }; // class Settings
 } // namespace cli

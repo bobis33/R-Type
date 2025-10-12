@@ -97,11 +97,29 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
             .with<ecs::Text>("setting_" + settingsOptions[i], settingsOptions[i], 32U)
             .build();
     }
+    m_volumeValueEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_volume_value", 580.F, 200.F, 0.F)
+        .with<ecs::Color>("color_volume_value", 200U, 200U, 255U, 255U)
+        .with<ecs::Text>("volume_value", std::string("50"), 24U)
+        .build();
+    m_qualityValueEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_quality_value", 580.F, 250.F, 0.F)
+        .with<ecs::Color>("color_quality_value", 200U, 200U, 255U, 255U)
+        .with<ecs::Text>("quality_value", std::string("Medium"), 24U)
+        .build();
+    m_controlValueEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_control_value", 580.F, 300.F, 0.F)
+        .with<ecs::Color>("color_control_value", 200U, 200U, 255U, 255U)
+        .with<ecs::Text>("control_value", std::string("WASD"), 24U)
+        .build();
     registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_instruction", 120.F, 400.F, 0.F)
+        .with<ecs::Transform>("transform_instruction", 80.F, 400.F, 0.F)
         .with<ecs::Color>("color_instruction", 180U, 180U, 180U, 200U)
-        .with<ecs::Text>("instruction", std::string("UP/DOWN to navigate, ENTER to select"), 16U)
+        .with<ecs::Text>("instruction", std::string("UP/DOWN navigate, ENTER select, ESC back"), 16U)
         .build();
 }
 
@@ -159,6 +177,27 @@ void cli::Settings::update(const float dt, const eng::WindowSize &size)
             }
         }
     }
+    updateSettingsDisplay();
+}
+
+void cli::Settings::updateSettingsDisplay()
+{
+    auto &registry = getRegistry();
+    
+    if (auto *volumeValueText = registry.getComponent<ecs::Text>(m_volumeValueEntity))
+    {
+        volumeValueText->content = std::to_string(m_audioVolume);
+    }
+    if (auto *qualityValueText = registry.getComponent<ecs::Text>(m_qualityValueEntity))
+    {
+        const std::vector<std::string> qualities = {"Low", "Medium", "High"};
+        qualityValueText->content = qualities[m_videoQuality];
+    }
+    if (auto *controlValueText = registry.getComponent<ecs::Text>(m_controlValueEntity))
+    {
+        const std::vector<std::string> controlSchemes = {"WASD", "ZQSD", "Arrows"};
+        controlValueText->content = controlSchemes[m_controlScheme];
+    }
 }
 
 void cli::Settings::event(const eng::Event &event)
@@ -199,6 +238,46 @@ void cli::Settings::event(const eng::Event &event)
                 if (selectedOption == "Back to Menu")
                 {
                     onLeave();
+                }
+            }
+            else if (event.key == eng::Key::Left || event.key == eng::Key::Right)
+            {
+                const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
+                
+                if (selectedOption == "Audio Volume")
+                {
+                    if (event.key == eng::Key::Left && m_audioVolume > 0)
+                    {
+                        m_audioVolume -= 10;
+                        if (m_audioVolume < 0) m_audioVolume = 0;
+                    }
+                    else if (event.key == eng::Key::Right && m_audioVolume < 100)
+                    {
+                        m_audioVolume += 10;
+                        if (m_audioVolume > 100) m_audioVolume = 100;
+                    }
+                }
+                else if (selectedOption == "Video Quality")
+                {
+                    if (event.key == eng::Key::Left)
+                    {
+                        m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
+                    }
+                    else if (event.key == eng::Key::Right)
+                    {
+                        m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
+                    }
+                }
+                else if (selectedOption == "Controls")
+                {
+                    if (event.key == eng::Key::Left)
+                    {
+                        m_controlScheme = (m_controlScheme == 0) ? 2 : m_controlScheme - 1;
+                    }
+                    else if (event.key == eng::Key::Right)
+                    {
+                        m_controlScheme = (m_controlScheme == 2) ? 0 : m_controlScheme + 1;
+                    }
                 }
             }
             break;
