@@ -2,6 +2,7 @@
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <cmath>
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 
@@ -70,11 +71,37 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
         });
 
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
+    
     registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 10.F, 10.F, 0.F)
-        .with<ecs::Color>("color_title", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-        .with<ecs::Text>("id", std::string("RType Client"), 50U)
+        .with<ecs::Transform>("transform_title", 200.F, 60.F, 0.F)
+        .with<ecs::Color>("color_title", 255U, 80U, 80U, 255U)
+        .with<ecs::Text>("title", std::string("SETTINGS"), 64U)
+        .build();
+
+    const std::vector<std::string> settingsOptions = {"Audio Volume", "Video Quality", "Controls", "Back to Menu"};
+    
+    for (size_t i = 0; i < settingsOptions.size(); ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_arrow_" + std::to_string(i), 60.F, 200.F + i * 50.F, 0.F)
+            .with<ecs::Color>("color_arrow_" + std::to_string(i), 255U, 200U, 0U, 0U)
+            .with<ecs::Text>("arrow_" + std::to_string(i), std::string(">"), 32U)
+            .build();
+            
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_setting_" + std::to_string(i), 100.F, 200.F + i * 50.F, 0.F)
+            .with<ecs::Color>("color_setting_" + std::to_string(i), WHITE.r, WHITE.g, WHITE.b, WHITE.a)
+            .with<ecs::Text>("setting_" + settingsOptions[i], settingsOptions[i], 32U)
+            .build();
+    }
+    registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_instruction", 120.F, 400.F, 0.F)
+        .with<ecs::Color>("color_instruction", 180U, 180U, 180U, 200U)
+        .with<ecs::Text>("instruction", std::string("UP/DOWN to navigate, ENTER to select"), 16U)
         .build();
 }
 
@@ -94,6 +121,44 @@ void cli::Settings::update(const float dt, const eng::WindowSize &size)
             m_audio->stopAudio(audio.second.id);
         }
     }
+    
+    for (auto &[entity, text] : texts)
+    {
+        for (size_t i = 0; i < m_settingsOptions.size(); ++i)
+        {
+            if (text.content == m_settingsOptions[i])
+            {
+                auto &color = colors.at(entity);
+
+                if (i == m_selectedIndex)
+                {
+                    color.r = 255;
+                    color.g = 200;
+                    color.b = 0;
+                }
+                else
+                {
+                    color.r = 255;
+                    color.g = 255;
+                    color.b = 255;
+                }
+                break;
+            }
+        }
+        if (text.content == ">")
+        {
+            auto &color = colors.at(entity);
+            
+            if (text.id == "arrow_" + std::to_string(m_selectedIndex))
+            {
+                color.a = 255;
+            }
+            else
+            {
+                color.a = 0;
+            }
+        }
+    }
 }
 
 void cli::Settings::event(const eng::Event &event)
@@ -102,7 +167,40 @@ void cli::Settings::event(const eng::Event &event)
     {
         case eng::EventType::KeyPressed:
             if (event.key == eng::Key::Escape)
+            {
                 onLeave();
+            }
+            else if (event.key == eng::Key::Up)
+            {
+                if (m_selectedIndex == 0)
+                {
+                    m_selectedIndex = m_settingsOptions.size() - 1;
+                }
+                else
+                {
+                    m_selectedIndex--;
+                }
+            }
+            else if (event.key == eng::Key::Down)
+            {
+                if (m_selectedIndex == m_settingsOptions.size() - 1)
+                {
+                    m_selectedIndex = 0;
+                }
+                else
+                {
+                    m_selectedIndex++;
+                }
+            }
+            else if (event.key == eng::Key::Enter)
+            {
+                const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
+                
+                if (selectedOption == "Back to Menu")
+                {
+                    onLeave();
+                }
+            }
             break;
 
         default:

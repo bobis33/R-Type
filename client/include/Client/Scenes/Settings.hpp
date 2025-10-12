@@ -37,5 +37,7 @@ namespace cli
         private:
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IAudio> &m_audio;
+            int m_selectedIndex = 0;
+            const std::vector<std::string> m_settingsOptions = {"Audio Volume", "Video Quality", "Controls", "Back to Menu"};
     }; // class Settings
 } // namespace cli
