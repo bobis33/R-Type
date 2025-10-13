@@ -366,11 +366,8 @@ namespace rnp
         header.sequence = (static_cast<std::uint32_t>(data[7]) << 24) | (static_cast<std::uint32_t>(data[8]) << 16) |
                           (static_cast<std::uint32_t>(data[9]) << 8) | static_cast<std::uint32_t>(data[10]);
 
-        header.sessionId = (static_cast<std::uint32_t>(data[12]) << 24) |
-                           (static_cast<std::uint32_t>(data[13]) << 16) |
-                           (static_cast<std::uint32_t>(data[14]) << 8)  |
-                           static_cast<std::uint32_t>(data[15]);
-
+        header.sessionId = (static_cast<std::uint32_t>(data[11]) << 24) | (static_cast<std::uint32_t>(data[12]) << 16) |
+                           (static_cast<std::uint32_t>(data[13]) << 8) | static_cast<std::uint32_t>(data[14]);
 
         return header;
     }
