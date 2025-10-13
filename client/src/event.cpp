@@ -1,12 +1,15 @@
 #include "Client/Client.hpp"
+#include "Utils/Logger.hpp"
 
 void cli::Client::handleEvents(eng::Event &event)
 {
-    const auto &scene = m_engine->getSceneManager()->getCurrentScene();
-
     while (m_engine->getRenderer()->pollEvent(event))
     {
-        scene->event(event);
+        // Forward events to game plugin
+        if (m_game)
+        {
+            m_game->handleEvent(event);
+        }
 
         switch (event.type)
         {
@@ -15,15 +18,7 @@ void cli::Client::handleEvents(eng::Event &event)
                 break;
 
             case eng::EventType::KeyPressed:
-                // if (event.key == eng::Key::Escape)
-                //{
-                //     m_engine->getRenderer()->closeWindow();
-                //     m_engine->setState(eng::State::STOP);
-                // }
-                // else
-                //{
                 m_keysPressed[event.key] = true;
-                //}
                 break;
 
             case eng::EventType::KeyReleased:

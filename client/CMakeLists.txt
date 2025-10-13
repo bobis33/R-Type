@@ -18,6 +18,7 @@ add_dependencies(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
         "${CMAKE_SOURCE_DIR}/third-party/json/single_include"
+        "${CMAKE_SOURCE_DIR}/plugins/Game/R-Type/include"
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE
         r-type_modules_client

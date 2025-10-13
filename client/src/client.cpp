@@ -1,12 +1,7 @@
 #include "Client/Client.hpp"
 #include "Client/Generated/Version.hpp"
-#include "Client/Scenes/Menu.hpp"
-#include "Client/Scenes/Settings.hpp"
-#include "Client/Scenes/game/multi/ConfigMulti.hpp"
-#include "Client/Scenes/game/solo/ConfigSolo.hpp"
-#include "Client/Scenes/game/solo/GameSolo.hpp"
 #include "Client/Systems/Systems.hpp"
-#include "R-TypeClient/RTypeClient.hpp"
+#include "Interfaces/IGameClient.hpp"
 #include "Utils/Clock.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
@@ -40,9 +35,13 @@ cli::Client::Client(const ArgsConfig &cfg)
             return m_pluginLoader->loadPlugin<eng::IRenderer>(
                 !cfg.renderer_lib_path.empty() ? cfg.renderer_lib_path : Path::Plugin::PLUGIN_RENDERER_SFML.string());
         });
-    // m_game = std::make_unique<gme::RTypeClient>();
+    
+    // Load game plugin (Local by default, can be changed to PLUGIN_GAME_RTYPE_MULTI for multiplayer)
+    m_game = m_pluginLoader->loadPlugin<gme::IGameClient>(Path::Plugin::PLUGIN_GAME_RTYPE_LOCAL.string());
+    
     m_engine->getRenderer()->createWindow("R-Type Client", cfg.height, cfg.width, cfg.frameLimit, cfg.fullscreen);
 
+    // Initialize systems
     m_engine->addSystem(std::make_unique<AnimationSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
     // m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer())); TODO(bobis33): only in game
@@ -59,68 +58,11 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->addSystem(std::make_unique<TextSystem>(*m_engine->getRenderer()));
     // m_engine->addSystem(std::make_unique<WeaponSystem>(*m_engine->getRenderer())); TODO(bobis33): tofix
 
-    auto menu = std::make_unique<Menu>(m_engine->getRenderer(), m_engine->getAudio());
-    auto configMulti = std::make_unique<ConfigMulti>(m_engine->getRenderer(), m_engine->getAudio());
-    auto configSolo = std::make_unique<ConfigSolo>(m_engine->getRenderer(), m_engine->getAudio());
-    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio());
-    auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio());
-    const auto menuId = menu->getId();
-    const auto configMultiId = configMulti->getId();
-    const auto configSoloId = configSolo->getId();
-    const auto gameSoloId = gameSolo->getId();
-    const auto settingsId = settings->getId();
-    menu->onOptionSelected = [this, configSoloId, configMultiId, settingsId](const std::string &option)
+    // Initialize game plugin with renderer and audio
+    if (m_game)
     {
-        if (option == "Solo")
-        {
-            m_engine->getSceneManager()->switchToScene(configSoloId);
-        }
-        else if (option == "Multi")
-        {
-            m_engine->getSceneManager()->switchToScene(configMultiId);
-        }
-        else if (option == "Settings")
-        {
-            m_engine->getSceneManager()->switchToScene(settingsId);
-        }
-    };
-    configMulti->onOptionSelected = [this, menuId](const std::string &option)
-    {
-        if (option == "Create room")
-        {
-            // m_engine->getSceneManager()->switchToScene(createRoomId);
-        }
-        else if (option == "Join room")
-        {
-            // m_engine->getSceneManager()->switchToScene(joinRoomId);
-        }
-        else if (option == "Go back to menu")
-        {
-            m_engine->getSceneManager()->switchToScene(menuId);
-        }
-    };
-    configSolo->onOptionSelected = [this, gameSoloId, menuId](const std::string &option)
-    {
-        if (option == "Level easy")
-        {
-            m_engine->getSceneManager()->switchToScene(gameSoloId);
-        }
-        else if (option == "Level medium")
-        {
-            m_engine->getSceneManager()->switchToScene(gameSoloId);
-        }
-        else if (option == "Go back to menu")
-        {
-            m_engine->getSceneManager()->switchToScene(menuId);
-        }
-    };
-    settings->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
-    m_engine->getSceneManager()->addScene(std::move(menu));
-    m_engine->getSceneManager()->addScene(std::move(configMulti));
-    m_engine->getSceneManager()->addScene(std::move(configSolo));
-    m_engine->getSceneManager()->addScene(std::move(gameSolo));
-    m_engine->getSceneManager()->addScene(std::move(settings));
-    m_engine->getSceneManager()->switchToScene(menuId);
+        m_game->initialize(m_engine->getRenderer(), m_engine->getAudio());
+    }
 }
 
 void cli::Client::run()
@@ -132,9 +74,21 @@ void cli::Client::run()
         const float delta = m_engine->getClock()->getDeltaSeconds();
 
         m_engine->getClock()->restart();
-        m_engine->getSceneManager()->getCurrentScene()->update(delta, m_engine->getRenderer()->getWindowSize());
+        
+        // Update game via plugin
+        if (m_game)
+        {
+            const auto windowSize = m_engine->getRenderer()->getWindowSize();
+            m_game->update(delta, windowSize.width, windowSize.height);
+            
+            // Render current scene from game plugin
+            if (auto *currentScene = m_game->getCurrentEngineScene())
+            {
+                m_engine->render(currentScene->getRegistry(), DARK, delta);
+            }
+        }
+        
         handleEvents(event);
-        m_engine->render(m_engine->getSceneManager()->getCurrentScene()->getRegistry(), DARK, delta);
     }
     m_engine->stop();
 }

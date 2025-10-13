@@ -57,6 +57,12 @@ namespace cli
                 std::filesystem::path(PLUGINS_DIR) / ("network_asio_client" + std::string(PLUGINS_EXTENSION));
             inline auto PLUGIN_RENDERER_SFML =
                 std::filesystem::path(PLUGINS_DIR) / ("renderer_sfml" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_GAME_RTYPE =
+                std::filesystem::path(PLUGINS_DIR) / ("game_rtype" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_GAME_RTYPE_LOCAL =
+                std::filesystem::path(PLUGINS_DIR) / ("game_rtype_local" + std::string(PLUGINS_EXTENSION));
+            inline auto PLUGIN_GAME_RTYPE_MULTI =
+                std::filesystem::path(PLUGINS_DIR) / ("game_rtype_multi" + std::string(PLUGINS_EXTENSION));
         } // namespace Plugin
         namespace Texture
         {

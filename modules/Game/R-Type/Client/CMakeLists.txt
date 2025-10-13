@@ -13,6 +13,7 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
         "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
+        "${CMAKE_SOURCE_DIR}/modules/Utils/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
 target_link_libraries(${PROJECT_NAME} PRIVATE)

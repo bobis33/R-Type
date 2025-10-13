@@ -21,7 +21,7 @@ namespace gme
         public:
             ~AGameClient() override = default;
 
-            [[nodiscard]] std::string &getName() override { return m_name; }
+            [[nodiscard]] std::string &getGameName() override { return m_name; }
             void setName(const std::string &newName) override { m_name = newName; }
 
         private:

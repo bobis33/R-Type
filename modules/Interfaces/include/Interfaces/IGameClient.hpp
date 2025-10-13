@@ -8,6 +8,17 @@
 
 #include <string>
 #include <vector>
+#include <memory>
+#include "Utils/Interfaces/IPlugin.hpp"
+
+// Forward declarations
+namespace eng
+{
+    class IRenderer;
+    class IAudio;
+    class IScene;
+    struct Event;
+}
 
 namespace gme
 {
@@ -45,16 +56,23 @@ namespace gme
     /// @brief Interface for the games
     /// @namespace gme
     ///
-    class IGameClient
+    class IGameClient : public utl::IPlugin
     {
         public:
-            virtual ~IGameClient() = default;
+            ~IGameClient() override = default;
 
-            [[nodiscard]] virtual std::string &getName() = 0;
+            [[nodiscard]] const std::string getName() const override { return "GameClient"; }
+            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::UNKNOWN; }
+
+            [[nodiscard]] virtual std::string &getGameName() = 0;
             virtual void setName(const std::string &newName) = 0;
 
+            virtual void initialize(const std::shared_ptr<eng::IRenderer> &renderer, 
+                                  const std::shared_ptr<eng::IAudio> &audio) = 0;
             virtual void update(float deltaTime, unsigned int width, unsigned int height) = 0;
+            virtual void handleEvent(const eng::Event &event) = 0;
             [[nodiscard]] virtual const IScene &getCurrentScene() const = 0;
+            [[nodiscard]] virtual eng::IScene *getCurrentEngineScene() const = 0;
 
         private:
     }; // class IGameClient

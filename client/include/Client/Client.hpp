@@ -40,7 +40,7 @@ namespace cli
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<eng::Engine> m_engine;
-            std::unique_ptr<gme::IGameClient> m_game;
+            std::shared_ptr<gme::IGameClient> m_game;
             std::unordered_map<eng::Key, bool> m_keysPressed;
     }; // class Client
 
