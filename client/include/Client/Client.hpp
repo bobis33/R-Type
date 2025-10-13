@@ -26,7 +26,7 @@ namespace cli
 
         public:
             explicit Client(const ArgsConfig &cfg);
-            ~Client() = default;
+            ~Client() { m_engine->getNetwork()->disconnect(); }
 
             Client(const Client &) = delete;
             Client &operator=(const Client &) = delete;

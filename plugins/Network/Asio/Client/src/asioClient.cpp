@@ -34,9 +34,6 @@ void eng::AsioClient::connect(const std::string &host, uint16_t port)
             });
 
         startReceive();
-        m_connected = true;
-
-        std::cout << "[AsioClient] Connecté au serveur " << host << ":" << port << "\n";
     }
     catch (const std::exception &e)
     {
@@ -305,6 +302,7 @@ void eng::AsioClient::handleConnectAccept(const std::vector<uint8_t> &payload)
     m_serverCaps = (static_cast<std::uint32_t>(payload[8]) << 24) | (static_cast<std::uint32_t>(payload[9]) << 16) |
                    (static_cast<std::uint32_t>(payload[10]) << 8) | static_cast<std::uint32_t>(payload[11]);
 
+    m_connected = true;
     std::cout << "[AsioClient] Connection accepted - Session ID: " << m_sessionId << ", Tick Rate: " << m_serverTickRate
               << " Hz" << ", MTU: " << m_serverMtu << " bytes\n";
 }

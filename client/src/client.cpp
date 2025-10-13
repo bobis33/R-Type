@@ -42,7 +42,8 @@ cli::Client::Client(const ArgsConfig &cfg)
         });
     // m_game = std::make_unique<gme::RTypeClient>();
     m_engine->getRenderer()->createWindow("R-Type Client", cfg.height, cfg.width, cfg.frameLimit, cfg.fullscreen);
-
+    m_engine->getNetwork()->connect(cfg.host, cfg.port);
+    m_engine->getNetwork()->sendConnect("Bobi");
     m_engine->addSystem(std::make_unique<AnimationSystem>(*m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<AudioSystem>(*m_engine->getAudio()));
     // m_engine->addSystem(std::make_unique<SpawnSystem>(*m_engine->getRenderer())); TODO(bobis33): only in game
