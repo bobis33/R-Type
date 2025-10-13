@@ -68,6 +68,11 @@ namespace cli
             inline constexpr auto TEXTURE_ASTEROID = "assets/sprites/r-typesheet3.gif";
             inline constexpr auto TEXTURE_EXPLOSION = "assets/sprites/r-typesheet44.gif";
             inline constexpr auto TEXTURE_ARROW = "assets/icons/arrow.png";
+            inline constexpr auto TEXTURE_MOON_BACK = "assets/parallax/moon_back.png";
+            inline constexpr auto TEXTURE_MOON_EARTH = "assets/parallax/moon_earth.png";
+            inline constexpr auto TEXTURE_MOON_FLOOR = "assets/parallax/moon_floor.png";
+            inline constexpr auto TEXTURE_MOON_FRONT = "assets/parallax/moon_front.png";
+            inline constexpr auto TEXTURE_MOON_MID = "assets/parallax/moon_mid.png";
         } // namespace Texture
     } // namespace Path
 } // namespace cli
