@@ -5,6 +5,11 @@
 #include <cmath>
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
+static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
+static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
+static constexpr eng::Color VIOLET_LIGHT = {154U, 109U, 255U, 255U};
+static constexpr eng::Color SPACE_BG = {0U, 0U, 30U, 255U};
+
 
 cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
@@ -71,35 +76,37 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         });
 
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
-    
+
     m_titleEntity = registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
         .with<ecs::Transform>("transform_title", 250.F, 60.F, 0.F)
-        .with<ecs::Color>("color_title", 255U, 80U, 80U, 255U)
+        .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
         .with<ecs::Text>("id", std::string("RTYPE"), 72U)
         .build();
-    m_fpsEntity = registry.createEntity()
-                      .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                      .with<ecs::Transform>("transform_fps", 10.F, 70.F, 0.F)
-                      .with<ecs::Color>("color_fps", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-                      .with<ecs::Text>("id_text", std::string("FPS: 0"), 20U)
-                      .build();
 
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_arrow_" + std::to_string(i), 60.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_arrow_" + std::to_string(i), 255U, 200U, 0U, 0U)
-            .with<ecs::Text>("arrow_" + std::to_string(i), std::string(">"), 40U)
-            .build();
-        registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-            .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
+            .with<ecs::Color>("color_menu", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 32U)
             .build();
     }
+    std::string contributorsText = "Contributors ";
+    for (size_t i = 0; i < m_contributors.size(); ++i)
+    {
+        contributorsText += m_contributors[i];
+        if (i < m_contributors.size() - 1)
+            contributorsText += " ";
+    }
+    m_contributorsEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_contributors", 800.F, 500.F, 0.F)
+        .with<ecs::Color>("color_contributors", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+        .with<ecs::Text>("contributors_text", contributorsText, 24U)
+        .build();
+        
     m_selectedIndex = 2;
 }
 
@@ -109,7 +116,6 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
 
     auto &transforms = reg.getAll<ecs::Transform>();
     auto &colors = reg.getAll<ecs::Color>();
-    auto &texts = reg.getAll<ecs::Text>();
     auto &audios = reg.getAll<ecs::Audio>();
 
     m_animationTime += dt;
@@ -117,15 +123,15 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
 
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
-        float pulse = (std::sin(m_titlePulseTime * 1.5f) + 1.0f) * 0.5f;
-        titleColor->r = static_cast<uint8_t>(200 + pulse * 55);
-        titleColor->g = static_cast<uint8_t>(60 + pulse * 40);
-        titleColor->b = static_cast<uint8_t>(60 + pulse * 40);
+        float pulse = (std::sin(m_titlePulseTime * 1.2f) + 1.0f) * 0.5f;
+        titleColor->r = static_cast<uint8_t>(CYAN_ELECTRIC.r * (0.8f + pulse * 0.2f));
+        titleColor->g = static_cast<uint8_t>(CYAN_ELECTRIC.g * (0.8f + pulse * 0.2f));
+        titleColor->b = static_cast<uint8_t>(CYAN_ELECTRIC.b * (0.9f + pulse * 0.1f));
     }
     
     if (auto *titleTransform = reg.getComponent<ecs::Transform>(m_titleEntity))
     {
-        titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 3.0f;
+        titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 2.0f;
     }
 
     for (auto &audio : audios)
@@ -135,6 +141,8 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
             m_audio->stopAudio(audio.second.id);
         }
     }
+    
+    auto &texts = reg.getAll<ecs::Text>();
     size_t i = 0;
     for (auto &[entity, text] : texts)
     {
@@ -144,42 +152,30 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
 
             if (i == m_selectedIndex)
             {
-                color.r = 255;
-                color.g = 200;
-                color.b = 0;
+                float glowIntensity = std::sin(m_animationTime * 2.5f);
+                color.r = 0U;
+                color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
+                color.b = 255U;
             }
             else
             {
-                color.r = 255;
-                color.g = 255;
-                color.b = 255;
+                color.r = GRAY_BLUE_SUBTLE.r;
+                color.g = GRAY_BLUE_SUBTLE.g;
+                color.b = GRAY_BLUE_SUBTLE.b;
             }
 
             i++;
         }
-        else if (text.content == ">")
+    }
+    m_contributorsOffset += dt * 50.0f;
+    if (auto *contributorsTransform = reg.getComponent<ecs::Transform>(m_contributorsEntity))
+    {
+        contributorsTransform->x = 800.0f - m_contributorsOffset;
+        
+        if (contributorsTransform->x < -400.0f)
         {
-            auto &color = colors.at(entity);
-            
-            size_t invertedIndex = (m_menuOptions.size() - 1) - m_selectedIndex;
-            if (text.id == "arrow_" + std::to_string(invertedIndex))
-            {
-                float arrowPulse = (std::sin(m_animationTime * 4.0f) + 1.0f) * 0.5f;
-                color.r = static_cast<uint8_t>(255);
-                color.g = static_cast<uint8_t>(150 + arrowPulse * 105);
-                color.b = static_cast<uint8_t>(arrowPulse * 50);
-                color.a = 255;
-                
-                if (auto *arrowTransform = reg.getComponent<ecs::Transform>(entity))
-                {
-                    float baseX = 60.0f;
-                    arrowTransform->x = baseX + std::sin(m_animationTime * 3.0f) * 5.0f;
-                }
-            } 
-            else 
-            {
-                color.a = 0;
-            }
+            m_contributorsOffset = 0.0f;
+            contributorsTransform->x = 800.0f;
         }
     }
     if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))

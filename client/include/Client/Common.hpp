@@ -67,6 +67,7 @@ namespace cli
             inline constexpr auto TEXTURE_ENEMY_EASY = "assets/sprites/r-typesheet5.gif";
             inline constexpr auto TEXTURE_ASTEROID = "assets/sprites/r-typesheet3.gif";
             inline constexpr auto TEXTURE_EXPLOSION = "assets/sprites/r-typesheet44.gif";
+            inline constexpr auto TEXTURE_ARROW = "assets/icons/arrow.png";
         } // namespace Texture
     } // namespace Path
 } // namespace cli
