@@ -37,10 +37,12 @@ namespace cli
         private:
             std::unordered_map<eng::Key, bool> m_keysPressed;
             ecs::Entity m_fpsEntity;
+            ecs::Entity m_titleEntity;
             const std::vector<std::string> m_menuOptions = {"Level easy", "Level medium", "Go back to menu"};
             const std::shared_ptr<eng::IAudio> &m_audio;
 
             int m_selectedIndex = 0;
             float m_animationTime = 0.0f;
+            float m_titlePulseTime = 0.0f;
     }; // class ConfigSolo
 } // namespace cli

@@ -93,7 +93,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 32U)
             .build();
     }
-    
     const int screenWidth = 960;
     const int screenHeight = 540;
 
@@ -107,7 +106,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             .with<ecs::Velocity>("star_bg_vel", -10.0f, 0.0f)
             .build();
     }
-
     for (int i = 0; i < 25; ++i)
     {
         registry.createEntity()
@@ -118,7 +116,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             .with<ecs::Velocity>("star_mid_vel", -25.0f, 0.0f)
             .build();
     }
-
     for (int i = 0; i < 15; ++i)
     {
         registry.createEntity()
@@ -129,7 +126,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             .with<ecs::Velocity>("star_fg_vel", -50.0f, 0.0f)
             .build();
     }
-
     for (int i = 0; i < 8; ++i)
     {
         registry.createEntity()
@@ -140,7 +136,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             .with<ecs::Velocity>("shooting_vel", -80.0f, static_cast<float>((std::rand() % 20) - 10))
             .build();
     }
-
     for (int i = 0; i < 12; ++i)
     {
         registry.createEntity()
@@ -151,7 +146,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             .with<ecs::Velocity>("cyan_vel", -35.0f, static_cast<float>((std::rand() % 10) - 5))
             .build();
     }
-    
     registry.createEntity()
         .with<ecs::Transform>("moon_earth_transform", 100.0f, 0.0f, 0.0f)
         .with<ecs::Color>("moon_earth_color", 255U, 255U, 255U, 160U)
@@ -159,7 +153,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         .with<ecs::Texture>("moon_earth_texture", Path::Texture::TEXTURE_MOON_EARTH)
         .with<ecs::Velocity>("moon_earth_vel", -5.0f, 0.0f)
         .build();
-
     registry.createEntity()
         .with<ecs::Transform>("moon_back_transform", 200.0f, 20.0f, 0.0f)
         .with<ecs::Color>("moon_back_color", 255U, 255U, 255U, 200U)
@@ -167,7 +160,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         .with<ecs::Texture>("moon_back_texture", Path::Texture::TEXTURE_MOON_BACK)
         .with<ecs::Velocity>("moon_back_vel", -15.0f, 0.0f)
         .build();
-
     registry.createEntity()
         .with<ecs::Transform>("moon_mid_transform", 400.0f, 40.0f, 0.0f)
         .with<ecs::Color>("moon_mid_color", 255U, 255U, 255U, 220U)
@@ -175,7 +167,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         .with<ecs::Texture>("moon_mid_texture", Path::Texture::TEXTURE_MOON_MID)
         .with<ecs::Velocity>("moon_mid_vel", -30.0f, 0.0f)
         .build();
-
     registry.createEntity()
         .with<ecs::Transform>("moon_floor_transform", 0.0f, 200.0f, 0.0f)
         .with<ecs::Color>("moon_floor_color", 255U, 255U, 255U, 255U)
@@ -183,7 +174,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         .with<ecs::Texture>("moon_floor_texture", Path::Texture::TEXTURE_MOON_FLOOR)
         .with<ecs::Velocity>("moon_floor_vel", -60.0f, 0.0f)
         .build();
-
     registry.createEntity()
         .with<ecs::Transform>("moon_front_transform", 600.0f, 120.0f, 0.0f)
         .with<ecs::Color>("moon_front_color", 255U, 255U, 255U, 240U)
@@ -191,7 +181,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         .with<ecs::Texture>("moon_front_texture", Path::Texture::TEXTURE_MOON_FRONT)
         .with<ecs::Velocity>("moon_front_vel", -80.0f, 0.0f)
         .build();
-
     std::string contributorsText = "Contributors ";
     for (size_t i = 0; i < m_contributors.size(); ++i)
     {

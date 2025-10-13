@@ -39,15 +39,19 @@ namespace cli
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IAudio> &m_audio;
             
-            int m_selectedIndex = 0;
+            size_t m_selectedIndex = 0;
             const std::vector<std::string> m_settingsOptions = {"Audio Volume", "Video Quality", "Controls", "Back to Menu"};
             
             int m_audioVolume = 50;
-            int m_videoQuality = 1;
-            int m_controlScheme = 0;
+            size_t m_videoQuality = 1;
+            size_t m_controlScheme = 0;
             
             ecs::Entity m_volumeValueEntity;
             ecs::Entity m_qualityValueEntity;
             ecs::Entity m_controlValueEntity;
+            ecs::Entity m_titleEntity;
+            
+            float m_animationTime = 0.0f;
+            float m_titlePulseTime = 0.0f;
     }; // class Settings
 } // namespace cli
