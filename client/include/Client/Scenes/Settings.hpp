@@ -40,15 +40,17 @@ namespace cli
             const std::shared_ptr<eng::IAudio> &m_audio;
             
             size_t m_selectedIndex = 0;
-            const std::vector<std::string> m_settingsOptions = {"Audio Volume", "Video Quality", "Controls", "Back to Menu"};
+            const std::vector<std::string> m_settingsOptions = {"Audio Volume", "Video Quality", "Controls", "Skin", "Back to Menu"};
             
             int m_audioVolume = 50;
             size_t m_videoQuality = 1;
             size_t m_controlScheme = 0;
+            size_t m_skinIndex = 0;
             
             ecs::Entity m_volumeValueEntity;
             ecs::Entity m_qualityValueEntity;
             ecs::Entity m_controlValueEntity;
+            ecs::Entity m_skinSpriteEntity;
             ecs::Entity m_titleEntity;
             
             float m_animationTime = 0.0f;

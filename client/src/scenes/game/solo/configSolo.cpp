@@ -75,7 +75,7 @@ cli::ConfigSolo::ConfigSolo(const std::shared_ptr<eng::IRenderer> &renderer, con
     
     m_titleEntity = registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 250.F, 60.F, 0.F)
+        .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
         .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
         .with<ecs::Text>("id", std::string("SOLO"), 80U)
         .build();
@@ -145,8 +145,6 @@ void cli::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
             i++;
         }
     }
-
-    // Animation du titre "SOLO" avec pulsation cyan électrique
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
         float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
@@ -154,7 +152,6 @@ void cli::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
         titleColor->g = static_cast<unsigned char>(CYAN_ELECTRIC.g * pulsation);
         titleColor->b = static_cast<unsigned char>(CYAN_ELECTRIC.b * pulsation);
     }
-
     if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
     {
         fpsText->content = "FPS: " + std::to_string(static_cast<int>(1 / dt));

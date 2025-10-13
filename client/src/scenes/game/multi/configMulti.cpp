@@ -76,7 +76,7 @@ cli::ConfigMulti::ConfigMulti(const std::shared_ptr<eng::IRenderer> &renderer,
 
     m_titleEntity = registry.createEntity()
         .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 200.F, 60.F, 0.F)
+        .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
         .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
         .with<ecs::Text>("title", std::string("MULTIPLAYER"), 72U)
         .build();
