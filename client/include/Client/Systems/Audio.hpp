@@ -21,7 +21,7 @@ namespace cli
     class AudioSystem final : public eng::ASystem
     {
         public:
-            explicit AudioSystem(eng::IAudio &audio) : m_audio(audio) {}
+            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio) : m_audio(audio) {}
             ~AudioSystem() override = default;
 
             AudioSystem(const AudioSystem &) = delete;
@@ -33,22 +33,22 @@ namespace cli
             {
                 for (auto &[entity, audio] : registry.getAll<ecs::Audio>())
                 {
-                    m_audio.setVolume(audio.id + std::to_string(entity), audio.volume);
-                    m_audio.setLoop(audio.id + std::to_string(entity), audio.loop);
-                    if (audio.play && m_audio.isPlaying(audio.id + std::to_string(entity)) != eng::Status::Playing)
+                    m_audio->setVolume(audio.id + std::to_string(entity), audio.volume);
+                    m_audio->setLoop(audio.id + std::to_string(entity), audio.loop);
+                    if (audio.play && m_audio->isPlaying(audio.id + std::to_string(entity)) != eng::Status::Playing)
                     {
-                        m_audio.playAudio(audio.id + std::to_string(entity));
+                        m_audio->playAudio(audio.id + std::to_string(entity));
                     }
                     else if (!audio.play &&
-                             m_audio.isPlaying(audio.id + std::to_string(entity)) != eng::Status::Stopped)
+                             m_audio->isPlaying(audio.id + std::to_string(entity)) != eng::Status::Stopped)
                     {
-                        m_audio.stopAudio(audio.id + std::to_string(entity));
+                        m_audio->stopAudio(audio.id + std::to_string(entity));
                     }
                 }
             }
 
         private:
-            eng::IAudio &m_audio;
+            const std::shared_ptr<eng::IAudio> &m_audio;
     }; // class AudioSystem
 
 } // namespace cli

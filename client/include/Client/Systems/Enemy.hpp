@@ -20,7 +20,7 @@ namespace cli
     class EnemySystem final : public eng::ISystem
     {
         public:
-            explicit EnemySystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit EnemySystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~EnemySystem() override = default;
 
             EnemySystem(const EnemySystem &) = delete;
@@ -35,7 +35,6 @@ namespace cli
             {
                 std::vector<ecs::Entity> enemiesToRemove;
 
-                // Mettre à jour les ennemis existants
                 for (auto &[entity, enemy] : registry.getAll<ecs::Enemy>())
                 {
                     auto *transform = registry.getComponent<ecs::Transform>(entity);
@@ -48,11 +47,9 @@ namespace cli
                     if (!transform || !velocity || !rect || !texture || !scale)
                         continue;
 
-                    // Mettre à jour la position
                     transform->x += velocity->x * dt;
                     transform->y += velocity->y * dt;
 
-                    // Animation simple
                     if (animation)
                     {
                         animation->current_time += dt;
@@ -69,12 +66,11 @@ namespace cli
                         }
                     }
 
-                    // Dessiner l'ennemi
-                    m_renderer.createSprite(texture->id + std::to_string(entity), texture->path,
+                    m_renderer->createSprite(texture->id + std::to_string(entity), texture->path,
                                             std::round(transform->x), std::round(transform->y), scale->x, scale->y,
                                             static_cast<int>(rect->pos_x), static_cast<int>(rect->pos_y),
-                                            static_cast<int>(rect->size_x), static_cast<int>(rect->size_y));
-                    m_renderer.drawSprite(texture->id + std::to_string(entity));
+                                            rect->size_x, rect->size_y);
+                    m_renderer->drawSprite(texture->id + std::to_string(entity));
 
                     if (transform->x < GameConfig::Screen::REMOVE_X ||
                         transform->y < GameConfig::Screen::REMOVE_MIN_Y ||
@@ -84,7 +80,7 @@ namespace cli
                     }
                 }
 
-                for (ecs::Entity entity : enemiesToRemove)
+                for (const ecs::Entity entity : enemiesToRemove)
                 {
                     if (registry.hasComponent<ecs::Enemy>(entity))
                         registry.removeComponent<ecs::Enemy>(entity);
@@ -106,7 +102,7 @@ namespace cli
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class EnemySystem
 
 } // namespace cli

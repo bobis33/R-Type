@@ -18,7 +18,7 @@ namespace cli
     class ExplosionSystem final : public eng::ISystem
     {
         public:
-            explicit ExplosionSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit ExplosionSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~ExplosionSystem() override = default;
 
             ExplosionSystem(const ExplosionSystem &) = delete;
@@ -58,11 +58,11 @@ namespace cli
                         rect->pos_y = static_cast<float>(frame_y);
                     }
 
-                    m_renderer.createSprite(texture->id + std::to_string(entity), texture->path, transform->x,
+                    m_renderer->createSprite(texture->id + std::to_string(entity), texture->path, transform->x,
                                             transform->y, scale->x, scale->y, static_cast<int>(rect->pos_x),
                                             static_cast<int>(rect->pos_y), static_cast<int>(rect->size_x),
                                             static_cast<int>(rect->size_y));
-                    m_renderer.drawSprite(texture->id + std::to_string(entity));
+                    m_renderer->drawSprite(texture->id + std::to_string(entity));
 
                     explosion.current_lifetime += dt;
                     if (explosion.current_lifetime >= explosion.lifetime)
@@ -78,9 +78,9 @@ namespace cli
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
 
-            void removeExplosion(ecs::Registry &registry, ecs::Entity entity)
+            void removeExplosion(ecs::Registry &registry, const ecs::Entity entity)
             {
                 if (registry.hasComponent<ecs::Explosion>(entity))
                     registry.removeComponent<ecs::Explosion>(entity);

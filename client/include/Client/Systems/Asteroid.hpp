@@ -20,7 +20,7 @@ namespace cli
     class AsteroidSystem final : public eng::ISystem
     {
         public:
-            explicit AsteroidSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit AsteroidSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~AsteroidSystem() override = default;
 
             AsteroidSystem(const AsteroidSystem &) = delete;
@@ -64,11 +64,11 @@ namespace cli
                     transform->y += velocity->y * dt;
                     transform->rotation += asteroid.rotation_speed * dt;
 
-                    m_renderer.createSprite(texture->id + std::to_string(entity), texture->path,
+                    m_renderer->createSprite(texture->id + std::to_string(entity), texture->path,
                                             std::round(transform->x), std::round(transform->y), scale->x, scale->y,
                                             static_cast<int>(rect->pos_x), static_cast<int>(rect->pos_y),
                                             static_cast<int>(rect->size_x), static_cast<int>(rect->size_y));
-                    m_renderer.drawSprite(texture->id + std::to_string(entity));
+                    m_renderer->drawSprite(texture->id + std::to_string(entity));
 
                     if (transform->x < GameConfig::Screen::REMOVE_X ||
                         transform->y < GameConfig::Screen::REMOVE_MIN_Y ||
@@ -98,7 +98,7 @@ namespace cli
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class AsteroidSystem
 
 } // namespace cli

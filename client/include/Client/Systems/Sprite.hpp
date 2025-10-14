@@ -16,7 +16,7 @@ namespace cli
     class SpriteSystem final : public eng::ASystem
     {
         public:
-            explicit SpriteSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit SpriteSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~SpriteSystem() override = default;
 
             SpriteSystem(const SpriteSystem &) = delete;
@@ -33,21 +33,21 @@ namespace cli
 
                     const float x = (transform != nullptr) ? transform->x : 0.F;
                     const float y = (transform != nullptr) ? transform->y : 0.F;
-                    m_renderer.setSpriteTexture(sprite.id + std::to_string(entity), sprite.path);
-                    m_renderer.setSpritePosition(sprite.id + std::to_string(entity), x, y);
+                    m_renderer->setSpriteTexture(sprite.id + std::to_string(entity), sprite.path);
+                    m_renderer->setSpritePosition(sprite.id + std::to_string(entity), x, y);
 
                     if (rect)
                     {
-                        m_renderer.setSpriteFrame(sprite.id + std::to_string(entity), static_cast<int>(rect->pos_x),
+                        m_renderer->setSpriteFrame(sprite.id + std::to_string(entity), static_cast<int>(rect->pos_x),
                                                   static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
                     }
 
-                    m_renderer.drawSprite(sprite.id + std::to_string(entity));
+                    m_renderer->drawSprite(sprite.id + std::to_string(entity));
                 }
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class SpriteSystem
 
 } // namespace cli

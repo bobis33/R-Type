@@ -16,7 +16,7 @@ namespace cli
     class AnimationSystem final : public eng::ASystem
     {
         public:
-            explicit AnimationSystem(eng::IRenderer & /* renderer */) {}
+            explicit AnimationSystem(const std::shared_ptr<eng::IRenderer> & /* renderer */) {}
             ~AnimationSystem() override = default;
 
             AnimationSystem(const AnimationSystem &) = delete;

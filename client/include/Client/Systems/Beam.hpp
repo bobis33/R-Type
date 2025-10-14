@@ -17,7 +17,7 @@ namespace cli
     class BeamSystem final : public eng::ASystem
     {
         public:
-            explicit BeamSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit BeamSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~BeamSystem() override = default;
 
             BeamSystem(const BeamSystem &) = delete;
@@ -48,7 +48,7 @@ namespace cli
                     {
                         for (int y = 0; y < static_cast<int>(GameConfig::Beam::BAR_HEIGHT); y += 3)
                         {
-                            m_renderer.drawPoint(barX + x, barY + y, {.r = 30, .g = 30, .b = 30, .a = 200});
+                            m_renderer->drawPoint(barX + x, barY + y, {.r = 30, .g = 30, .b = 30, .a = 200});
                         }
                     }
 
@@ -60,7 +60,7 @@ namespace cli
                     float thresholdX = barX + GameConfig::Beam::BAR_WIDTH * 0.5f;
                     for (int y = 0; y < static_cast<int>(GameConfig::Beam::BAR_HEIGHT); y += 2)
                     {
-                        m_renderer.drawPoint(
+                        m_renderer->drawPoint(
                             thresholdX, barY + y,
                             {.r = 255, .g = 255, .b = 255, .a = 150}); // Ligne blanche semi-transparente
                     }
@@ -87,7 +87,7 @@ namespace cli
                                     chargeColor = {.r = 0, .g = 255, .b = 0, .a = 255}; // Vert
                                 }
 
-                                m_renderer.drawPoint(barX + x, barY + y, chargeColor);
+                                m_renderer->drawPoint(barX + x, barY + y, chargeColor);
                             }
                         }
                     }
@@ -95,7 +95,7 @@ namespace cli
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class BeamSystem
 
 } // namespace cli

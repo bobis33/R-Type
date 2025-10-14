@@ -21,7 +21,7 @@ namespace cli
     class TextSystem final : public eng::ASystem
     {
         public:
-            explicit TextSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit TextSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~TextSystem() override = default;
 
             TextSystem(const TextSystem &) = delete;
@@ -45,15 +45,15 @@ namespace cli
                     const std::uint8_t b = color ? color->b : 255u;
                     const std::uint8_t a = color ? color->a : 255u;
 
-                    m_renderer.setTextContent(text.id, text.content);
-                    m_renderer.setTextPosition(text.id, x, y);
-                    m_renderer.setTextColor(text.id, {.r = r, .g = g, .b = b, .a = a});
-                    m_renderer.drawText(text.id);
+                    m_renderer->setTextContent(text.id, text.content);
+                    m_renderer->setTextPosition(text.id, x, y);
+                    m_renderer->setTextColor(text.id, {.r = r, .g = g, .b = b, .a = a});
+                    m_renderer->drawText(text.id);
                 }
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class TextSystem
 
 } // namespace cli

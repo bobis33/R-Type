@@ -22,7 +22,7 @@ namespace srv
             bool exit = false;
             std::string host = Config::Network::DEFAULT_NETWORK_HOST;
             uint16_t port = Config::Network::DEFAULT_NETWORK_PORT;
-            std::string network_lib_path;
+            std::string network_lib_path = Path::Plugin::PLUGINS_NETWORK_ASIO_SERVER.string();
 
             static ArgsConfig fromFile(const std::string &path);
     }; // struct Config

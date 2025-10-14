@@ -17,7 +17,7 @@ namespace cli
     class SpawnSystem final : public eng::ISystem
     {
         public:
-            explicit SpawnSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit SpawnSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~SpawnSystem() override = default;
 
             SpawnSystem(const SpawnSystem &) = delete;
@@ -54,7 +54,7 @@ namespace cli
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
             float m_enemySpawnTimer = 0.0f;
             float m_asteroidSpawnTimer = 0.0f;
             float m_waveTimer = 0.0f;

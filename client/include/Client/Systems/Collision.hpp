@@ -20,7 +20,7 @@ namespace cli
     class CollisionSystem final : public eng::ISystem
     {
         public:
-            explicit CollisionSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit CollisionSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~CollisionSystem() override = default;
 
             CollisionSystem(const CollisionSystem &) = delete;
@@ -114,7 +114,7 @@ namespace cli
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
 
             bool checkCircularCollision(const ecs::Transform &transform1, const ecs::Hitbox &hitbox1,
                                         const ecs::Transform &transform2, const ecs::Hitbox &hitbox2)

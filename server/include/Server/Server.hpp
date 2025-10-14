@@ -15,6 +15,12 @@
 namespace srv
 {
 
+    struct AppConfig
+    {
+        std::string host;
+        uint16_t port;
+    };
+
     ///
     /// @class Server
     /// @brief Class for the server
@@ -35,6 +41,10 @@ namespace srv
             void run() const;
 
         private:
+            AppConfig setupConfig(const ArgsConfig &cfg) const;
+
+            AppConfig m_config;
+
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::shared_ptr<INetworkServer> m_network;
     }; // class Server

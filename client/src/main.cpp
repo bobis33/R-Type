@@ -16,6 +16,7 @@ int main(const int argc, const char *const *argv, const char *const *env)
         }
         cli::Client client(argsConf);
         client.run();
+        client.stop();
     }
     catch (const std::exception &e)
     {

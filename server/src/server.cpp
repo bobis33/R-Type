@@ -19,6 +19,7 @@ srv::Server::Server(const ArgsConfig &config)
                  "\tGit tag: " GIT_TAG "\n"
                  "\tGit commit hash: " GIT_COMMIT_HASH "\n";
 
+    m_config = setupConfig(config);
     m_network->init(config.host, config.port);
 }
 
@@ -29,4 +30,14 @@ void srv::Server::run() const
     {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+}
+
+srv::AppConfig srv::Server::setupConfig(const ArgsConfig &cfg) const
+{
+    AppConfig config;
+
+    config.host = cfg.host;
+    config.port = cfg.port;
+
+    return config;
 }

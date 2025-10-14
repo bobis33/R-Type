@@ -18,7 +18,7 @@ namespace cli
     class ProjectileSystem final : public eng::ASystem
     {
         public:
-            explicit ProjectileSystem(eng::IRenderer & /* renderer */) {}
+            explicit ProjectileSystem(const std::shared_ptr<eng::IRenderer> & /* renderer */) {}
             ~ProjectileSystem() override = default;
 
             ProjectileSystem(const ProjectileSystem &) = delete;

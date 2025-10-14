@@ -16,7 +16,7 @@ namespace cli
     class LoadingAnimationSystem final : public eng::ASystem
     {
         public:
-            explicit LoadingAnimationSystem(eng::IRenderer &renderer) : m_renderer(renderer) {}
+            explicit LoadingAnimationSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
             ~LoadingAnimationSystem() override = default;
 
             LoadingAnimationSystem(const LoadingAnimationSystem &) = delete;
@@ -53,16 +53,16 @@ namespace cli
                     }
 
                     // Dessiner l'animation
-                    m_renderer.setSpriteTexture(texture->id + std::to_string(entity), texture->path);
-                    m_renderer.setSpritePosition(texture->id + std::to_string(entity), transform->x, transform->y);
-                    m_renderer.setSpriteFrame(texture->id + std::to_string(entity), static_cast<int>(rect->pos_x),
+                    m_renderer->setSpriteTexture(texture->id + std::to_string(entity), texture->path);
+                    m_renderer->setSpritePosition(texture->id + std::to_string(entity), transform->x, transform->y);
+                    m_renderer->setSpriteFrame(texture->id + std::to_string(entity), static_cast<int>(rect->pos_x),
                                               static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
-                    m_renderer.drawSprite(texture->id + std::to_string(entity));
+                    m_renderer->drawSprite(texture->id + std::to_string(entity));
                 }
             }
 
         private:
-            eng::IRenderer &m_renderer;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class LoadingAnimationSystem
 
 } // namespace cli

@@ -16,6 +16,16 @@
 namespace cli
 {
 
+    struct AppConfig
+    {
+        unsigned int width = Config::Window::DEFAULT_WINDOW_WIDTH;
+        unsigned int height = Config::Window::DEFAULT_WINDOW_HEIGHT;
+        unsigned int frameLimit = Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
+        bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
+        std::string host = Config::Network::DEFAULT_NETWORK_HOST;
+        unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+    }; // struct Config
+
     ///
     /// @class Client
     /// @brief Class for the client
@@ -26,7 +36,7 @@ namespace cli
 
         public:
             explicit Client(const ArgsConfig &cfg);
-            ~Client() { m_engine->getNetwork()->disconnect(); }
+            ~Client() = default;
 
             Client(const Client &) = delete;
             Client &operator=(const Client &) = delete;
@@ -34,14 +44,18 @@ namespace cli
             Client &operator=(Client &&) = delete;
 
             void run();
+            void stop() const;
 
         private:
             void handleEvents(eng::Event &event);
+            AppConfig setupConfig(const ArgsConfig &cfg);
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<eng::Engine> m_engine;
             std::unique_ptr<gme::IGameClient> m_game;
             std::unordered_map<eng::Key, bool> m_keysPressed;
+
+            AppConfig m_config;
     }; // class Client
 
 } // namespace cli
