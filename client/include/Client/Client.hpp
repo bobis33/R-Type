@@ -49,6 +49,7 @@ namespace cli
         private:
             void handleEvents(eng::Event &event);
             AppConfig setupConfig(const ArgsConfig &cfg);
+            void setupScenes() const;
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<eng::Engine> m_engine;
