@@ -17,7 +17,9 @@ namespace cli
 
         // Update cooldowns
         if (m_fireCooldown > 0.0f)
+        {
             m_fireCooldown -= dt;
+        }
 
         // Get player entity and position
         auto playerEntities = registry.getAll<ecs::Player>();
