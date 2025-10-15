@@ -6,6 +6,7 @@
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
+static constexpr eng::Color COLOR_MENU = {255U, 255U, 255U, 255U};
 
 cli::ConfigSolo::ConfigSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
@@ -85,7 +86,7 @@ cli::ConfigSolo::ConfigSolo(const std::shared_ptr<eng::IRenderer> &renderer, con
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", 255U, 255U, 255U, 255U)
+            .with<ecs::Color>("color_menu", COLOR_MENU.r, COLOR_MENU.g, COLOR_MENU.b, COLOR_MENU.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
