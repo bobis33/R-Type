@@ -42,6 +42,6 @@ namespace cli
             ecs::Entity m_asteroidCounterEntity;
             const std::shared_ptr<eng::IAudio> &m_audio;
 
-            // WeaponSystem m_weaponSystem; TODO(bobis33): tofix
+            WeaponSystem m_weaponSystem;
     }; // class GameSolo
 } // namespace cli

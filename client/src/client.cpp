@@ -61,7 +61,7 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->getNetwork()->sendConnect("Bobi");
     m_engine->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
-    // m_engine->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer())); TODO(bobis33): only in game
+    m_engine->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<BeamSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer()));
@@ -73,7 +73,7 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    // m_engine->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer())); TODO(bobis33): tofix
+    m_engine->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
 
     auto menu = std::make_unique<Menu>(m_engine->getRenderer(), m_engine->getAudio());
     auto configMulti = std::make_unique<ConfigMulti>(m_engine->getRenderer(), m_engine->getAudio());

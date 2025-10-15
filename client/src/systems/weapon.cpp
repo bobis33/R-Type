@@ -92,6 +92,12 @@ namespace cli
         }
     }
 
+    void WeaponSystem::update(ecs::Registry &registry, float dt)
+    {
+        // Default implementation - calls the 3-parameter version with spacePressed = false
+        update(registry, dt, false);
+    }
+
     void WeaponSystem::reset()
     {
         m_fireCooldown = 0.0f;
