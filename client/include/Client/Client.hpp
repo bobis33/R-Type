@@ -23,7 +23,7 @@ namespace cli
         unsigned int frameLimit = Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
         bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
         std::string host = Config::Network::DEFAULT_NETWORK_HOST;
-        unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+        uint16_t port = Config::Network::DEFAULT_NETWORK_PORT;
     }; // struct Config
 
     ///

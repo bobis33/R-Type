@@ -17,6 +17,8 @@ namespace utl
         NETWORK_CLIENT = 1,
         NETWORK_SERVER = 1,
         RENDERER = 2,
+        GAME_CLIENT = 3,
+        GAME_SERVER = 4,
         UNKNOWN = 255
     };
 
