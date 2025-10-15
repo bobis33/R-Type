@@ -13,7 +13,7 @@ static constexpr eng::Color PURPLE = {.r = 100U, .g = 50U, .b = 150U, .a = 80U};
 static constexpr eng::Color GREEN = {.r = 200U, .g = 255U, .b = 200U, .a = 180U};
 
 cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+    : m_audio(audio), m_weaponSystem(renderer)
 {
     auto &registry = AScene::getRegistry();
 
@@ -223,9 +223,10 @@ void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
             m_audio->stopAudio(audio.second.id);
         }
     }
-    // if (m_keysPressed[eng::Key::Space])
-    //     m_weaponSystem.update(reg, dt);
-    // m_weaponSystem.update(reg, dt, m_keysPressed[eng::Key::Space]); TODO(bobis33): tofix
+    
+    // Update weapon system
+    m_weaponSystem.update(reg, dt, m_keysPressed[eng::Key::Space]);
+    
     //  Mise à jour des étoiles simples
     for (auto &[entity, pixel] : reg.getAll<ecs::Pixel>())
     {

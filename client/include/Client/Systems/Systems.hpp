@@ -20,3 +20,4 @@
 #include "Client/Systems/Spawn.hpp"
 #include "Client/Systems/Sprite.hpp"
 #include "Client/Systems/Text.hpp"
+#include "Client/Systems/Weapon.hpp"
