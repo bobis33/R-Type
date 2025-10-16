@@ -8,7 +8,6 @@
 
 #include <unordered_map>
 
-#include "Client/Systems/Weapon.hpp"
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -41,7 +40,5 @@ namespace cli
             ecs::Entity m_enemyCounterEntity;
             ecs::Entity m_asteroidCounterEntity;
             const std::shared_ptr<eng::IAudio> &m_audio;
-
-            WeaponSystem m_weaponSystem;
     }; // class GameSolo
 } // namespace cli
