@@ -48,6 +48,7 @@ namespace cli
 
         private:
             void handleEvents(eng::Event &event);
+            void updateKeyboardInput(ecs::Registry &registry);
             AppConfig setupConfig(const ArgsConfig &cfg);
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
