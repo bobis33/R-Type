@@ -34,9 +34,7 @@ namespace cli
             /// @brief Update weapon system
             /// @param registry The ECS registry
             /// @param dt Delta time
-            /// @param spacePressed Whether space is pressed
             ///
-            void update(ecs::Registry &registry, float dt, bool spacePressed);
             void update(ecs::Registry &registry, float dt) override;
 
             ///
