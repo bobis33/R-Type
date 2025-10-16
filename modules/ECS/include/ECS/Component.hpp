@@ -154,4 +154,13 @@ namespace ecs
             float radius;
     };
 
+    struct KeyboardInput final : IComponent
+    {
+            bool space_pressed{};
+            bool up_pressed{};
+            bool down_pressed{};
+            bool left_pressed{};
+            bool right_pressed{};
+    };
+
 } // namespace ecs
