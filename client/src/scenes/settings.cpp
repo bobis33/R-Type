@@ -117,7 +117,7 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
         .with<ecs::Transform>("transform_skin_sprite", 580.F, 345.F, 0.F)
         .with<ecs::Scale>("scale_skin_sprite", 2.0f, 2.0f)
         .with<ecs::Color>("color_skin_sprite", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-        .with<ecs::Rect>("rect_skin_sprite", 0.0f, 0.0f, 33U, 17U)
+        .with<ecs::Rect>("rect_skin_sprite", 0.0f, 0.0f, 33, 17)
         .with<ecs::Texture>("skin_sprite", "assets/sprites/r-typesheet42.gif")
         .build();
     registry.createEntity()
