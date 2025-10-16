@@ -2,8 +2,14 @@
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <cmath>
+#include <algorithm>
 
-static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
+static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
+static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
+static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
+static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
+static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
 cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
@@ -70,29 +76,134 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
         });
 
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
+
+    m_titleEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
+        .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+        .with<ecs::Text>("title", std::string("SETTINGS"), 72U)
+        .build();
+
+    for (size_t i = 0; i < m_settingsOptions.size(); ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_setting_" + std::to_string(i), 100.F, 200.F + i * 50.F, 0.F)
+            .with<ecs::Color>("color_setting_" + std::to_string(i),
+                              GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Text>("setting_" + m_settingsOptions[i], m_settingsOptions[i], 32U)
+            .build();
+    }
+    m_volumeValueEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_volume_value", 580.F, 200.F, 0.F)
+        .with<ecs::Color>("color_volume_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g, TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+        .with<ecs::Text>("volume_value", std::string("50"), 24U)
+        .build();
+    m_qualityValueEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_quality_value", 580.F, 250.F, 0.F)
+        .with<ecs::Color>("color_quality_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g, TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+        .with<ecs::Text>("quality_value", std::string("Medium"), 24U)
+        .build();
+    m_controlValueEntity = registry.createEntity()
+        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_control_value", 580.F, 300.F, 0.F)
+        .with<ecs::Color>("color_control_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g, TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+        .with<ecs::Text>("control_value", std::string("WASD"), 24U)
+        .build();
+
+    m_skinSpriteEntity = registry.createEntity()
+        .with<ecs::Transform>("transform_skin_sprite", 580.F, 345.F, 0.F)
+        .with<ecs::Scale>("scale_skin_sprite", 2.0f, 2.0f)
+        .with<ecs::Color>("color_skin_sprite", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
+        .with<ecs::Rect>("rect_skin_sprite", 0.0f, 0.0f, 33, 17)
+        .with<ecs::Texture>("skin_sprite", "assets/sprites/r-typesheet42.gif")
+        .build();
     registry.createEntity()
         .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 10.F, 10.F, 0.F)
-        .with<ecs::Color>("color_title", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-        .with<ecs::Text>("id", std::string("RType Client"), 50U)
+        .with<ecs::Transform>("transform_instruction", 80.F, 480.F, 0.F)
+        .with<ecs::Color>("color_instruction", INFO_TEXT_COLOR.r, INFO_TEXT_COLOR.g, INFO_TEXT_COLOR.b, INFO_TEXT_COLOR.a)
+        .with<ecs::Text>("instruction", std::string("UP/DOWN navigate, LEFT/RIGHT change, ESC back"), 16U)
         .build();
+
+    m_selectedIndex = 0;
 }
 
-void cli::Settings::update(const float dt, const eng::WindowSize &size)
+void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
 {
     auto &reg = getRegistry();
-
-    auto &transforms = reg.getAll<ecs::Transform>();
     auto &colors = reg.getAll<ecs::Color>();
     auto &texts = reg.getAll<ecs::Text>();
     auto &audios = reg.getAll<ecs::Audio>();
 
+    m_animationTime += dt;
+    m_titlePulseTime += dt;
     for (auto &audio : audios)
     {
         if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
-        {
             m_audio->stopAudio(audio.second.id);
+    }
+    for (auto &[entity, text] : texts)
+    {
+        for (size_t i = 0; i < m_settingsOptions.size(); ++i)
+        {
+            if (text.id == "setting_" + m_settingsOptions[i])
+            {
+                auto &color = colors.at(entity);
+
+                if (i == m_selectedIndex)
+                {
+                    float glowIntensity = std::sin(m_animationTime * 2.5f);
+                    color.r = 0U;
+                    color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
+                    color.b = 255U;
+                }
+                else
+                {
+                    color.r = GRAY_BLUE_SUBTLE.r;
+                    color.g = GRAY_BLUE_SUBTLE.g;
+                    color.b = GRAY_BLUE_SUBTLE.b;
+                }
+                break;
+            }
         }
+    }
+    if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
+    {
+        float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
+        titleColor->r = static_cast<unsigned char>(CYAN_ELECTRIC.r * pulsation);
+        titleColor->g = static_cast<unsigned char>(CYAN_ELECTRIC.g * pulsation);
+        titleColor->b = static_cast<unsigned char>(CYAN_ELECTRIC.b * pulsation);
+    }
+
+    updateSettingsDisplay();
+}
+
+void cli::Settings::updateSettingsDisplay()
+{
+    auto &registry = getRegistry();
+
+    if (auto *volumeValueText = registry.getComponent<ecs::Text>(m_volumeValueEntity))
+        volumeValueText->content = std::to_string(m_audioVolume);
+    if (auto *qualityValueText = registry.getComponent<ecs::Text>(m_qualityValueEntity))
+    {
+        const std::vector<std::string> qualities = {"Low", "Medium", "High"};
+        qualityValueText->content = qualities[m_videoQuality];
+    }
+    if (auto *controlValueText = registry.getComponent<ecs::Text>(m_controlValueEntity))
+    {
+        const std::vector<std::string> controlSchemes = {"WASD", "ZQSD", "Arrows"};
+        controlValueText->content = controlSchemes[m_controlScheme];
+    }
+    if (auto *skinRect = registry.getComponent<ecs::Rect>(m_skinSpriteEntity))
+    {
+        const std::vector<float> shipLines = {0.0f, 17.0f, 34.0f, 51.0f, 68.0f};
+        
+        skinRect->pos_y = shipLines[m_skinIndex];
+        skinRect->pos_x = 0.0f;
+        skinRect->size_x = 33U;
+        skinRect->size_y = 17U;
     }
 }
 
@@ -102,9 +213,52 @@ void cli::Settings::event(const eng::Event &event)
     {
         case eng::EventType::KeyPressed:
             if (event.key == eng::Key::Escape)
+            {
                 onLeave();
-            break;
+            }
+            else if (event.key == eng::Key::Up)
+                m_selectedIndex = (m_selectedIndex == 0) ? m_settingsOptions.size() - 1 : m_selectedIndex - 1;
+            else if (event.key == eng::Key::Down)
+                m_selectedIndex = (m_selectedIndex == m_settingsOptions.size() - 1) ? 0 : m_selectedIndex + 1;
+            else if (event.key == eng::Key::Enter)
+            {
+                const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
+                if (selectedOption == "Back to Menu")
+                    onLeave();
+            }
+            else if (event.key == eng::Key::Left || event.key == eng::Key::Right)
+            {
+                const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
 
+                if (selectedOption == "Audio Volume")
+                {
+                    int newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 10 : -10);
+                    m_audioVolume = std::max(0, std::min(100, newVolume));
+                }
+                else if (selectedOption == "Video Quality")
+                {
+                    if (event.key == eng::Key::Left)
+                        m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
+                    else
+                        m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
+                }
+                else if (selectedOption == "Controls")
+                {
+                    if (event.key == eng::Key::Left)
+                        m_controlScheme = (m_controlScheme == 0) ? 2 : m_controlScheme - 1;
+                    else
+                        m_controlScheme = (m_controlScheme == 2) ? 0 : m_controlScheme + 1;
+                }
+                else if (selectedOption == "Skin")
+                {
+                    if (event.key == eng::Key::Left)
+                        m_skinIndex = (m_skinIndex == 0) ? 4 : m_skinIndex - 1;
+                    else
+                        m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
+                }
+                updateSettingsDisplay();
+            }
+            break;
         default:
             break;
     }
