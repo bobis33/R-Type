@@ -9,6 +9,7 @@ static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
 static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
+static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
 cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
@@ -115,7 +116,7 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
     m_skinSpriteEntity = registry.createEntity()
         .with<ecs::Transform>("transform_skin_sprite", 580.F, 345.F, 0.F)
         .with<ecs::Scale>("scale_skin_sprite", 2.0f, 2.0f)
-        .with<ecs::Color>("color_skin_sprite", 255U, 255U, 255U, 255U)
+        .with<ecs::Color>("color_skin_sprite", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
         .with<ecs::Rect>("rect_skin_sprite", 0.0f, 0.0f, 33U, 17U)
         .with<ecs::Texture>("skin_sprite", "assets/sprites/r-typesheet42.gif")
         .build();
@@ -195,8 +196,6 @@ void cli::Settings::updateSettingsDisplay()
         const std::vector<std::string> controlSchemes = {"WASD", "ZQSD", "Arrows"};
         controlValueText->content = controlSchemes[m_controlScheme];
     }
-
-    // 🚀 Mise à jour du rectangle pour sélectionner différentes couleurs de vaisseau
     if (auto *skinRect = registry.getComponent<ecs::Rect>(m_skinSpriteEntity))
     {
         const std::vector<float> shipLines = {0.0f, 17.0f, 34.0f, 51.0f, 68.0f};
