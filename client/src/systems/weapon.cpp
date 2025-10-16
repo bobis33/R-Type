@@ -10,7 +10,7 @@
 
 namespace cli
 {
-    void WeaponSystem::update(ecs::Registry &registry, float dt, bool spacePressed)
+    void WeaponSystem::update(ecs::Registry &registry, float dt)
     {
         using namespace GameConfig::Projectile;
         using namespace GameConfig::Beam;
@@ -29,6 +29,15 @@ namespace cli
         auto *beamCharge = registry.getComponent<ecs::BeamCharge>(playerEntity);
         if (!transform || !beamCharge)
             return;
+
+        // Get keyboard input
+        auto keyboardEntities = registry.getAll<ecs::KeyboardInput>();
+        bool spacePressed = false;
+        if (!keyboardEntities.empty())
+        {
+            auto &[keyboardEntity, keyboardInput] = *keyboardEntities.begin();
+            spacePressed = keyboardInput.space_pressed;
+        }
 
         float projectileX = transform->x + GameConfig::Player::SPRITE_WIDTH;
         float projectileY = transform->y + GameConfig::Player::SPRITE_HEIGHT / 2.0f;
@@ -92,11 +101,6 @@ namespace cli
         }
     }
 
-    void WeaponSystem::update(ecs::Registry &registry, float dt)
-    {
-        // Default implementation - calls the 3-parameter version with spacePressed = false
-        update(registry, dt, false);
-    }
 
     void WeaponSystem::reset()
     {
