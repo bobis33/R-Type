@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    eng::INetworkClient *entryPoint() { return std::make_unique<eng::AsioClient>().release(); }
+    PLUGIN_EXPORT eng::INetworkClient *entryPoint() { return std::make_unique<eng::AsioClient>().release(); }
 }

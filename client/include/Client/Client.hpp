@@ -23,7 +23,7 @@ namespace cli
         unsigned int frameLimit = Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
         bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
         std::string host = Config::Network::DEFAULT_NETWORK_HOST;
-        unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+        uint16_t port = Config::Network::DEFAULT_NETWORK_PORT;
     }; // struct Config
 
     ///
@@ -53,7 +53,8 @@ namespace cli
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<eng::Engine> m_engine;
-            std::unique_ptr<gme::IGameClient> m_game;
+            std::shared_ptr<gme::IGameClient> m_gameSolo;
+            std::shared_ptr<gme::IGameClient> m_gameMulti;
             std::unordered_map<eng::Key, bool> m_keysPressed;
 
             AppConfig m_config;

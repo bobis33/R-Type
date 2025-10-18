@@ -6,8 +6,6 @@
 #include "Client/Scenes/game/solo/ConfigSolo.hpp"
 #include "Client/Scenes/game/solo/GameSolo.hpp"
 #include "Client/Systems/Systems.hpp"
-#include "R-TypeClient/RTypeClient.hpp"
-#include "Utils/Clock.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
 
@@ -55,7 +53,8 @@ cli::Client::Client(const ArgsConfig &cfg)
             return m_pluginLoader->loadPlugin<eng::IRenderer>(
                 !cfg.renderer_lib_path.empty() ? cfg.renderer_lib_path : Path::Plugin::PLUGIN_RENDERER_SFML.string());
         });
-    // m_game = std::make_unique<gme::RTypeClient>();
+    m_gameSolo = m_pluginLoader->loadPlugin<gme::IGameClient>(!cfg.game_solo_lib_path.empty() ? cfg.game_solo_lib_path : Path::Plugin::PLUGIN_GAME_SOLO.string());
+    m_gameMulti = m_pluginLoader->loadPlugin<gme::IGameClient>(!cfg.game_multi_lib_path.empty() ? cfg.game_multi_lib_path : Path::Plugin::PLUGIN_GAME_MULTI.string());
     m_engine->getRenderer()->createWindow("R-Type Client", m_config.height, m_config.width, m_config.frameLimit, m_config.fullscreen);
     m_engine->getNetwork()->connect(m_config.host, m_config.port);
     m_engine->getNetwork()->sendConnect("Bobi");

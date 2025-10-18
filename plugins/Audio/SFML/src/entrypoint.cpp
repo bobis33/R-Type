@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    eng::IAudio *entryPoint() { return std::make_unique<eng::SFMLAudio>().release(); }
+    PLUGIN_EXPORT eng::IAudio *entryPoint() { return std::make_unique<eng::SFMLAudio>().release(); }
 }

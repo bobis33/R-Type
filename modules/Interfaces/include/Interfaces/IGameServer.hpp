@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <string>
+#include "Utils/Interfaces/IPlugin.hpp"
 
 namespace gme
 {
@@ -16,13 +16,9 @@ namespace gme
     /// @brief Interface for the games
     /// @namespace gme
     ///
-    class IGameServer
+    class IGameServer : utl::IPlugin
     {
         public:
-            virtual ~IGameServer() = default;
-
-            [[nodiscard]] virtual std::string &getName();
-            virtual void setName(const std::string &newName);
 
         private:
     }; // class IGameServer
