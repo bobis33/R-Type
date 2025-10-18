@@ -73,14 +73,15 @@ cli::ConfigSolo::ConfigSolo(const std::shared_ptr<eng::IRenderer> &renderer, con
         });
 
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
-    
-    m_titleEntity = registry.createEntity()
-        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-        .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
-        .with<ecs::Text>("id", std::string("SOLO"), 80U)
-        .build();
-        
+
+    m_titleEntity =
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
+            .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+            .with<ecs::Text>("id", std::string("SOLO"), 80U)
+            .build();
+
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
         registry.createEntity()

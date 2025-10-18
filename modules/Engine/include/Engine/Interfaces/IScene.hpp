@@ -8,8 +8,8 @@
 
 #include <string>
 
-#include "ECS/Registry.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
+#include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
 
 namespace eng
@@ -64,7 +64,13 @@ namespace eng
             void setName(const std::string &newName) override { m_name = newName; }
 
             void addSystem(std::unique_ptr<ISystem> system) override { m_systems.emplace_back(std::move(system)); }
-            void updateSystems(const float dt) override { for (const auto &system : m_systems) { system->update(m_registry, dt); } }
+            void updateSystems(const float dt) override
+            {
+                for (const auto &system : m_systems)
+                {
+                    system->update(m_registry, dt);
+                }
+            }
 
         private:
             std::string m_name = "default_name";

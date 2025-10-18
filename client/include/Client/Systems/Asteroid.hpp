@@ -65,9 +65,9 @@ namespace cli
                     transform->rotation += asteroid.rotation_speed * dt;
 
                     m_renderer->createSprite(texture->id + std::to_string(entity), texture->path,
-                                            std::round(transform->x), std::round(transform->y), scale->x, scale->y,
-                                            static_cast<int>(rect->pos_x), static_cast<int>(rect->pos_y),
-                                            static_cast<int>(rect->size_x), static_cast<int>(rect->size_y));
+                                             std::round(transform->x), std::round(transform->y), scale->x, scale->y,
+                                             static_cast<int>(rect->pos_x), static_cast<int>(rect->pos_y),
+                                             static_cast<int>(rect->size_x), static_cast<int>(rect->size_y));
                     m_renderer->drawSprite(texture->id + std::to_string(entity));
 
                     if (transform->x < GameConfig::Screen::REMOVE_X ||

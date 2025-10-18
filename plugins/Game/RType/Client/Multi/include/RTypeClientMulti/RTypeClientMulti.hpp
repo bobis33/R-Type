@@ -34,7 +34,6 @@ namespace gme
             void update(float deltaTime, unsigned int width, unsigned int height) override {}
 
         private:
-
     }; // class RTypeClientMulti
 
-} // namespace eng
+} // namespace gme

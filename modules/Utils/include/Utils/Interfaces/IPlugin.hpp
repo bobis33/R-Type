@@ -9,9 +9,9 @@
 #include <string>
 
 #if defined(_WIN32) || defined(_WIN64)
-    #define PLUGIN_EXPORT __declspec(dllexport)
+#define PLUGIN_EXPORT __declspec(dllexport)
 #else
-    #define PLUGIN_EXPORT
+#define PLUGIN_EXPORT
 #endif
 
 namespace utl

@@ -18,12 +18,12 @@ namespace cli
 
     struct AppConfig
     {
-        unsigned int width = Config::Window::DEFAULT_WINDOW_WIDTH;
-        unsigned int height = Config::Window::DEFAULT_WINDOW_HEIGHT;
-        unsigned int frameLimit = Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
-        bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
-        std::string host = Config::Network::DEFAULT_NETWORK_HOST;
-        uint16_t port = Config::Network::DEFAULT_NETWORK_PORT;
+            unsigned int width = Config::Window::DEFAULT_WINDOW_WIDTH;
+            unsigned int height = Config::Window::DEFAULT_WINDOW_HEIGHT;
+            unsigned int frameLimit = Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
+            bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
+            std::string host = Config::Network::DEFAULT_NETWORK_HOST;
+            unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
     }; // struct Config
 
     ///
