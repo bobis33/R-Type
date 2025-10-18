@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    gme::IGameClient *entryPoint() { return std::make_unique<gme::RTypeClientMulti>().release(); }
+    PLUGIN_EXPORT gme::IGameClient *entryPoint() { return std::make_unique<gme::RTypeClientMulti>().release(); }
 }

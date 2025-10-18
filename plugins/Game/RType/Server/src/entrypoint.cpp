@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    gme::IGameServer *entryPoint() { return std::make_unique<gme::RTypeServer>().release(); }
+    PLUGIN_EXPORT gme::IGameServer *entryPoint() { return std::make_unique<gme::RTypeServer>().release(); }
 }

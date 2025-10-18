@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    srv::INetworkServer *entryPoint() { return std::make_unique<srv::AsioServer>().release(); }
+    PLUGIN_EXPORT srv::INetworkServer *entryPoint() { return std::make_unique<srv::AsioServer>().release(); }
 }

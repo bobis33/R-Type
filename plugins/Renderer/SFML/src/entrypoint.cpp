@@ -4,5 +4,5 @@
 
 extern "C"
 {
-    eng::IRenderer *entryPoint() { return std::make_unique<eng::SFMLRenderer>().release(); }
+    PLUGIN_EXPORT eng::IRenderer *entryPoint() { return std::make_unique<eng::SFMLRenderer>().release(); }
 }
