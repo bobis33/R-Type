@@ -24,6 +24,10 @@ namespace cli
             bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
             std::string host = Config::Network::DEFAULT_NETWORK_HOST;
             unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+            int audioVolume = Config::Audio::DEFAULT_AUDIO_VOLUME;
+            size_t videoQuality = Config::Game::DEFAULT_VIDEO_QUALITY;
+            size_t controlScheme = Config::Game::DEFAULT_CONTROL_SCHEME;
+            size_t skinIndex = Config::Game::DEFAULT_SKIN_INDEX;
     }; // struct Config
 
     ///

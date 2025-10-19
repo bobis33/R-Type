@@ -36,6 +36,12 @@ namespace cli
             inline constexpr auto DEFAULT_WINDOW_FRAME_LIMIT = 240;
             inline constexpr auto DEFAULT_WINDOW_FULLSCREEN = false;
         } // namespace Window
+        namespace Game
+        {
+            inline constexpr auto DEFAULT_VIDEO_QUALITY = 1; // 0=Low, 1=Medium, 2=High
+            inline constexpr auto DEFAULT_CONTROL_SCHEME = 0; // 0=WASD, 1=ZQSD, 2=Arrows
+            inline constexpr auto DEFAULT_SKIN_INDEX = 0; // 0-4 different ship skins
+        } // namespace Game
     } // namespace Config
     namespace Path
     {
