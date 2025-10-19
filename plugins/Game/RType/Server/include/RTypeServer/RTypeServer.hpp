@@ -1,6 +1,6 @@
 ///
 /// @file RTypeServer.hpp
-/// @brief RType client class declaration
+/// @brief This file contains the RTypeServer class declaration
 /// @namespace gme
 ///
 
@@ -13,11 +13,12 @@ namespace gme
 
     ///
     /// @class RTypeServer
-    /// @brief Class for the R-Type game
+    /// @brief Class for the RTypeServer plugin
     /// @namespace gme
     ///
     class RTypeServer final : public IGameServer
     {
+
         public:
             RTypeServer() = default;
             ~RTypeServer() override = default;
@@ -27,6 +28,15 @@ namespace gme
             RTypeServer(RTypeServer &&) = delete;
             RTypeServer &operator=(RTypeServer &&) = delete;
 
+            [[nodiscard]] const std::string getName() const override { return "RType_Server"; }
+            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_SERVER; }
+
+            [[nodiscard]] State getState() const override { return State::PLAYING; }
+
+            void start() override {}
+            void stop() override {}
+            void update(const float deltaTime) override {}
+
         private:
-    };
+    }; // class RTypeServer
 } // namespace gme

@@ -33,5 +33,8 @@ namespace srv
     {
         inline auto PLUGINS_NETWORK_ASIO_SERVER =
             std::filesystem::path(PLUGINS_DIR) / ("network_asio_server" + std::string(PLUGINS_EXTENSION));
+        inline auto PLUGINS_GAME_RTYPE_SERVER =
+            std::filesystem::path(PLUGINS_DIR) / ("game_rtype_server" + std::string(PLUGINS_EXTENSION));
+
     }
 } // namespace srv

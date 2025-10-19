@@ -56,7 +56,7 @@ namespace cli
                     m_renderer->setSpriteTexture(texture->id + std::to_string(entity), texture->path);
                     m_renderer->setSpritePosition(texture->id + std::to_string(entity), transform->x, transform->y);
                     m_renderer->setSpriteFrame(texture->id + std::to_string(entity), static_cast<int>(rect->pos_x),
-                                              static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
+                                               static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
                     m_renderer->drawSprite(texture->id + std::to_string(entity));
                 }
             }

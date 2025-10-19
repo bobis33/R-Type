@@ -39,7 +39,7 @@ namespace cli
                     if (rect)
                     {
                         m_renderer->setSpriteFrame(sprite.id + std::to_string(entity), static_cast<int>(rect->pos_x),
-                                                  static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
+                                                   static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
                     }
 
                     m_renderer->drawSprite(sprite.id + std::to_string(entity));
