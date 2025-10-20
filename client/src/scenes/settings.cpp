@@ -243,6 +243,7 @@ void cli::Settings::event(const eng::Event &event)
                 {
                     int newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 10 : -10);
                     m_audioVolume = std::max(0, std::min(100, newVolume));
+                    const_cast<AppConfig&>(m_appConfig).audioVolume = m_audioVolume;
                 }
                 else if (selectedOption == "Video Quality")
                 {
@@ -250,6 +251,7 @@ void cli::Settings::event(const eng::Event &event)
                         m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
                     else
                         m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
+                    const_cast<AppConfig&>(m_appConfig).videoQuality = m_videoQuality;
                 }
                 else if (selectedOption == "Controls")
                 {
@@ -257,6 +259,7 @@ void cli::Settings::event(const eng::Event &event)
                         m_controlScheme = (m_controlScheme == 0) ? 2 : m_controlScheme - 1;
                     else
                         m_controlScheme = (m_controlScheme == 2) ? 0 : m_controlScheme + 1;
+                    const_cast<AppConfig&>(m_appConfig).controlScheme = m_controlScheme;
                 }
                 else if (selectedOption == "Skin")
                 {
@@ -264,6 +267,7 @@ void cli::Settings::event(const eng::Event &event)
                         m_skinIndex = (m_skinIndex == 0) ? 4 : m_skinIndex - 1;
                     else
                         m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
+                    const_cast<AppConfig&>(m_appConfig).skinIndex = m_skinIndex;
                 }
                 updateSettingsDisplay();
             }
