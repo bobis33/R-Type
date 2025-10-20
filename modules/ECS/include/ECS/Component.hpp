@@ -163,4 +163,22 @@ namespace ecs
             bool right_pressed{};
     };
 
+    // Tags for stage elements
+    struct Floor final : IComponent
+    {
+    };
+
+    struct Ceiling final : IComponent
+    {
+    };
+
+    // Generic horizontal scrolling component
+    struct Scrolling final : IComponent
+    {
+            float speed_x;           // Negative to scroll left
+            float original_width;    // Unscaled texture width in pixels
+            float original_height;   // Unscaled texture height in pixels
+            bool fit_width;          // If true, scale X to fit window width
+    };
+
 } // namespace ecs

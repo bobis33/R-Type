@@ -118,11 +118,48 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
                          .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS)
                          .build();
 
-    // La barre de Beam sera affichée directement au-dessus du joueur
-    // Pas besoin d'une entité séparée
-    // Créer des étoiles pour l'effet de parallax simple
     const int screenWidth = 1920;
     const int screenHeight = 1080;
+
+    {
+        const float originalWidth = 2608.0f;  // largeur source d'un sprite
+        const float spriteHeight = 208.0f;    // hauteur source d'un sprite
+        const float scrollSpeed = -80.0f;     // px/s vers la gauche (plus lent)
+
+        // SOL (sprite complet)
+        auto floor1 = registry.createEntity()
+                           .with<ecs::Transform>("floor1_transform", 0.F, 0.F, 0.F)
+                           .with<ecs::Scale>("floor1_scale", 1.F, 1.F)
+                           .with<ecs::Texture>("floor1_texture", Path::Texture::TEXTURE_STAGE1_FLOOR)
+                           .with<ecs::Scrolling>("floor1_scroll", scrollSpeed, originalWidth, spriteHeight, true)
+                           .with<ecs::Floor>("floor1_tag")
+                           .build();
+
+        auto floor2 = registry.createEntity()
+                           .with<ecs::Transform>("floor2_transform", static_cast<float>(screenWidth), 0.F, 0.F)
+                           .with<ecs::Scale>("floor2_scale", 1.F, 1.F)
+                           .with<ecs::Texture>("floor2_texture", Path::Texture::TEXTURE_STAGE1_FLOOR)
+                           .with<ecs::Scrolling>("floor2_scroll", scrollSpeed, originalWidth, spriteHeight, true)
+                           .with<ecs::Floor>("floor2_tag")
+                           .build();
+
+        // PLAFOND (sprite complet)
+        auto ceil1 = registry.createEntity()
+                          .with<ecs::Transform>("ceil1_transform", 0.F, 0.F, 0.F)
+                          .with<ecs::Scale>("ceil1_scale", 1.F, 1.F)
+                          .with<ecs::Texture>("ceil1_texture", Path::Texture::TEXTURE_STAGE1_CEILING)
+                          .with<ecs::Scrolling>("ceil1_scroll", scrollSpeed, originalWidth, spriteHeight, true)
+                          .with<ecs::Ceiling>("ceil1_tag")
+                          .build();
+
+        auto ceil2 = registry.createEntity()
+                          .with<ecs::Transform>("ceil2_transform", static_cast<float>(screenWidth), 0.F, 0.F)
+                          .with<ecs::Scale>("ceil2_scale", 1.F, 1.F)
+                          .with<ecs::Texture>("ceil2_texture", Path::Texture::TEXTURE_STAGE1_CEILING)
+                          .with<ecs::Scrolling>("ceil2_scroll", scrollSpeed, originalWidth, spriteHeight, true)
+                          .with<ecs::Ceiling>("ceil2_tag")
+                          .build();
+    }
 
     // Étoiles lointaines (lentes)
     for (int i = 0; i < 50; ++i)

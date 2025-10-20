@@ -69,6 +69,7 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    m_engine->addSystem(std::make_unique<ScrollingSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<PlayerDirectionSystem>());
     m_engine->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
