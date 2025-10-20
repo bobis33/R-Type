@@ -35,6 +35,15 @@ namespace cli
             inline constexpr auto DEFAULT_WINDOW_HEIGHT = 540;
             inline constexpr auto DEFAULT_WINDOW_FRAME_LIMIT = 240;
             inline constexpr auto DEFAULT_WINDOW_FULLSCREEN = false;
+            // Constantes utiles pour le jeu
+            inline constexpr auto WINDOW_WIDTH = DEFAULT_WINDOW_WIDTH;
+            inline constexpr auto WINDOW_HEIGHT = DEFAULT_WINDOW_HEIGHT;
+            inline constexpr auto WINDOW_CENTER_X = WINDOW_WIDTH / 2.0f;
+            inline constexpr auto WINDOW_CENTER_Y = WINDOW_HEIGHT / 2.0f;
+            inline constexpr auto WINDOW_LEFT = 0.0f;
+            inline constexpr auto WINDOW_RIGHT = static_cast<float>(WINDOW_WIDTH);
+            inline constexpr auto WINDOW_TOP = 0.0f;
+            inline constexpr auto WINDOW_BOTTOM = static_cast<float>(WINDOW_HEIGHT);
         } // namespace Window
     } // namespace Config
     namespace Path
@@ -69,6 +78,18 @@ namespace cli
             inline constexpr auto TEXTURE_EXPLOSION = "assets/sprites/r-typesheet44.gif";
             inline constexpr auto TEXTURE_STAGE1_FLOOR = "assets/sprites/floorstage1.png";
             inline constexpr auto TEXTURE_STAGE1_CEILING = "assets/sprites/ceillingstage1.png";
+            // HUD score
+            inline constexpr auto TEXTURE_SCORE_COUNTER_BG = "assets/sprites/counter.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_0 = "assets/sprites/counter0.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_1 = "assets/sprites/counter1.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_2 = "assets/sprites/counter2.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_3 = "assets/sprites/counter3.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_4 = "assets/sprites/counter4.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_5 = "assets/sprites/counter5.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_6 = "assets/sprites/counter6.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_7 = "assets/sprites/counter7.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_8 = "assets/sprites/counter8.png";
+            inline constexpr auto TEXTURE_SCORE_DIGIT_9 = "assets/sprites/counter9.png";
         } // namespace Texture
     } // namespace Path
 } // namespace cli
