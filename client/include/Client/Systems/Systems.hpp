@@ -21,3 +21,4 @@
 #include "Client/Systems/Sprite.hpp"
 #include "Client/Systems/Text.hpp"
 #include "Client/Systems/Weapon.hpp"
+#include "Client/Systems/Scrolling.hpp"
