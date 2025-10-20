@@ -75,8 +75,8 @@ namespace cli
             inline constexpr float SPRITE_HEIGHT = 24.0f;
             inline constexpr int ANIMATION_FRAMES = 4;
             inline constexpr float ANIMATION_DURATION = 0.15f;
-            inline constexpr float OFFSET_X = 40.0f;
-            inline constexpr float OFFSET_Y = 0.0f;
+            inline constexpr float OFFSET_X = 60.0f;
+            inline constexpr float OFFSET_Y = 6.0f;
         } // namespace LoadingAnimation
         namespace Enemy
         {
