@@ -33,6 +33,29 @@ namespace cli
 
             void update(ecs::Registry &registry, float dt) override
             {
+                std::optional<float> ceilingBottomY;
+                std::optional<float> floorTopY;
+
+                for (auto &[entity, tag] : registry.getAll<ecs::Ceiling>())
+                {
+                    const auto *t = registry.getComponent<ecs::Transform>(entity);
+                    const auto *s = registry.getComponent<ecs::Scale>(entity);
+                    const auto *scroll = registry.getComponent<ecs::Scrolling>(entity);
+                    if (!t || !scroll)
+                        continue;
+                    const float scaledHeight = (s ? s->y : 1.0f) * scroll->original_height;
+                    ceilingBottomY = t->y + scaledHeight;
+                    break; // une seule bande suffit
+                }
+                for (auto &[entity, tag] : registry.getAll<ecs::Floor>())
+                {
+                    const auto *t = registry.getComponent<ecs::Transform>(entity);
+                    if (!t)
+                        continue;
+                    floorTopY = t->y; // haut de la bande sol
+                    break;
+                }
+
                 std::vector<ecs::Entity> projectilesToRemove;
                 std::vector<ecs::Entity> enemiesToRemove;
                 std::vector<ecs::Entity> asteroidsToRemove;
@@ -55,13 +78,24 @@ namespace cli
                                                    *enemyHitbox))
                         {
                             enemy.health -= projectile.damage;
-
-                            projectilesToRemove.push_back(projectileEntity);
+                            if (projectile.type == ecs::Projectile::SUPERCHARGED && projectile.pierce_remaining > 1)
+                            {
+                                projectile.pierce_remaining -= 1; // continue sa course
+                            }
+                            else
+                            {
+                                projectilesToRemove.push_back(projectileEntity);
+                            }
 
                             if (enemy.health <= 0.0f)
                             {
                                 createExplosion(registry, enemyTransform->x, enemyTransform->y);
                                 enemiesToRemove.push_back(enemyEntity);
+                                for (auto &[scoreEntity, score] : registry.getAll<ecs::Score>())
+                                {
+                                    score.value += 100;
+                                    break;
+                                }
                             }
                             break;
                         }
@@ -86,7 +120,6 @@ namespace cli
                                                    *asteroidHitbox))
                         {
                             asteroid.health -= projectile.damage;
-
                             projectilesToRemove.push_back(projectileEntity);
 
                             if (asteroid.health <= 0.0f)
@@ -111,8 +144,50 @@ namespace cli
                 {
                     removeAsteroid(registry, entity);
                 }
+                if (ceilingBottomY.has_value() || floorTopY.has_value())
+                {
+                    for (auto &[playerEntity, player] : registry.getAll<ecs::Player>())
+                    {
+                        auto *t = registry.getComponent<ecs::Transform>(playerEntity);
+                        auto *hb = registry.getComponent<ecs::Hitbox>(playerEntity);
+                        auto *vel = registry.getComponent<ecs::Velocity>(playerEntity);
+                        if (!t || !hb)
+                            continue;
+                        if (ceilingBottomY.has_value() && (t->y - hb->radius < ceilingBottomY.value()))
+                        {
+                            t->y = ceilingBottomY.value() + hb->radius;
+                            if (vel)
+                                vel->y = std::max(0.0f, vel->y);
+                        }
+                        if (floorTopY.has_value() && (t->y + hb->radius > floorTopY.value()))
+                        {
+                            t->y = floorTopY.value() - hb->radius;
+                            if (vel)
+                                vel->y = std::min(0.0f, vel->y);
+                        }
+                    }
+                    for (auto &[enemyEntity, enemy] : registry.getAll<ecs::Enemy>())
+                    {
+                        auto *t = registry.getComponent<ecs::Transform>(enemyEntity);
+                        auto *hb = registry.getComponent<ecs::Hitbox>(enemyEntity);
+                        auto *vel = registry.getComponent<ecs::Velocity>(enemyEntity);
+                        if (!t || !hb)
+                            continue;
+                        if (ceilingBottomY.has_value() && (t->y - hb->radius < ceilingBottomY.value()))
+                        {
+                            t->y = ceilingBottomY.value() + hb->radius;
+                            if (vel)
+                                vel->y = std::max(0.0f, vel->y);
+                        }
+                        if (floorTopY.has_value() && (t->y + hb->radius > floorTopY.value()))
+                        {
+                            t->y = floorTopY.value() - hb->radius;
+                            if (vel)
+                                vel->y = std::min(0.0f, vel->y);
+                        }
+                    }
+                }
             }
-
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
 

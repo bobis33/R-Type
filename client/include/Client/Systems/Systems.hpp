@@ -22,3 +22,6 @@
 #include "Client/Systems/Text.hpp"
 #include "Client/Systems/Weapon.hpp"
 #include "Client/Systems/Scrolling.hpp"
+#include "Client/Systems/HUD.hpp"
+#include "Client/Systems/Starfield.hpp"
+#include "Client/Systems/PlayerController.hpp"
