@@ -1,4 +1,5 @@
 #include "Client/Scenes/Settings.hpp"
+#include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
@@ -11,8 +12,8 @@ static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
-cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& config)
+    : m_audio(audio), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
 
@@ -133,6 +134,9 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
         .build();
 
     m_selectedIndex = 0;
+    
+    // Charger les valeurs depuis AppConfig
+    loadFromConfig();
 }
 
 void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
@@ -194,18 +198,18 @@ void cli::Settings::updateSettingsDisplay()
     if (auto *qualityValueText = registry.getComponent<ecs::Text>(m_qualityValueEntity))
     {
         const std::vector<std::string> qualities = {"Low", "Medium", "High"};
-        qualityValueText->content = qualities[m_videoQuality];
+        qualityValueText->content = qualities[static_cast<size_t>(m_videoQuality)];
     }
     if (auto *controlValueText = registry.getComponent<ecs::Text>(m_controlValueEntity))
     {
         const std::vector<std::string> controlSchemes = {"WASD", "ZQSD", "Arrows"};
-        controlValueText->content = controlSchemes[m_controlScheme];
+        controlValueText->content = controlSchemes[static_cast<size_t>(m_controlScheme)];
     }
     if (auto *skinRect = registry.getComponent<ecs::Rect>(m_skinSpriteEntity))
     {
         const std::vector<float> shipLines = {0.0f, 17.0f, 34.0f, 51.0f, 68.0f};
 
-        skinRect->pos_y = shipLines[m_skinIndex];
+        skinRect->pos_y = shipLines[static_cast<size_t>(m_skinIndex)];
         skinRect->pos_x = 0.0f;
         skinRect->size_x = 33U;
         skinRect->size_y = 17U;
@@ -267,4 +271,14 @@ void cli::Settings::event(const eng::Event &event)
         default:
             break;
     }
+}
+
+void cli::Settings::loadFromConfig()
+{
+    m_audioVolume = m_appConfig.audioVolume;
+    m_videoQuality = m_appConfig.videoQuality;
+    m_controlScheme = m_appConfig.controlScheme;
+    m_skinIndex = m_appConfig.skinIndex;
+    
+    updateSettingsDisplay();
 }
