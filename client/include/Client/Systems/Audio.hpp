@@ -12,6 +12,7 @@
 
 namespace cli
 {
+    struct AppConfig;
 
     ///
     /// @class AudioSystem
@@ -21,7 +22,7 @@ namespace cli
     class AudioSystem final : public eng::ASystem
     {
         public:
-            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio) : m_audio(audio) {}
+            AudioSystem(const std::shared_ptr<eng::IAudio> &audio, const AppConfig& appConfig) : m_audio(audio), m_appConfig(appConfig) {}
             ~AudioSystem() override = default;
 
             AudioSystem(const AudioSystem &) = delete;
@@ -33,7 +34,9 @@ namespace cli
             {
                 for (auto &[entity, audio] : registry.getAll<ecs::Audio>())
                 {
-                    m_audio->setVolume(audio.id + std::to_string(entity), audio.volume);
+                    float globalVolume = static_cast<float>(m_appConfig.audioVolume) / 100.0f;
+                    float effectiveVolume = audio.volume * globalVolume;
+                    m_audio->setVolume(audio.id + std::to_string(entity), effectiveVolume);
                     m_audio->setLoop(audio.id + std::to_string(entity), audio.loop);
                     if (audio.play && m_audio->isPlaying(audio.id + std::to_string(entity)) != eng::Status::Playing)
                     {
@@ -49,6 +52,7 @@ namespace cli
 
         private:
             const std::shared_ptr<eng::IAudio> &m_audio;
+            const AppConfig& m_appConfig;
     }; // class AudioSystem
 
 } // namespace cli
