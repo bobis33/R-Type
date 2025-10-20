@@ -1,115 +1,246 @@
 ///
 /// @file AsioServer.hpp
-/// @brief This file contains the server network implementation for Asio
+/// @brief Asio-based implementation of INetworkServer interface
 /// @namespace srv
 ///
 
 #pragma once
 
-#include <functional>
-#include <string>
+#include "Interfaces/INetworkServer.hpp"
+#include "Interfaces/Protocol/HandlerPacket.hpp"
+#include "Interfaces/Protocol/Protocol.hpp"
+#include "Interfaces/Protocol/Serializer.hpp"
+
+#include <asio.hpp>
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <queue>
 #include <thread>
 #include <unordered_map>
 #include <vector>
-
-#define ASIO_STANDALONE
-#include "asio.hpp"
-
-#include "Interfaces/INetworkServer.hpp"
-#include "Interfaces/Protocol/Protocol.hpp"
 
 namespace srv
 {
 
     ///
+    /// @brief Client session information
+    ///
+    struct ClientSession
+    {
+            std::uint32_t sessionId;
+            asio::ip::udp::endpoint endpoint;
+            std::chrono::steady_clock::time_point lastSeen;
+            std::string playerName;
+            std::uint32_t clientCaps;
+            bool isConnected;
+            std::uint32_t lastPingSent;
+            std::uint32_t latency;
+
+            ClientSession()
+                : sessionId(0), lastSeen(std::chrono::steady_clock::now()), clientCaps(0), isConnected(false),
+                  lastPingSent(0), latency(0)
+            {
+            }
+    };
+
+    ///
+    /// @brief Queued packet for sending
+    ///
+    struct QueuedPacket
+    {
+            std::vector<std::uint8_t> data;
+            asio::ip::udp::endpoint destination;
+            bool reliable;
+
+            QueuedPacket(const std::vector<std::uint8_t> &d, const asio::ip::udp::endpoint &dest, bool rel = false)
+                : data(d), destination(dest), reliable(rel)
+            {
+            }
+    };
+
+    ///
     /// @class AsioServer
-    /// @brief Network implementation with asio for server
+    /// @brief Asio UDP server implementation
     /// @namespace srv
     ///
-    class AsioServer final : public INetworkServer
+    class AsioServer : public INetworkServer
     {
-        public:
-            using PacketHandler = std::function<void(const asio::ip::udp::endpoint &, const rnp::PacketHeader &,
-                                                     const std::vector<uint8_t> &)>;
-            using ClientInfo = struct
-            {
-                    asio::ip::udp::endpoint endpoint;
-                    std::string playerName;
-                    uint32_t lastSequence;
-                    bool connected;
-                    std::uint16_t playerId;
-                    std::uint32_t sessionId;
-                    std::uint32_t clientCaps;
-            };
+        private:
+            // Network components
+            std::unique_ptr<asio::io_context> m_ioContext;
+            std::unique_ptr<asio::ip::udp::socket> m_socket;
+            std::unique_ptr<std::thread> m_networkThread;
 
+            // Server configuration
+            std::string m_host;
+            std::uint16_t m_port;
+            std::uint16_t m_tickRate;
+            std::uint32_t m_serverCaps;
+
+            // Server state
+            std::atomic<bool> m_running;
+            std::atomic<bool> m_started;
+
+            // Client management
+            std::unordered_map<std::uint32_t, ClientSession> m_clients;
+            std::unordered_map<std::string, std::uint32_t> m_endpointToSession;
+            std::uint32_t m_nextSessionId;
+            mutable std::mutex m_clientsMutex;
+
+            // Packet handling
+            std::unique_ptr<rnp::HandlerPacket> m_packetHandler;
+            std::queue<QueuedPacket> m_sendQueue;
+            std::mutex m_sendQueueMutex;
+            std::mutex m_socketMutex;
+
+            // Reception buffer
+            std::array<std::uint8_t, MAX_LEN_RECV_BUFFER> m_recvBuffer;
+            asio::ip::udp::endpoint m_senderEndpoint;
+
+            // Timing
+            std::chrono::steady_clock::time_point m_lastPingTime;
+            std::chrono::milliseconds m_pingInterval;
+            std::chrono::milliseconds m_clientTimeout;
+
+            ///
+            /// @brief Initialize packet handlers
+            ///
+            void setupPacketHandlers();
+
+            ///
+            /// @brief Start receiving packets asynchronously
+            ///
+            void startReceive();
+
+            ///
+            /// @brief Handle received packet
+            /// @param bytesReceived Number of bytes received
+            ///
+            void handleReceive(std::size_t bytesReceived);
+
+            ///
+            /// @brief Network thread main loop
+            ///
+            void networkThreadLoop();
+
+            ///
+            /// @brief Generate unique session ID
+            /// @return New session ID
+            ///
+            std::uint32_t generateSessionId();
+
+            ///
+            /// @brief Get endpoint string representation
+            /// @param endpoint UDP endpoint
+            /// @return String representation
+            ///
+            std::string endpointToString(const asio::ip::udp::endpoint &endpoint) const;
+
+            ///
+            /// @brief Send packet immediately
+            /// @param data Packet data
+            /// @param destination Target endpoint
+            ///
+            void sendPacketImmediate(const std::vector<std::uint8_t> &data, const asio::ip::udp::endpoint &destination);
+
+            ///
+            /// @brief Handle CONNECT packet
+            /// @param packet Connect packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleConnect(const rnp::PacketConnect &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle DISCONNECT packet
+            /// @param packet Disconnect packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleDisconnect(const rnp::PacketDisconnect &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle PING packet
+            /// @param packet Ping packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handlePing(const rnp::PacketPingPong &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle PONG packet
+            /// @param packet Pong packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handlePong(const rnp::PacketPingPong &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Send PONG response
+            /// @param nonce Ping nonce
+            /// @param destination Target endpoint
+            /// @param sessionId Client session ID
+            ///
+            void sendPong(std::uint32_t nonce, const asio::ip::udp::endpoint &destination, std::uint32_t sessionId);
+
+            ///
+            /// @brief Send CONNECT_ACCEPT response
+            /// @param sessionId New session ID
+            /// @param destination Target endpoint
+            ///
+            void sendConnectAccept(std::uint32_t sessionId, const asio::ip::udp::endpoint &destination);
+
+            ///
+            /// @brief Send ERROR packet
+            /// @param errorCode Error code
+            /// @param description Error description
+            /// @param destination Target endpoint
+            /// @param sessionId Session ID
+            ///
+            void sendError(rnp::ErrorCode errorCode, const std::string &description,
+                           const asio::ip::udp::endpoint &destination, std::uint32_t sessionId);
+
+            ///
+            /// @brief Update client timeouts and send pings
+            ///
+            void updateClientManagement();
+
+            ///
+            /// @brief Process send queue
+            ///
+            void processSendQueue();
+
+        public:
+            ///
+            /// @brief Constructor
+            ///
             AsioServer();
+
+            ///
+            /// @brief Destructor
+            ///
             ~AsioServer() override;
 
-            AsioServer(const AsioServer &) = delete;
-            AsioServer(AsioServer &&) = delete;
-            AsioServer &operator=(const AsioServer &) = delete;
-            AsioServer &operator=(AsioServer &&) = delete;
-
-            void init(const std::string &host, uint16_t port) override;
             [[nodiscard]] const std::string getName() const override { return "Network_Asio_Server"; }
-            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_SERVER; }
+            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
 
+            // INetworkServer implementation
+            void init(const std::string &host, std::uint16_t port) override;
             void start() override;
             void stop() override;
+            void update() override;
+            void sendToClient(std::uint32_t sessionId, const std::vector<std::uint8_t> &data,
+                              bool reliable = false) override;
+            void sendToAllClients(const std::vector<std::uint8_t> &data, bool reliable = false) override;
+            void disconnectClient(std::uint32_t sessionId) override;
 
-            void sendConnectAccept(const asio::ip::udp::endpoint &client, std::uint32_t sessionId);
-            void sendWorldState(const asio::ip::udp::endpoint &client, std::uint32_t serverTick,
-                                const std::vector<rnp::EntityState> &entities);
-            void sendWorldState(const asio::ip::udp::endpoint &client, const std::vector<uint8_t> &worldData);
-            void sendEntityEvent(const asio::ip::udp::endpoint &client, std::uint32_t serverTick,
-                                 const std::vector<rnp::EventRecord> &events);
-            void sendEvents(const asio::ip::udp::endpoint &client, const std::vector<rnp::EventRecord> &events);
-            void sendPong(const asio::ip::udp::endpoint &client, std::uint32_t nonce, std::uint32_t sendTimeMs);
-            void sendPong(const asio::ip::udp::endpoint &client);
-            void sendError(const asio::ip::udp::endpoint &client, rnp::ErrorCode errorCode,
-                           const std::string &errorMessage);
-            void sendError(const asio::ip::udp::endpoint &client, const std::string &errorMessage);
-            void sendAck(const asio::ip::udp::endpoint &client, std::uint32_t cumulative, std::uint32_t ackBits);
-            void broadcastToAll(const std::vector<uint8_t> &data);
-            void broadcastEntityEvents(std::uint32_t serverTick, const std::vector<rnp::EventRecord> &events);
-            void broadcastEvents(const std::vector<rnp::EventRecord> &events);
+            [[nodiscard]] std::size_t getClientCount() const override;
+            [[nodiscard]] std::vector<std::uint32_t> getConnectedSessions() const override;
+            [[nodiscard]] bool isRunning() const override;
 
-            void setPacketHandler(rnp::PacketType type, PacketHandler handler);
-            void setTickRate(std::uint16_t tickRate) { m_tickRateHz = tickRate; }
-            void setServerCapabilities(std::uint32_t caps) { m_serverCaps = caps; }
+            void setTickRate(std::uint16_t tickRate) override;
+            void setServerCapabilities(std::uint32_t caps) override;
+    };
 
-            const std::unordered_map<asio::ip::udp::endpoint, ClientInfo> &getClients() const { return m_clients; }
-
-        private:
-            void startReceive();
-            void handleReceive(const asio::error_code &error, std::size_t bytesTransferred);
-            void handleSend(const asio::error_code &error, std::size_t bytesTransferred);
-            void processPacket(const asio::ip::udp::endpoint &sender, const std::vector<uint8_t> &data);
-            void addClient(const asio::ip::udp::endpoint &endpoint, const std::string &playerName,
-                           std::uint32_t clientCaps, std::uint32_t sessionId);
-            void removeClient(const asio::ip::udp::endpoint &endpoint);
-            std::uint16_t getPlayerId(const asio::ip::udp::endpoint &endpoint) const;
-            std::uint32_t getSessionId(const asio::ip::udp::endpoint &endpoint) const;
-            void handleReliablePacket(const asio::ip::udp::endpoint &sender, const rnp::PacketHeader &header);
-            void processAck(const asio::ip::udp::endpoint &sender, const std::vector<uint8_t> &payload);
-            void retransmitReliable();
-
-            asio::io_context m_ioContext;
-            asio::ip::udp::socket m_socket;
-            asio::ip::udp::endpoint m_remoteEndpoint;
-            std::array<uint8_t, rnp::MAX_PAYLOAD + 16> m_recvBuffer;
-
-            std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
-            std::thread m_ioThread;
-            std::unordered_map<asio::ip::udp::endpoint, ClientInfo> m_clients;
-            std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
-            uint32_t m_sequenceNumber = 0;
-            std::uint16_t m_nextPlayerId = 1;
-            std::uint32_t m_nextSessionId = 1;
-            std::uint16_t m_tickRateHz = 60;
-            std::uint16_t m_mtuPayloadBytes = 508;
-            std::uint32_t m_serverCaps = 0;
-            std::unordered_map<std::uint32_t, std::vector<uint8_t>> m_pendingReliable;
-            std::unordered_map<asio::ip::udp::endpoint, std::uint32_t> m_clientLastAck;
-    }; // class AsioServer
 } // namespace srv

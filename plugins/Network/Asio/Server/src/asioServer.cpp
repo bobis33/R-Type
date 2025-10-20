@@ -1,737 +1,811 @@
-#include <cstring>
-#include <iostream>
+///
+/// @file AsioServer.cpp
+/// @brief Asio-based implementation of INetworkServer interface
+/// @namespace srv
+///
 
 #include "AsioServer/AsioServer.hpp"
+#include "Utils/Logger.hpp"
 
-using asio::ip::udp;
+#include <chrono>
+#include <iostream>
+#include <random>
 
-srv::AsioServer::AsioServer() : m_socket(m_ioContext), m_recvBuffer() {}
-
-void srv::AsioServer::init(const std::string &host, const uint16_t port)
+namespace srv
 {
-    const asio::ip::address addr = asio::ip::make_address(host);
-    const udp::endpoint ep(addr, port);
 
-    m_socket.open(ep.protocol());
-    m_socket.set_option(asio::socket_base::reuse_address(true));
-    m_socket.bind(ep);
-}
+    AsioServer::AsioServer()
+        : m_ioContext(std::make_unique<asio::io_context>()),
+          m_socket(std::make_unique<asio::ip::udp::socket>(*m_ioContext)), m_port(0), m_tickRate(60), m_serverCaps(0),
+          m_running(false), m_started(false), m_nextSessionId(1),
+          m_packetHandler(std::make_unique<rnp::HandlerPacket>()), m_pingInterval(std::chrono::seconds(5)),
+          m_clientTimeout(std::chrono::seconds(30))
+    {
+        utl::Logger::log("AsioServer: Constructor called", utl::LogLevel::INFO);
+        utl::Logger::log("AsioServer: Creating I/O context and socket", utl::LogLevel::INFO);
+        setupPacketHandlers();
+        utl::Logger::log("AsioServer: Packet handlers setup complete", utl::LogLevel::INFO);
+        utl::Logger::log("AsioServer: Initialized successfully", utl::LogLevel::INFO);
+    }
 
-void srv::AsioServer::start()
-{
-    m_workGuard = std::make_unique<asio::executor_work_guard<asio::io_context::executor_type>>(
-        asio::make_work_guard(m_ioContext));
+    AsioServer::~AsioServer()
+    {
+        utl::Logger::log("AsioServer: Destructor called", utl::LogLevel::INFO);
+        stop();
+        utl::Logger::log("AsioServer: Destroyed", utl::LogLevel::INFO);
+    }
 
-    startReceive();
+    void AsioServer::init(const std::string &host, std::uint16_t port)
+    {
+        utl::Logger::log("AsioServer: init() called with host=" + host + ", port=" + std::to_string(port),
+                         utl::LogLevel::INFO);
+        m_host = host;
+        m_port = port;
+        utl::Logger::log("AsioServer: Configuration stored - ready to start", utl::LogLevel::INFO);
+    }
 
-    m_ioThread = std::thread(
-        [this]
+    void AsioServer::start()
+    {
+        utl::Logger::log("AsioServer: Starting server...", utl::LogLevel::INFO);
+
+        if (m_started.load())
         {
-            try
-            {
-                m_ioContext.run();
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << "[AsioServer] IO context exception: " << e.what() << "\n";
-            }
-        });
-}
-
-void srv::AsioServer::stop()
-{
-    if (m_workGuard)
-    {
-        asio::post(m_ioContext,
-                   [this]
-                   {
-                       asio::error_code ec;
-                       m_socket.close(ec);
-                   });
-
-        m_workGuard.reset();
-    }
-
-    m_ioContext.stop();
-
-    if (m_ioThread.joinable())
-    {
-        m_ioThread.join();
-    }
-}
-
-srv::AsioServer::~AsioServer() { stop(); }
-
-void srv::AsioServer::startReceive()
-{
-    m_socket.async_receive_from(asio::buffer(m_recvBuffer), m_remoteEndpoint,
-                                [this](const asio::error_code &ec, const std::size_t n) { handleReceive(ec, n); });
-}
-
-void srv::AsioServer::handleReceive(const asio::error_code &error, const std::size_t bytesTransferred)
-{
-    if (!error)
-    {
-        std::vector<uint8_t> data(m_recvBuffer.begin(), m_recvBuffer.begin() + bytesTransferred);
-        processPacket(m_remoteEndpoint, data);
-        startReceive();
-    }
-    else if (error == asio::error::operation_aborted)
-    {
-        return;
-    }
-    else
-    {
-        std::cerr << "[AsioServer] Erreur de réception: " << error.message() << "\n";
-        startReceive();
-    }
-}
-
-void srv::AsioServer::handleSend(const asio::error_code &error, std::size_t bytesTransferred)
-{
-    if (error)
-    {
-        std::cerr << "[AsioServer] Erreur d'envoi: " << error.message() << "\n";
-    }
-}
-
-void srv::AsioServer::processPacket(const asio::ip::udp::endpoint &sender, const std::vector<uint8_t> &data)
-{
-    try
-    {
-        rnp::PacketHeader header = rnp::deserializeHeader(data.data(), data.size());
-
-        std::vector<uint8_t> payload;
-        if (header.length > 0 && data.size() >= 16 + header.length)
-        {
-            payload.assign(data.begin() + 16, data.begin() + 16 + header.length);
+            utl::Logger::log("AsioServer: Already started", utl::LogLevel::WARNING);
+            return;
         }
 
-        // Vérifier la session ID (sauf pour CONNECT)
-        if (static_cast<rnp::PacketType>(header.type) != rnp::PacketType::CONNECT)
+        try
         {
-            auto it = m_clients.find(sender);
-            if (it != m_clients.end() && it->second.sessionId != header.sessionId)
+            utl::Logger::log("AsioServer: Creating endpoint for " + m_host + ":" + std::to_string(m_port),
+                             utl::LogLevel::INFO);
+
+            // Create endpoint
+            asio::ip::udp::endpoint endpoint(asio::ip::make_address(m_host), m_port);
+            utl::Logger::log("AsioServer: Endpoint created successfully", utl::LogLevel::INFO);
+
+            // Bind socket
+            utl::Logger::log("AsioServer: Opening socket...", utl::LogLevel::INFO);
+            m_socket->open(endpoint.protocol());
+            utl::Logger::log("AsioServer: Setting socket options...", utl::LogLevel::INFO);
+            m_socket->set_option(asio::ip::udp::socket::reuse_address(true));
+            utl::Logger::log("AsioServer: Binding socket to endpoint...", utl::LogLevel::INFO);
+            m_socket->bind(endpoint);
+            utl::Logger::log("AsioServer: Socket bound successfully", utl::LogLevel::INFO);
+
+            m_running.store(true);
+            m_started.store(true);
+
+            // Start network thread
+            utl::Logger::log("AsioServer: Starting network thread...", utl::LogLevel::INFO);
+            m_networkThread = std::make_unique<std::thread>(&AsioServer::networkThreadLoop, this);
+
+            // Start receiving
+            utl::Logger::log("AsioServer: Starting packet reception...", utl::LogLevel::INFO);
+            startReceive();
+
+            utl::Logger::log("AsioServer: Started on " + m_host + ":" + std::to_string(m_port), utl::LogLevel::INFO);
+        }
+        catch (const std::exception &e)
+        {
+            m_running.store(false);
+            m_started.store(false);
+            utl::Logger::log("AsioServer: Failed to start - " + std::string(e.what()), utl::LogLevel::WARNING);
+            throw;
+        }
+    }
+
+    void AsioServer::stop()
+    {
+        if (!m_started.load())
+        {
+            return;
+        }
+
+        m_running.store(false);
+        m_started.store(false);
+
+        // Send disconnect to all clients
+        {
+            std::lock_guard<std::mutex> lock(m_clientsMutex);
+            for (auto &[sessionId, client] : m_clients)
             {
-                sendError(sender, rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session ID");
-                return;
+                if (client.isConnected)
+                {
+                    rnp::Serializer serializer;
+                    rnp::PacketHeader header{};
+                    header.type = static_cast<std::uint8_t>(rnp::PacketType::DISCONNECT);
+                    header.length = sizeof(rnp::PacketDisconnect);
+                    header.flags = 0;
+                    header.sessionId = sessionId;
+
+                    rnp::PacketDisconnect disconnect{};
+                    disconnect.reasonCode = static_cast<std::uint16_t>(rnp::DisconnectReason::SERVER_SHUTDOWN);
+
+                    serializer.serializeHeader(header);
+                    serializer.serializeDisconnect(disconnect);
+
+                    sendPacketImmediate(serializer.getData(), client.endpoint);
+                }
             }
         }
 
-        // Gérer les flags de fiabilité
-        if (header.flags & static_cast<std::uint16_t>(rnp::PacketFlags::RELIABLE))
+        // Stop io_context safely
+        if (m_ioContext)
         {
-            handleReliablePacket(sender, header);
-        }
-        if (header.flags & static_cast<std::uint16_t>(rnp::PacketFlags::ACK_REQ))
-        {
-            sendAck(sender, header.sequence, 0);
+            m_ioContext->stop();
         }
 
-        switch (static_cast<rnp::PacketType>(header.type))
+        // Wait for network thread with timeout
+        if (m_networkThread && m_networkThread->joinable())
         {
-            case rnp::PacketType::CONNECT:
-            {
-                if (payload.size() >= 5)
-                {
-                    std::uint8_t nameLen = payload[0];
-                    if (payload.size() >= 1 + nameLen + 4)
-                    {
-                        std::string playerName(payload.begin() + 1, payload.begin() + 1 + nameLen);
-                        std::uint32_t clientCaps = (static_cast<std::uint32_t>(payload[1 + nameLen]) << 24) |
-                                                   (static_cast<std::uint32_t>(payload[1 + nameLen + 1]) << 16) |
-                                                   (static_cast<std::uint32_t>(payload[1 + nameLen + 2]) << 8) |
-                                                   static_cast<std::uint32_t>(payload[1 + nameLen + 3]);
+            auto joinStart = std::chrono::steady_clock::now();
+            bool joined = false;
 
-                        std::uint32_t sessionId = m_nextSessionId++;
-                        addClient(sender, playerName, clientCaps, sessionId);
-                        sendConnectAccept(sender, sessionId);
-                        std::cout << "[AsioServer] Client connecté: " << playerName << " ("
-                                  << sender.address().to_string() << ":" << sender.port()
-                                  << ") - Session: " << sessionId << "\n";
-                    }
-                }
-                break;
-            }
-            case rnp::PacketType::DISCONNECT:
+            while (
+                !joined &&
+                std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - joinStart).count() <
+                    5)
             {
-                if (payload.size() >= 2)
+                if (m_networkThread->joinable())
                 {
-                    std::uint16_t reason =
-                        (static_cast<std::uint16_t>(payload[0]) << 8) | static_cast<std::uint16_t>(payload[1]);
-                    std::cout << "[AsioServer] Client déconnecté: " << sender.address().to_string() << ":"
-                              << sender.port() << " - Reason: " << reason << "\n";
-                }
-                removeClient(sender);
-                break;
-            }
-            case rnp::PacketType::ACK:
-            {
-                processAck(sender, payload);
-                break;
-            }
-            case rnp::PacketType::ENTITY_EVENT:
-            {
-                try
-                {
-                    const std::vector<rnp::EventRecord> events = rnp::deserializeEvents(payload.data(), payload.size());
-
-                    // Broadcast les events aux autres clients
-                    for (const auto &[endpoint, clientInfo] : m_clients)
-                    {
-                        if (endpoint != sender && clientInfo.connected)
-                        {
-                            sendEntityEvent(endpoint, 0, events);
-                        }
-                    }
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << "[AsioServer] Erreur parsing ENTITY_EVENT: " << e.what() << "\n";
-                }
-                break;
-            }
-            case rnp::PacketType::PLAYER_INPUT:
-            {
-                // Support legacy PLAYER_INPUT
-                if (payload.size() >= 2)
-                {
-                    const std::uint8_t direction = payload[0];
-                    const std::uint8_t shooting = payload[1];
-
-                    rnp::EventRecord ev;
-                    ev.type = rnp::EventType::INPUT;
-                    ev.entityId = getPlayerId(sender);
-                    ev.data.reserve(4);
-
-                    const std::uint16_t playerId = getPlayerId(sender);
-                    ev.data.push_back(static_cast<std::uint8_t>(playerId & 0xFF));
-                    ev.data.push_back(static_cast<std::uint8_t>((playerId >> 8) & 0xFF));
-                    ev.data.push_back(direction);
-                    ev.data.push_back(shooting);
-
-                    std::vector<rnp::EventRecord> batch;
-                    batch.emplace_back(std::move(ev));
-                    broadcastEvents(batch);
-                }
-                break;
-            }
-            case rnp::PacketType::PING:
-            {
-                if (payload.size() >= 8)
-                {
-                    std::uint32_t nonce = (static_cast<std::uint32_t>(payload[0]) << 24) |
-                                          (static_cast<std::uint32_t>(payload[1]) << 16) |
-                                          (static_cast<std::uint32_t>(payload[2]) << 8) |
-                                          static_cast<std::uint32_t>(payload[3]);
-                    std::uint32_t sendTime = (static_cast<std::uint32_t>(payload[4]) << 24) |
-                                             (static_cast<std::uint32_t>(payload[5]) << 16) |
-                                             (static_cast<std::uint32_t>(payload[6]) << 8) |
-                                             static_cast<std::uint32_t>(payload[7]);
-                    sendPong(sender, nonce, sendTime);
+                    m_networkThread->join();
+                    joined = true;
                 }
                 else
                 {
-                    sendPong(sender);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 }
-                break;
             }
-            default:
-                break;
-        }
 
-        auto it = m_packetHandlers.find(static_cast<rnp::PacketType>(header.type));
-        if (it != m_packetHandlers.end())
-        {
-            it->second(sender, header, payload);
-        }
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "[AsioServer] Erreur de traitement du paquet: " << e.what() << "\n";
-        sendError(sender, rnp::ErrorCode::INVALID_PAYLOAD, "Erreur de traitement du paquet");
-    }
-}
-
-void srv::AsioServer::addClient(const asio::ip::udp::endpoint &endpoint, const std::string &playerName,
-                                std::uint32_t clientCaps, std::uint32_t sessionId)
-{
-    ClientInfo info;
-    info.endpoint = endpoint;
-    info.playerName = playerName;
-    info.lastSequence = 0;
-    info.connected = true;
-    info.playerId = m_nextPlayerId++;
-    info.sessionId = sessionId;
-    info.clientCaps = clientCaps;
-    m_clients[endpoint] = info;
-}
-
-void srv::AsioServer::removeClient(const asio::ip::udp::endpoint &endpoint) { m_clients.erase(endpoint); }
-
-std::uint16_t srv::AsioServer::getPlayerId(const asio::ip::udp::endpoint &endpoint) const
-{
-    auto it = m_clients.find(endpoint);
-    if (it != m_clients.end())
-    {
-        return it->second.playerId;
-    }
-    return 0;
-}
-
-std::uint32_t srv::AsioServer::getSessionId(const asio::ip::udp::endpoint &endpoint) const
-{
-    auto it = m_clients.find(endpoint);
-    if (it != m_clients.end())
-    {
-        return it->second.sessionId;
-    }
-    return 0;
-}
-
-void srv::AsioServer::sendConnectAccept(const asio::ip::udp::endpoint &client, std::uint32_t sessionId)
-{
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::CONNECT_ACCEPT);
-
-    // Payload: session_id(4, BE) | tick_rate_hz(2, BE) | mtu_payload_bytes(2, BE) | server_caps(4, BE)
-    std::vector<uint8_t> payload;
-
-    // session_id (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((sessionId >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((sessionId >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((sessionId >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(sessionId & 0xFF));
-
-    // tick_rate_hz (2 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((m_tickRateHz >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(m_tickRateHz & 0xFF));
-
-    // mtu_payload_bytes (2 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((m_mtuPayloadBytes >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(m_mtuPayloadBytes & 0xFF));
-
-    // server_caps (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((m_serverCaps >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((m_serverCaps >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((m_serverCaps >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(m_serverCaps & 0xFF));
-
-    header.length = payload.size();
-    header.flags =
-        static_cast<std::uint16_t>(rnp::PacketFlags::RELIABLE) | static_cast<std::uint16_t>(rnp::PacketFlags::ACK_REQ);
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = sessionId;
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendAck(const asio::ip::udp::endpoint &client, std::uint32_t cumulative, std::uint32_t ackBits)
-{
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::ACK);
-
-    // Payload: cumulative_ack(4, BE) | ack_bits(4, BE)
-    std::vector<uint8_t> payload;
-
-    // cumulative_ack (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((cumulative >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((cumulative >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((cumulative >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(cumulative & 0xFF));
-
-    // ack_bits (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((ackBits >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((ackBits >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((ackBits >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(ackBits & 0xFF));
-
-    header.length = payload.size();
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, const std::vector<uint8_t> &worldData)
-{
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::WORLD_STATE);
-    header.length = worldData.size();
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, worldData.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendWorldState(const asio::ip::udp::endpoint &client, std::uint32_t serverTick,
-                                     const std::vector<rnp::EntityState> &entities)
-{
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::WORLD_STATE);
-
-    // Payload: server_tick(4, BE) | entity_count(2, BE) | entities...
-    std::vector<uint8_t> payload;
-
-    // server_tick (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((serverTick >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((serverTick >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((serverTick >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(serverTick & 0xFF));
-
-    // entity_count (2 bytes, big endian)
-    std::uint16_t entityCount = static_cast<std::uint16_t>(entities.size());
-    payload.push_back(static_cast<uint8_t>((entityCount >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(entityCount & 0xFF));
-
-    // Pour chaque entité: id(4) | type(2) | x(4) | y(4) | vx(4) | vy(4) | state_flags(1)
-    for (const auto &entity : entities)
-    {
-        // id (4 bytes, big endian)
-        payload.push_back(static_cast<uint8_t>((entity.id >> 24) & 0xFF));
-        payload.push_back(static_cast<uint8_t>((entity.id >> 16) & 0xFF));
-        payload.push_back(static_cast<uint8_t>((entity.id >> 8) & 0xFF));
-        payload.push_back(static_cast<uint8_t>(entity.id & 0xFF));
-
-        // type (2 bytes, big endian)
-        payload.push_back(static_cast<uint8_t>((entity.type >> 8) & 0xFF));
-        payload.push_back(static_cast<uint8_t>(entity.type & 0xFF));
-
-        // x, y, vx, vy (floats en big endian)
-        const uint8_t *xBytes = reinterpret_cast<const uint8_t *>(&entity.x);
-        const uint8_t *yBytes = reinterpret_cast<const uint8_t *>(&entity.y);
-        const uint8_t *vxBytes = reinterpret_cast<const uint8_t *>(&entity.vx);
-        const uint8_t *vyBytes = reinterpret_cast<const uint8_t *>(&entity.vy);
-
-        // Note: Assuming little endian system, reverse for big endian network order
-        for (int i = 3; i >= 0; --i)
-            payload.push_back(xBytes[i]);
-        for (int i = 3; i >= 0; --i)
-            payload.push_back(yBytes[i]);
-        for (int i = 3; i >= 0; --i)
-            payload.push_back(vxBytes[i]);
-        for (int i = 3; i >= 0; --i)
-            payload.push_back(vyBytes[i]);
-
-        // state_flags (1 byte)
-        payload.push_back(entity.stateFlags);
-    }
-
-    header.length = payload.size();
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendEvents(const asio::ip::udp::endpoint &client, const std::vector<rnp::EventRecord> &events)
-{
-    const std::vector<uint8_t> eventsPayload = rnp::serializeEvents(events);
-
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::ENTITY_EVENT);
-    header.length = static_cast<std::uint16_t>(eventsPayload.size());
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, eventsPayload.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendEntityEvent(const asio::ip::udp::endpoint &client, std::uint32_t serverTick,
-                                      const std::vector<rnp::EventRecord> &events)
-{
-    const std::vector<uint8_t> eventsPayload = rnp::serializeEvents(events);
-
-    // Payload: server_tick(4, BE) | event_count(2, BE) | events...
-    std::vector<uint8_t> payload;
-
-    // server_tick (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((serverTick >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((serverTick >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((serverTick >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(serverTick & 0xFF));
-
-    // event_count (2 bytes, big endian)
-    std::uint16_t eventCount = static_cast<std::uint16_t>(events.size());
-    payload.push_back(static_cast<uint8_t>((eventCount >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(eventCount & 0xFF));
-
-    // Events serialized
-    payload.insert(payload.end(), eventsPayload.begin(), eventsPayload.end());
-
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::ENTITY_EVENT);
-    header.length = static_cast<std::uint16_t>(payload.size());
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendPong(const asio::ip::udp::endpoint &client)
-{
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::PONG);
-    header.length = 0;
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header);
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendPong(const asio::ip::udp::endpoint &client, std::uint32_t nonce, std::uint32_t sendTimeMs)
-{
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::PONG);
-
-    // Payload: nonce(4, BE) | send_time_ms(4, BE)
-    std::vector<uint8_t> payload;
-
-    // nonce (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((nonce >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((nonce >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((nonce >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(nonce & 0xFF));
-
-    // send_time_ms (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((sendTimeMs >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((sendTimeMs >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((sendTimeMs >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(sendTimeMs & 0xFF));
-
-    header.length = payload.size();
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::sendError(const asio::ip::udp::endpoint &client, const std::string &errorMessage)
-{
-    sendError(client, rnp::ErrorCode::INTERNAL_ERROR, errorMessage);
-}
-
-void srv::AsioServer::sendError(const asio::ip::udp::endpoint &client, rnp::ErrorCode errorCode,
-                                const std::string &errorMessage)
-{
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::PACKET_ERROR);
-
-    // Payload: error_code(2, BE) | msg_len(2, BE) | message
-    std::vector<uint8_t> payload;
-    std::uint16_t code = static_cast<std::uint16_t>(errorCode);
-    payload.push_back(static_cast<uint8_t>((code >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(code & 0xFF));
-
-    std::uint16_t msgLen = static_cast<std::uint16_t>(errorMessage.size());
-    payload.push_back(static_cast<uint8_t>((msgLen >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(msgLen & 0xFF));
-
-    payload.insert(payload.end(), errorMessage.begin(), errorMessage.end());
-
-    header.length = payload.size();
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-    header.sessionId = getSessionId(client);
-
-    std::vector<uint8_t> buffer = rnp::serialize(header, payload.data());
-
-    m_socket.async_send_to(asio::buffer(buffer), client,
-                           [this](const asio::error_code &error, std::size_t bytesTransferred)
-                           { handleSend(error, bytesTransferred); });
-}
-
-void srv::AsioServer::broadcastToAll(const std::vector<uint8_t> &data)
-{
-    for (const auto &[endpoint, clientInfo] : m_clients)
-    {
-        if (clientInfo.connected)
-        {
-            m_socket.async_send_to(asio::buffer(data), endpoint,
-                                   [this](const asio::error_code &error, std::size_t bytesTransferred)
-                                   { handleSend(error, bytesTransferred); });
-        }
-    }
-}
-
-void srv::AsioServer::broadcastEvents(const std::vector<rnp::EventRecord> &events)
-{
-    const std::vector<uint8_t> payload = rnp::serializeEvents(events);
-
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::ENTITY_EVENT);
-    header.length = static_cast<std::uint16_t>(payload.size());
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-
-    for (const auto &[endpoint, clientInfo] : m_clients)
-    {
-        if (clientInfo.connected)
-        {
-            header.sessionId = clientInfo.sessionId;
-            const std::vector<uint8_t> frame = rnp::serialize(header, payload.data());
-
-            m_socket.async_send_to(asio::buffer(frame), endpoint,
-                                   [this](const asio::error_code &error, std::size_t bytesTransferred)
-                                   { handleSend(error, bytesTransferred); });
-        }
-    }
-}
-
-void srv::AsioServer::broadcastEntityEvents(std::uint32_t serverTick, const std::vector<rnp::EventRecord> &events)
-{
-    const std::vector<uint8_t> eventsPayload = rnp::serializeEvents(events);
-
-    // Payload: server_tick(4, BE) | event_count(2, BE) | events...
-    std::vector<uint8_t> payload;
-
-    // server_tick (4 bytes, big endian)
-    payload.push_back(static_cast<uint8_t>((serverTick >> 24) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((serverTick >> 16) & 0xFF));
-    payload.push_back(static_cast<uint8_t>((serverTick >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(serverTick & 0xFF));
-
-    // event_count (2 bytes, big endian)
-    std::uint16_t eventCount = static_cast<std::uint16_t>(events.size());
-    payload.push_back(static_cast<uint8_t>((eventCount >> 8) & 0xFF));
-    payload.push_back(static_cast<uint8_t>(eventCount & 0xFF));
-
-    // Events serialized
-    payload.insert(payload.end(), eventsPayload.begin(), eventsPayload.end());
-
-    rnp::PacketHeader header;
-    header.type = static_cast<std::uint8_t>(rnp::PacketType::ENTITY_EVENT);
-    header.length = static_cast<std::uint16_t>(payload.size());
-    header.flags = 0;
-    header.reserved = 0;
-    header.sequence = ++m_sequenceNumber;
-
-    for (const auto &[endpoint, clientInfo] : m_clients)
-    {
-        if (clientInfo.connected)
-        {
-            header.sessionId = clientInfo.sessionId;
-            const std::vector<uint8_t> frame = rnp::serialize(header, payload.data());
-
-            m_socket.async_send_to(asio::buffer(frame), endpoint,
-                                   [this](const asio::error_code &error, std::size_t bytesTransferred)
-                                   { handleSend(error, bytesTransferred); });
-        }
-    }
-}
-
-void srv::AsioServer::setPacketHandler(rnp::PacketType type, PacketHandler handler)
-{
-    m_packetHandlers[type] = handler;
-}
-
-void srv::AsioServer::handleReliablePacket(const asio::ip::udp::endpoint &sender, const rnp::PacketHeader &header)
-{
-    // Store for potential retransmission (simplified implementation)
-    // In production, you'd want more sophisticated tracking
-    auto it = m_clients.find(sender);
-    if (it != m_clients.end())
-    {
-        it->second.lastSequence = header.sequence;
-    }
-}
-
-void srv::AsioServer::processAck(const asio::ip::udp::endpoint &sender, const std::vector<uint8_t> &payload)
-{
-    if (payload.size() < 8)
-    {
-        return;
-    }
-
-    // cumulative_ack (4 bytes, big endian)
-    std::uint32_t cumulative = (static_cast<std::uint32_t>(payload[0]) << 24) |
-                               (static_cast<std::uint32_t>(payload[1]) << 16) |
-                               (static_cast<std::uint32_t>(payload[2]) << 8) | static_cast<std::uint32_t>(payload[3]);
-
-    // ack_bits (4 bytes, big endian)
-    std::uint32_t ackBits = (static_cast<std::uint32_t>(payload[4]) << 24) |
-                            (static_cast<std::uint32_t>(payload[5]) << 16) |
-                            (static_cast<std::uint32_t>(payload[6]) << 8) | static_cast<std::uint32_t>(payload[7]);
-
-    // Remove acknowledged packets from pending reliable
-    m_pendingReliable.erase(cumulative);
-
-    // Process ack bits for selective acknowledgment
-    for (int i = 0; i < 32; ++i)
-    {
-        if (ackBits & (1 << i))
-        {
-            m_pendingReliable.erase(cumulative - i - 1);
-        }
-    }
-
-    m_clientLastAck[sender] = cumulative;
-}
-
-void srv::AsioServer::retransmitReliable()
-{
-    // Simplified retransmission logic
-    // In production, track timestamps and implement exponential backoff
-    for (const auto &[seq, data] : m_pendingReliable)
-    {
-        // Retransmit to all clients (would need per-client tracking in production)
-        for (const auto &[endpoint, clientInfo] : m_clients)
-        {
-            if (clientInfo.connected)
+            if (!joined)
             {
-                m_socket.async_send_to(asio::buffer(data), endpoint,
-                                       [this](const asio::error_code &error, std::size_t bytesTransferred)
-                                       { handleSend(error, bytesTransferred); });
+                utl::Logger::log("AsioServer: Network thread join timeout, detaching", utl::LogLevel::WARNING);
+                m_networkThread->detach();
+            }
+        }
+
+        // Close socket safely
+        {
+            std::lock_guard<std::mutex> socketLock(m_socketMutex);
+            if (m_socket && m_socket->is_open())
+            {
+                try
+                {
+                    m_socket->close();
+                }
+                catch (const std::exception &e)
+                {
+                    utl::Logger::log("AsioServer: Exception closing socket - " + std::string(e.what()),
+                                     utl::LogLevel::WARNING);
+                }
+            }
+        }
+
+        // Clear clients
+        {
+            std::lock_guard<std::mutex> lock(m_clientsMutex);
+            m_clients.clear();
+            m_endpointToSession.clear();
+        }
+
+        utl::Logger::log("AsioServer: Stopped", utl::LogLevel::INFO);
+    }
+
+    void AsioServer::update()
+    {
+        if (!m_running.load())
+        {
+            static bool loggedNotRunning = false;
+            if (!loggedNotRunning)
+            {
+                utl::Logger::log("AsioServer: Update called but server not running", utl::LogLevel::WARNING);
+                loggedNotRunning = true;
+            }
+            return;
+        }
+
+        // Process send queue
+        processSendQueue();
+
+        // Update client management (timeouts, pings)
+        updateClientManagement();
+    }
+
+    void AsioServer::sendToClient(std::uint32_t sessionId, const std::vector<std::uint8_t> &data, bool reliable)
+    {
+        std::lock_guard<std::mutex> clientLock(m_clientsMutex);
+        auto it = m_clients.find(sessionId);
+        if (it == m_clients.end() || !it->second.isConnected)
+        {
+            utl::Logger::log("AsioServer: Attempted to send to invalid session " + std::to_string(sessionId),
+                             utl::LogLevel::WARNING);
+            return;
+        }
+
+        std::lock_guard<std::mutex> queueLock(m_sendQueueMutex);
+        m_sendQueue.emplace(data, it->second.endpoint, reliable);
+    }
+
+    void AsioServer::sendToAllClients(const std::vector<std::uint8_t> &data, bool reliable)
+    {
+        std::lock_guard<std::mutex> clientLock(m_clientsMutex);
+        std::lock_guard<std::mutex> queueLock(m_sendQueueMutex);
+
+        for (const auto &[sessionId, client] : m_clients)
+        {
+            if (client.isConnected)
+            {
+                m_sendQueue.emplace(data, client.endpoint, reliable);
             }
         }
     }
-}
+
+    void AsioServer::disconnectClient(std::uint32_t sessionId)
+    {
+        std::lock_guard<std::mutex> lock(m_clientsMutex);
+        auto it = m_clients.find(sessionId);
+        if (it == m_clients.end())
+        {
+            return;
+        }
+
+        // Send disconnect packet
+        rnp::Serializer serializer;
+        rnp::PacketHeader header{};
+        header.type = static_cast<std::uint8_t>(rnp::PacketType::DISCONNECT);
+        header.length = sizeof(rnp::PacketDisconnect);
+        header.flags = 0;
+        header.sessionId = sessionId;
+
+        rnp::PacketDisconnect disconnect{};
+        disconnect.reasonCode = static_cast<std::uint16_t>(rnp::DisconnectReason::CLIENT_REQUEST);
+
+        serializer.serializeHeader(header);
+        serializer.serializeDisconnect(disconnect);
+
+        sendPacketImmediate(serializer.getData(), it->second.endpoint);
+
+        // Remove from endpoint mapping
+        std::string endpointStr = endpointToString(it->second.endpoint);
+        m_endpointToSession.erase(endpointStr);
+
+        // Remove client
+        m_clients.erase(it);
+
+        m_packetHandler->clearSession(sessionId);
+
+        utl::Logger::log("AsioServer: Disconnected client " + std::to_string(sessionId), utl::LogLevel::INFO);
+    }
+
+    std::size_t AsioServer::getClientCount() const
+    {
+        std::lock_guard<std::mutex> clientLock(m_clientsMutex);
+        return std::count_if(m_clients.begin(), m_clients.end(),
+                             [](const auto &pair) { return pair.second.isConnected; });
+    }
+
+    std::vector<std::uint32_t> AsioServer::getConnectedSessions() const
+    {
+        std::lock_guard<std::mutex> clientLock(m_clientsMutex);
+        std::vector<std::uint32_t> sessions;
+        for (const auto &[sessionId, client] : m_clients)
+        {
+            if (client.isConnected)
+            {
+                sessions.push_back(sessionId);
+            }
+        }
+        return sessions;
+    }
+
+    bool AsioServer::isRunning() const { return m_running.load(); }
+
+    void AsioServer::setTickRate(std::uint16_t tickRate)
+    {
+        m_tickRate = tickRate;
+        utl::Logger::log("AsioServer: Tick rate set to " + std::to_string(tickRate), utl::LogLevel::INFO);
+    }
+
+    void AsioServer::setServerCapabilities(std::uint32_t caps)
+    {
+        m_serverCaps = caps;
+        utl::Logger::log("AsioServer: Server capabilities set to " + std::to_string(caps), utl::LogLevel::INFO);
+    }
+
+    void AsioServer::setupPacketHandlers()
+    {
+        // CONNECT handler
+        m_packetHandler->onConnect([this](const rnp::PacketConnect &packet, const rnp::PacketContext &context)
+                                   { return handleConnect(packet, context); });
+
+        // DISCONNECT handler
+        m_packetHandler->onDisconnect([this](const rnp::PacketDisconnect &packet, const rnp::PacketContext &context)
+                                      { return handleDisconnect(packet, context); });
+
+        // PING handler
+        m_packetHandler->onPing([this](const rnp::PacketPingPong &packet, const rnp::PacketContext &context)
+                                { return handlePing(packet, context); });
+
+        // PONG handler
+        m_packetHandler->onPong([this](const rnp::PacketPingPong &packet, const rnp::PacketContext &context)
+                                { return handlePong(packet, context); });
+
+        utl::Logger::log("AsioServer: Packet handlers initialized", utl::LogLevel::INFO);
+    }
+
+    void AsioServer::startReceive()
+    {
+        // Check if we should continue receiving
+        if (!m_running.load() || !m_socket || !m_socket->is_open())
+        {
+            utl::Logger::log("AsioServer: Cannot start receive - server not running or socket closed",
+                             utl::LogLevel::INFO);
+            return;
+        }
+
+        utl::Logger::log("AsioServer: Setting up async receive...", utl::LogLevel::INFO);
+        m_socket->async_receive_from(
+            asio::buffer(m_recvBuffer), m_senderEndpoint,
+            [this](std::error_code ec, std::size_t bytesReceived)
+            {
+                if (!ec && m_running.load())
+                {
+                    utl::Logger::log("AsioServer: Received " + std::to_string(bytesReceived) + " bytes from " +
+                                         m_senderEndpoint.address().to_string() + ":" +
+                                         std::to_string(m_senderEndpoint.port()),
+                                     utl::LogLevel::INFO);
+                    handleReceive(bytesReceived);
+                    startReceive(); // Continue receiving
+                }
+                else if (m_running.load() && ec != asio::error::operation_aborted)
+                {
+                    utl::Logger::log("AsioServer: Receive error - " + ec.message(), utl::LogLevel::WARNING);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    startReceive(); // Try to continue
+                }
+                else
+                {
+                    utl::Logger::log("AsioServer: Server stopped or operation aborted, ending receive loop",
+                                     utl::LogLevel::INFO);
+                }
+            });
+    }
+
+    void AsioServer::handleReceive(std::size_t bytesReceived)
+    {
+        utl::Logger::log("AsioServer: Processing received packet of " + std::to_string(bytesReceived) + " bytes",
+                         utl::LogLevel::INFO);
+
+        if (bytesReceived < sizeof(rnp::PacketHeader))
+        {
+            utl::Logger::log("AsioServer: Received packet too small (need " +
+                                 std::to_string(sizeof(rnp::PacketHeader)) + " bytes, got " +
+                                 std::to_string(bytesReceived) + ")",
+                             utl::LogLevel::WARNING);
+            return;
+        }
+
+        // Create packet context
+        rnp::PacketContext context;
+        context.receiveTime = std::chrono::steady_clock::now();
+        context.senderAddress = m_senderEndpoint.address().to_string();
+        context.senderPort = m_senderEndpoint.port();
+
+        utl::Logger::log("AsioServer: Packet from " + context.senderAddress + ":" + std::to_string(context.senderPort),
+                         utl::LogLevel::INFO);
+
+        // Extract session ID from header for context
+        std::vector<std::uint8_t> data(m_recvBuffer.begin(), m_recvBuffer.begin() + bytesReceived);
+        if (data.size() >= sizeof(rnp::PacketHeader))
+        {
+            rnp::Serializer headerSerializer(data);
+            rnp::PacketHeader header = headerSerializer.deserializeHeader();
+            context.sessionId = header.sessionId;
+            utl::Logger::log("AsioServer: Packet type: " + std::to_string(static_cast<int>(header.type)) +
+                                 ", Session ID: " + std::to_string(header.sessionId),
+                             utl::LogLevel::INFO);
+        }
+
+        // Process packet
+        utl::Logger::log("AsioServer: Processing packet...", utl::LogLevel::INFO);
+        rnp::HandlerResult result = m_packetHandler->processPacket(data, context);
+        if (result != rnp::HandlerResult::SUCCESS)
+        {
+            utl::Logger::log("AsioServer: Packet processing failed with result " +
+                                 std::to_string(static_cast<int>(result)),
+                             utl::LogLevel::WARNING);
+        }
+        else
+        {
+            utl::Logger::log("AsioServer: Packet processed successfully", utl::LogLevel::INFO);
+        }
+    }
+
+    void AsioServer::networkThreadLoop()
+    {
+        utl::Logger::log("AsioServer: Network thread started", utl::LogLevel::INFO);
+
+        while (m_running.load())
+        {
+            try
+            {
+                // Run I/O context and check if we should continue
+                if (!m_running.load())
+                {
+                    break;
+                }
+
+                size_t handlersRun = m_ioContext->run_one();
+                if (handlersRun == 0)
+                {
+                    // No handlers to run, sleep briefly to avoid busy waiting
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                }
+            }
+            catch (const std::exception &e)
+            {
+                if (m_running.load())
+                {
+                    utl::Logger::log("AsioServer: Network thread exception - " + std::string(e.what()),
+                                     utl::LogLevel::WARNING);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                }
+            }
+        }
+
+        utl::Logger::log("AsioServer: Network thread stopped", utl::LogLevel::INFO);
+    }
+
+    std::uint32_t AsioServer::generateSessionId()
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<std::uint32_t> dis(1, UINT32_MAX);
+
+        std::uint32_t sessionId = 0;
+        while (sessionId == 0 || m_clients.find(sessionId) != m_clients.end())
+        {
+            sessionId = dis(gen);
+        }
+
+        return sessionId;
+    }
+
+    std::string AsioServer::endpointToString(const asio::ip::udp::endpoint &endpoint) const
+    {
+        return endpoint.address().to_string() + ":" + std::to_string(endpoint.port());
+    }
+
+    void AsioServer::sendPacketImmediate(const std::vector<std::uint8_t> &data,
+                                         const asio::ip::udp::endpoint &destination)
+    {
+        utl::Logger::log("AsioServer: Sending " + std::to_string(data.size()) + " bytes to " +
+                             destination.address().to_string() + ":" + std::to_string(destination.port()),
+                         utl::LogLevel::INFO);
+
+        // Protect socket access with mutex
+        std::lock_guard<std::mutex> socketLock(m_socketMutex);
+
+        if (!m_socket || !m_socket->is_open() || !m_running.load())
+        {
+            utl::Logger::log("AsioServer: Cannot send - socket not open or server not running", utl::LogLevel::WARNING);
+            return;
+        }
+
+        try
+        {
+            size_t bytesSent = m_socket->send_to(asio::buffer(data), destination);
+            utl::Logger::log("AsioServer: Successfully sent " + std::to_string(bytesSent) + " bytes",
+                             utl::LogLevel::INFO);
+        }
+        catch (const std::exception &e)
+        {
+            if (m_running.load())
+            {
+                utl::Logger::log("AsioServer: Failed to send packet - " + std::string(e.what()),
+                                 utl::LogLevel::WARNING);
+            }
+        }
+    }
+
+    rnp::HandlerResult AsioServer::handleConnect(const rnp::PacketConnect &packet, const rnp::PacketContext &context)
+    {
+
+        utl::Logger::log("AsioServer: Handling CONNECT packet from " + context.senderAddress + ":" +
+                             std::to_string(context.senderPort),
+                         utl::LogLevel::INFO);
+
+        std::lock_guard<std::mutex> lock(m_clientsMutex);
+        // Check if server is full (avoid getClientCount() to prevent deadlock)
+        size_t currentClientCount =
+            std::count_if(m_clients.begin(), m_clients.end(), [](const auto &pair) { return pair.second.isConnected; });
+        utl::Logger::log("AsioServer: Current client count: " + std::to_string(currentClientCount) + "/" +
+                             std::to_string(MAX_CLIENTS),
+                         utl::LogLevel::INFO);
+
+        if (currentClientCount >= MAX_CLIENTS)
+        {
+            utl::Logger::log("AsioServer: Server full, rejecting connection", utl::LogLevel::WARNING);
+            sendError(rnp::ErrorCode::RATE_LIMITED, "Server full", m_senderEndpoint, 0);
+            return rnp::HandlerResult::SUCCESS;
+        }
+
+        // Check if client already exists
+        std::string endpointStr = endpointToString(m_senderEndpoint);
+        auto existingIt = m_endpointToSession.find(endpointStr);
+        if (existingIt != m_endpointToSession.end())
+        {
+            utl::Logger::log("AsioServer: Client already connected, resending accept (Session ID: " +
+                                 std::to_string(existingIt->second) + ")",
+                             utl::LogLevel::INFO);
+            // Client already connected, resend accept
+            sendConnectAccept(existingIt->second, m_senderEndpoint);
+            return rnp::HandlerResult::SUCCESS;
+        }
+
+        // Create new session
+        std::uint32_t sessionId = generateSessionId();
+        utl::Logger::log("AsioServer: Creating new session with ID: " + std::to_string(sessionId), utl::LogLevel::INFO);
+
+        ClientSession &client = m_clients[sessionId];
+        client.sessionId = sessionId;
+        client.endpoint = m_senderEndpoint;
+        client.lastSeen = context.receiveTime;
+        client.playerName = std::string(packet.playerName.data(), packet.nameLen);
+        client.clientCaps = packet.clientCaps;
+        client.isConnected = true;
+
+        m_endpointToSession[endpointStr] = sessionId;
+
+        utl::Logger::log("AsioServer: Player name: '" + client.playerName +
+                             "', Caps: " + std::to_string(client.clientCaps),
+                         utl::LogLevel::INFO);
+
+        // Send accept response
+        utl::Logger::log("AsioServer: Sending CONNECT_ACCEPT to session " + std::to_string(sessionId),
+                         utl::LogLevel::INFO);
+        sendConnectAccept(sessionId, m_senderEndpoint);
+
+        utl::Logger::log("AsioServer: Client connected - " + client.playerName + " (ID: " + std::to_string(sessionId) +
+                             ")",
+                         utl::LogLevel::INFO);
+
+        return rnp::HandlerResult::SUCCESS;
+    }
+
+    rnp::HandlerResult AsioServer::handleDisconnect(const rnp::PacketDisconnect &packet,
+                                                    const rnp::PacketContext &context)
+    {
+        utl::Logger::log("AsioServer: Handling DISCONNECT packet from session " + std::to_string(context.sessionId) +
+                             " from " + context.senderAddress + ":" + std::to_string(context.senderPort),
+                         utl::LogLevel::INFO);
+
+        std::lock_guard<std::mutex> lock(m_clientsMutex);
+
+        auto it = m_clients.find(context.sessionId);
+        if (it != m_clients.end())
+        {
+            utl::Logger::log("AsioServer: Client disconnected - " + it->second.playerName +
+                                 " (ID: " + std::to_string(context.sessionId) + ")" +
+                                 ", Reason: " + std::to_string(static_cast<int>(packet.reasonCode)),
+                             utl::LogLevel::INFO);
+
+            // Remove from endpoint mapping
+            std::string endpointStr = endpointToString(it->second.endpoint);
+            utl::Logger::log("AsioServer: Removing endpoint mapping: " + endpointStr, utl::LogLevel::INFO);
+            m_endpointToSession.erase(endpointStr);
+
+            // Remove client
+            utl::Logger::log("AsioServer: Removing client from session list", utl::LogLevel::INFO);
+            m_clients.erase(it);
+        }
+        else
+        {
+            utl::Logger::log("AsioServer: DISCONNECT from unknown session " + std::to_string(context.sessionId),
+                             utl::LogLevel::WARNING);
+        }
+
+        return rnp::HandlerResult::SUCCESS;
+    }
+
+    rnp::HandlerResult AsioServer::handlePing(const rnp::PacketPingPong &packet, const rnp::PacketContext &context)
+    {
+        utl::Logger::log("AsioServer: Handling PING from session " + std::to_string(context.sessionId) +
+                             " with nonce " + std::to_string(packet.nonce),
+                         utl::LogLevel::INFO);
+
+        // Update client last seen time
+        {
+            std::lock_guard<std::mutex> lock(m_clientsMutex);
+            auto it = m_clients.find(context.sessionId);
+            if (it != m_clients.end())
+            {
+                it->second.lastSeen = context.receiveTime;
+                utl::Logger::log("AsioServer: Updated last seen time for session " + std::to_string(context.sessionId),
+                                 utl::LogLevel::INFO);
+            }
+            else
+            {
+                utl::Logger::log("AsioServer: PING from unknown session " + std::to_string(context.sessionId),
+                                 utl::LogLevel::WARNING);
+            }
+        }
+
+        // Send pong response
+        utl::Logger::log("AsioServer: Sending PONG response to session " + std::to_string(context.sessionId),
+                         utl::LogLevel::INFO);
+        sendPong(packet.nonce, m_senderEndpoint, context.sessionId);
+        return rnp::HandlerResult::SUCCESS;
+    }
+
+    rnp::HandlerResult AsioServer::handlePong(const rnp::PacketPingPong &packet, const rnp::PacketContext &context)
+    {
+        utl::Logger::log("AsioServer: Handling PONG from session " + std::to_string(context.sessionId) +
+                             " with nonce " + std::to_string(packet.nonce),
+                         utl::LogLevel::INFO);
+
+        // Update client latency and last seen time
+        {
+            std::lock_guard<std::mutex> lock(m_clientsMutex);
+            auto it = m_clients.find(context.sessionId);
+            if (it != m_clients.end())
+            {
+                it->second.lastSeen = context.receiveTime;
+                // Calculate latency based on ping time
+                auto now = std::chrono::steady_clock::now();
+                auto pingTime = std::chrono::milliseconds(packet.sendTimeMs);
+                auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+                it->second.latency = static_cast<std::uint32_t>((currentTime - pingTime).count());
+
+                utl::Logger::log("AsioServer: Updated client " + std::to_string(context.sessionId) +
+                                     " latency: " + std::to_string(it->second.latency) + "ms",
+                                 utl::LogLevel::INFO);
+            }
+            else
+            {
+                utl::Logger::log("AsioServer: PONG from unknown session " + std::to_string(context.sessionId),
+                                 utl::LogLevel::WARNING);
+            }
+        }
+
+        return rnp::HandlerResult::SUCCESS;
+    }
+
+    void AsioServer::sendPong(std::uint32_t nonce, const asio::ip::udp::endpoint &destination, std::uint32_t sessionId)
+    {
+        rnp::Serializer serializer;
+        rnp::PacketHeader header{};
+        header.type = static_cast<std::uint8_t>(rnp::PacketType::PONG);
+        header.length = sizeof(rnp::PacketPingPong);
+        header.flags = 0;
+        header.sessionId = sessionId;
+
+        rnp::PacketPingPong pong{};
+        pong.nonce = nonce;
+        pong.sendTimeMs = static_cast<std::uint32_t>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+                .count());
+
+        serializer.serializeHeader(header);
+        serializer.serializePingPong(pong);
+
+        sendPacketImmediate(serializer.getData(), destination);
+    }
+
+    void AsioServer::sendConnectAccept(std::uint32_t sessionId, const asio::ip::udp::endpoint &destination)
+    {
+        utl::Logger::log("AsioServer: Preparing CONNECT_ACCEPT packet for session " + std::to_string(sessionId) +
+                             " to " + destination.address().to_string() + ":" + std::to_string(destination.port()),
+                         utl::LogLevel::INFO);
+
+        rnp::Serializer serializer;
+        rnp::PacketHeader header{};
+        header.type = static_cast<std::uint8_t>(rnp::PacketType::CONNECT_ACCEPT);
+        header.length = sizeof(rnp::PacketConnectAccept);
+        header.flags = 0;
+        header.sessionId = sessionId;
+
+        rnp::PacketConnectAccept accept{};
+        accept.sessionId = sessionId;
+        accept.tickRateHz = m_tickRate;
+        accept.mtuPayloadBytes = rnp::MAX_PAYLOAD;
+        accept.serverCaps = m_serverCaps;
+
+        serializer.serializeHeader(header);
+        serializer.serializeConnectAccept(accept);
+
+        utl::Logger::log("AsioServer: Sending CONNECT_ACCEPT packet (" + std::to_string(serializer.getData().size()) +
+                             " bytes)",
+                         utl::LogLevel::INFO);
+        sendPacketImmediate(serializer.getData(), destination);
+    }
+
+    void AsioServer::sendError(rnp::ErrorCode errorCode, const std::string &description,
+                               const asio::ip::udp::endpoint &destination, std::uint32_t sessionId)
+    {
+        rnp::Serializer serializer;
+        rnp::PacketHeader header{};
+        header.type = static_cast<std::uint8_t>(rnp::PacketType::PACKET_ERROR);
+        header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketError) + description.length());
+        header.flags = 0;
+        header.sessionId = sessionId;
+
+        rnp::PacketError error{};
+        error.errorCode = static_cast<std::uint16_t>(errorCode);
+        error.msgLen = static_cast<std::uint16_t>(description.length());
+        error.description = description;
+
+        serializer.serializeHeader(header);
+        serializer.serializeError(error);
+
+        sendPacketImmediate(serializer.getData(), destination);
+    }
+
+    void AsioServer::updateClientManagement()
+    {
+        auto now = std::chrono::steady_clock::now();
+
+        // Send pings periodically
+        if (now - m_lastPingTime > m_pingInterval)
+        {
+            std::lock_guard<std::mutex> lock(m_clientsMutex);
+            for (auto &[sessionId, client] : m_clients)
+            {
+                if (client.isConnected)
+                {
+                    // Send ping
+                    rnp::Serializer serializer;
+                    rnp::PacketHeader header{};
+                    header.type = static_cast<std::uint8_t>(rnp::PacketType::PING);
+                    header.length = sizeof(rnp::PacketPingPong);
+                    header.flags = 0;
+                    header.sessionId = sessionId;
+
+                    rnp::PacketPingPong ping{};
+                    ping.nonce = ++client.lastPingSent;
+                    ping.sendTimeMs = static_cast<std::uint32_t>(
+                        std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count());
+
+                    serializer.serializeHeader(header);
+                    serializer.serializePingPong(ping);
+
+                    std::lock_guard<std::mutex> queueLock(m_sendQueueMutex);
+                    m_sendQueue.emplace(serializer.getData(), client.endpoint, false);
+                }
+            }
+            m_lastPingTime = now;
+        }
+
+        // Check for timeouts
+        std::vector<std::uint32_t> timedOutClients;
+        {
+            std::lock_guard<std::mutex> lock(m_clientsMutex);
+            for (const auto &[sessionId, client] : m_clients)
+            {
+                if (client.isConnected && (now - client.lastSeen) > m_clientTimeout)
+                {
+                    timedOutClients.push_back(sessionId);
+                }
+            }
+        }
+
+        // Disconnect timed out clients
+        for (std::uint32_t sessionId : timedOutClients)
+        {
+            utl::Logger::log("AsioServer: Client " + std::to_string(sessionId) + " timed out", utl::LogLevel::INFO);
+            disconnectClient(sessionId);
+        }
+    }
+
+    void AsioServer::processSendQueue()
+    {
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        while (!m_sendQueue.empty())
+        {
+            const QueuedPacket &packet = m_sendQueue.front();
+            sendPacketImmediate(packet.data, packet.destination);
+            m_sendQueue.pop();
+        }
+    }
+
+} // namespace srv
