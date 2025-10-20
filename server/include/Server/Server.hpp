@@ -11,6 +11,7 @@
 #include "Interfaces/IGameServer.hpp"
 #include "Interfaces/INetworkServer.hpp"
 #include "Server/ArgsHandler.hpp"
+#include "Server/SceneManager.hpp"
 #include "Utils/Clock.hpp"
 #include "Utils/PluginLoader.hpp"
 
@@ -49,6 +50,8 @@ namespace srv
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<utl::Clock> m_clock;
+            std::unique_ptr<SceneManager> m_sceneManager;
+
             std::shared_ptr<INetworkServer> m_network;
             std::shared_ptr<gme::IGameServer> m_game;
     }; // class Server

@@ -8,6 +8,7 @@
 
 srv::Server::Server(const ArgsConfig &config)
     : m_pluginLoader(std::make_unique<utl::PluginLoader>()), m_clock(std::make_unique<utl::Clock>()),
+      m_sceneManager(std::make_unique<SceneManager>()),
       m_network(m_pluginLoader->loadPlugin<INetworkServer>(!config.network_lib_path.empty()
                                                                ? config.network_lib_path
                                                                : Path::Plugin::PLUGINS_NETWORK_ASIO_SERVER.string())),
@@ -23,6 +24,13 @@ srv::Server::Server(const ArgsConfig &config)
 
     m_config = setupConfig(config);
     m_network->init(config.host, config.port);
+
+    gme::ServerAPI ctx;
+    ctx.createScene = [this](std::unique_ptr<IScene> scene) { m_sceneManager->addScene(std::move(scene)); };
+    ctx.switchToScene = [this](const id sceneId) { m_sceneManager->switchToScene(sceneId); };
+    ctx.getCurrentScene = [this]() -> std::unique_ptr<IScene> & { return m_sceneManager->getCurrentScene(); };
+    //ctx.sendEventToClients = [this](const std::string &eventName) { m_network->broadcastEvent(eventName); };
+    m_game->
 }
 
 void srv::Server::run() const
