@@ -78,6 +78,11 @@ namespace cli
             inline constexpr float OFFSET_X = 60.0f;
             inline constexpr float OFFSET_Y = 6.0f;
         } // namespace LoadingAnimation
+        namespace Stage
+        {
+            inline constexpr float FLOOR_OFFSET_Y = 16.0f; // remonte le sol par rapport au bas
+            inline constexpr float CEILING_OFFSET_Y = -1.0f; // descend le plafond depuis le haut
+        } // namespace Stage
         namespace Enemy
         {
             namespace Easy
