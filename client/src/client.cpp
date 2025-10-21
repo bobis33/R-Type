@@ -66,7 +66,6 @@ cli::Client::Client(const ArgsConfig &cfg)
                                           m_config.fullscreen);
     m_engine->getNetwork()->setPlayerName("Bobi");
     m_engine->getNetwork()->connect(m_config.host, m_config.port);
-    m_engine->getNetwork()->sendConnect("Bobi");
 }
 
 void cli::Client::run()
@@ -122,8 +121,8 @@ void cli::Client::setupScenes() const
     gameSolo->addSystem(std::make_unique<ScrollingSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer()));
-    auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio());
-    settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
+    settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     settings->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
