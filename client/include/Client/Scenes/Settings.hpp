@@ -13,6 +13,8 @@
 
 namespace cli
 {
+    struct AppConfig;
+
     ///
     /// @class Settings
     /// @brief Settings scene
@@ -21,7 +23,7 @@ namespace cli
     class Settings final : public eng::AScene
     {
         public:
-            Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
+            Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& config);
             ~Settings() override = default;
 
             Settings(const Settings &other) = delete;
@@ -32,21 +34,26 @@ namespace cli
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
             void updateSettingsDisplay();
+            void loadFromConfig();
+            void applyVideoQuality();
+            void applySkinChange();
 
             std::function<void()> onLeave;
 
         private:
             std::unordered_map<eng::Key, bool> m_keysPressed;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
             const std::shared_ptr<eng::IAudio> &m_audio;
+            const AppConfig& m_appConfig;
 
             size_t m_selectedIndex = 0;
-            const std::vector<std::string> m_settingsOptions = {"Audio Volume", "Video Quality", "Controls", "Skin",
+            const std::vector<std::string> m_settingsOptions = {"Audio Volume", "FPS", "Controls", "Skin",
                                                                 "Back to Menu"};
 
             int m_audioVolume = 50;
-            size_t m_videoQuality = 1;
-            size_t m_controlScheme = 0;
-            size_t m_skinIndex = 0;
+            int m_videoQuality = 1;
+            int m_controlScheme = 2;
+            int m_skinIndex = 0;
 
             ecs::Entity m_volumeValueEntity;
             ecs::Entity m_qualityValueEntity;

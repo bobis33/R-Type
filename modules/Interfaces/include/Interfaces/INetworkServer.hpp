@@ -7,11 +7,9 @@
 #pragma once
 
 #include <cstdint>
-#include <functional>
 #include <string>
 #include <vector>
 
-#include "Interfaces/Protocol/Protocol.hpp"
 #include "Utils/Interfaces/IPlugin.hpp"
 
 namespace srv
@@ -31,9 +29,22 @@ namespace srv
         public:
             virtual ~INetworkServer() = default;
 
+            // Server lifecycle
             virtual void init(const std::string &host, uint16_t port) = 0;
             virtual void start() = 0;
             virtual void stop() = 0;
+            virtual void update() = 0;
+
+            // Client management
+            virtual void sendToClient(std::uint32_t sessionId, const std::vector<std::uint8_t> &data,
+                                      bool reliable = false) = 0;
+            virtual void sendToAllClients(const std::vector<std::uint8_t> &data, bool reliable = false) = 0;
+            virtual void disconnectClient(std::uint32_t sessionId) = 0;
+
+            // Server information
+            [[nodiscard]] virtual std::size_t getClientCount() const = 0;
+            [[nodiscard]] virtual std::vector<std::uint32_t> getConnectedSessions() const = 0;
+            [[nodiscard]] virtual bool isRunning() const = 0;
 
             // Configuration
             virtual void setTickRate(std::uint16_t tickRate) = 0;

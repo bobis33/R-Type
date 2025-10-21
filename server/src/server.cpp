@@ -11,9 +11,8 @@ srv::Server::Server(const ArgsConfig &config)
       m_network(m_pluginLoader->loadPlugin<INetworkServer>(!config.network_lib_path.empty()
                                                                ? config.network_lib_path
                                                                : Path::Plugin::PLUGINS_NETWORK_ASIO_SERVER.string())),
-      m_game(m_pluginLoader->loadPlugin<gme::IGameServer>(!config.game_lib_path.empty()
-                                                                ? config.game_lib_path
-                                                         : Path::Plugin::PLUGINS_GAME_RTYPE_SERVER.string()))
+      m_game(m_pluginLoader->loadPlugin<gme::IGameServer>(
+          !config.game_lib_path.empty() ? config.game_lib_path : Path::Plugin::PLUGINS_GAME_RTYPE_SERVER.string()))
 {
     utl::Logger::log("PROJECT INFO:", utl::LogLevel::INFO);
     std::cout << "\tName: " PROJECT_NAME "\n"
@@ -31,6 +30,19 @@ void srv::Server::run() const
     m_network->start();
     for (;;)
     {
+        m_network->update();
+
+        // Print connected sessions
+        auto sessions = m_network->getConnectedSessions();
+        std::cout << "Connected sessions (" << sessions.size() << "): ";
+        for (size_t i = 0; i < sessions.size(); ++i)
+        {
+            std::cout << sessions[i];
+            if (i < sessions.size() - 1)
+                std::cout << ", ";
+        }
+        std::cout << std::endl;
+
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }

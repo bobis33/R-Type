@@ -1,4 +1,5 @@
 #include "Client/Scenes/game/solo/GameSolo.hpp"
+#include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
 #include "Client/Systems/HUD.hpp"
@@ -7,6 +8,7 @@
 #include "Client/Systems/PlayerController.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <algorithm>
 
 cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
@@ -108,4 +110,72 @@ void cli::GameSolo::event(const eng::Event &event)
 {
     auto &reg = getRegistry();
     m_playerController->handleInput(reg, event);
+}
+
+bool cli::GameSolo::isUpPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::Z) && m_keysPressed.at(eng::Key::Z);
+        case 1: 
+            return m_keysPressed.count(eng::Key::W) && m_keysPressed.at(eng::Key::W);
+        default:
+            return m_keysPressed.count(eng::Key::Up) && m_keysPressed.at(eng::Key::Up);
+    }
+}
+
+bool cli::GameSolo::isDownPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+        case 1:
+            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+        default:
+            return m_keysPressed.count(eng::Key::Down) && m_keysPressed.at(eng::Key::Down);
+    }
+}
+
+bool cli::GameSolo::isLeftPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::Q) && m_keysPressed.at(eng::Key::Q);
+        case 1:
+            return m_keysPressed.count(eng::Key::A) && m_keysPressed.at(eng::Key::A);
+        default:
+            return m_keysPressed.count(eng::Key::Left) && m_keysPressed.at(eng::Key::Left);
+    }
+}
+
+bool cli::GameSolo::isRightPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+        case 1:
+            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+        default:
+            return m_keysPressed.count(eng::Key::Right) && m_keysPressed.at(eng::Key::Right);
+    }
+}
+
+bool cli::GameSolo::isShootPressed() const
+{
+    return m_keysPressed.count(eng::Key::Space) && m_keysPressed.at(eng::Key::Space);
+}
+
+void cli::GameSolo::updatePlayerSkin()
+{
+    auto &registry = getRegistry();
+    auto *playerRect = registry.getComponent<ecs::Rect>(m_playerEntity);
+    
+    if (playerRect) {
+        float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        playerRect->pos_y = skinPosY;
+    }
 }

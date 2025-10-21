@@ -1,99 +1,258 @@
 ///
 /// @file AsioClient.hpp
-/// @brief This file contains the client network implementation for Asio
+/// @brief Asio-based implementation of INetworkClient interface
 /// @namespace eng
 ///
 
 #pragma once
 
-#include <functional>
+#include "Interfaces/INetworkClient.hpp"
+#include "Interfaces/Protocol/HandlerPacket.hpp"
+#include "Interfaces/Protocol/Protocol.hpp"
+#include "Interfaces/Protocol/Serializer.hpp"
+
+#include <asio.hpp>
+#include <atomic>
+#include <chrono>
 #include <memory>
-#include <optional>
+#include <mutex>
+#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
-
-#define ASIO_STANDALONE
-#include "asio.hpp"
-
-#include "Interfaces/INetworkClient.hpp"
-#include "Interfaces/Protocol/Protocol.hpp"
 
 namespace eng
 {
 
     ///
+    /// @brief Queued packet for sending
+    ///
+    struct QueuedPacket
+    {
+            std::vector<std::uint8_t> data;
+            bool reliable;
+
+            QueuedPacket(const std::vector<std::uint8_t> &d, bool rel = false) : data(d), reliable(rel) {}
+    };
+
+    ///
+    /// @brief Connection statistics
+    ///
+    struct ConnectionStats
+    {
+            std::uint32_t packetsSent = 0;
+            std::uint32_t packetsReceived = 0;
+            std::uint32_t bytesTransferred = 0;
+            std::uint32_t packetsLost = 0;
+            std::chrono::steady_clock::time_point connectionTime;
+    };
+
+    ///
     /// @class AsioClient
-    /// @brief Network implementation with asio for client
+    /// @brief Asio UDP client implementation
     /// @namespace eng
     ///
-    class AsioClient final : public INetworkClient
+    class AsioClient : public INetworkClient
     {
+        private:
+            // Network components
+            std::unique_ptr<asio::io_context> m_ioContext;
+            std::unique_ptr<asio::ip::udp::socket> m_socket;
+            std::unique_ptr<std::thread> m_networkThread;
+
+            // Server connection info
+            std::string m_serverHost;
+            std::uint16_t m_serverPort;
+            asio::ip::udp::endpoint m_serverEndpoint;
+
+            // Connection state
+            std::atomic<ConnectionState> m_connectionState;
+            std::uint32_t m_sessionId;
+            std::uint16_t m_serverTickRate;
+            std::uint32_t m_clientCaps;
+
+            // Client configuration
+            std::string m_playerName;
+
+            // Network state
+            std::atomic<bool> m_running;
+
+            // Packet handling
+            std::unique_ptr<rnp::HandlerPacket> m_packetHandler;
+            std::queue<QueuedPacket> m_sendQueue;
+            std::mutex m_sendQueueMutex;
+
+            // Reception buffer
+            std::array<std::uint8_t, 1024> m_recvBuffer;
+            asio::ip::udp::endpoint m_senderEndpoint;
+
+            // Ping/Latency management
+            std::uint32_t m_lastPingNonce;
+            std::chrono::steady_clock::time_point m_lastPingTime;
+            std::uint32_t m_latency; // in milliseconds
+            std::chrono::milliseconds m_pingInterval;
+
+            // Connection timeout
+            std::chrono::steady_clock::time_point m_lastServerResponse;
+            std::chrono::milliseconds m_connectionTimeout;
+
+            // Statistics
+            ConnectionStats m_stats;
+
+            ///
+            /// @brief Initialize packet handlers
+            ///
+            void setupPacketHandlers();
+
+            ///
+            /// @brief Start receiving packets asynchronously
+            ///
+            void startReceive();
+
+            ///
+            /// @brief Handle received packet
+            /// @param bytesReceived Number of bytes received
+            ///
+            void handleReceive(std::size_t bytesReceived);
+
+            ///
+            /// @brief Network thread main loop
+            ///
+            void networkThreadLoop();
+
+            ///
+            /// @brief Send packet immediately
+            /// @param data Packet data
+            ///
+            void sendPacketImmediate(const std::vector<std::uint8_t> &data);
+
+            ///
+            /// @brief Handle CONNECT_ACCEPT packet
+            /// @param packet Connect accept packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleConnectAccept(const rnp::PacketConnectAccept &packet,
+                                                   const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle DISCONNECT packet
+            /// @param packet Disconnect packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleDisconnect(const rnp::PacketDisconnect &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle PONG packet
+            /// @param packet Pong packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handlePong(const rnp::PacketPingPong &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle PING packet
+            /// @param packet Ping packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handlePing(const rnp::PacketPingPong &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle ERROR packet
+            /// @param packet Error packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleError(const rnp::PacketError &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle WORLD_STATE packet
+            /// @param packet World state packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleWorldState(const rnp::PacketWorldState &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Send CONNECT packet
+            ///
+            void sendConnect();
+
+            ///
+            /// @brief Send DISCONNECT packet
+            ///
+            void sendDisconnect();
+
+            ///
+            /// @brief Send PING packet
+            ///
+            void sendPing();
+
+            ///
+            /// @brief Send PONG response
+            /// @param nonce Ping nonce to echo back
+            ///
+            void sendPong(std::uint32_t nonce);
+
+            ///
+            /// @brief Process send queue
+            ///
+            void processSendQueue();
+
+            ///
+            /// @brief Update connection management (timeouts, pings)
+            ///
+            void updateConnectionManagement();
+
+            ///
+            /// @brief Generate ping nonce
+            /// @return New ping nonce
+            ///
+            std::uint32_t generatePingNonce();
+
         public:
-            using PacketHandler = std::function<void(const rnp::PacketHeader &, const std::vector<uint8_t> &)>;
-
+            ///
+            /// @brief Constructor
+            ///
             AsioClient();
-            ~AsioClient() override = default;
 
-            AsioClient(const AsioClient &) = delete;
-            AsioClient(AsioClient &&) = delete;
-            AsioClient &operator=(const AsioClient &) = delete;
-            AsioClient &operator=(AsioClient &&) = delete;
+            ///
+            /// @brief Destructor
+            ///
+            ~AsioClient() override;
 
-            [[nodiscard]] const std::string getName() const override { return "Network_Asio_Client"; }
-            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
-
-            void connect(const std::string &host, uint16_t port) override;
+            // INetworkClient implementation
+            void connect(const std::string &host, std::uint16_t port) override;
             void disconnect() override;
 
-            void sendConnect(const std::string &playerName);
-            void sendConnectWithCaps(const std::string &playerName, std::uint32_t clientCaps);
-            void sendDisconnect();
-            void sendDisconnect(rnp::DisconnectReason reason);
-            void sendPlayerInput(uint8_t direction, uint8_t shooting);
-            void sendPlayerInputAsEvent(std::uint16_t playerId, uint8_t direction, uint8_t shooting,
-                                        uint32_t clientTimeMs);
-            void sendPing();
-            void sendPing(std::uint32_t nonce, std::uint32_t sendTimeMs);
-            void sendAck(std::uint32_t cumulative, std::uint32_t ackBits);
+            void update() override;
 
-            void setPacketHandler(rnp::PacketType type, PacketHandler handler);
+            [[nodiscard]] const std::string getName() const override { return "Network_Client"; }
+            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
 
-            void setEventsHandler(std::function<void(const std::vector<rnp::EventRecord> &)> handler);
+            [[nodiscard]] bool isConnected() const override;
+            [[nodiscard]] ConnectionState getConnectionState() const override;
+            [[nodiscard]] std::uint32_t getSessionId() const override;
+            [[nodiscard]] std::uint16_t getServerTickRate() const override;
+            [[nodiscard]] std::uint32_t getLatency() const override;
 
-            std::uint32_t getSessionId() const { return m_sessionId; }
-            std::uint16_t getServerTickRate() const { return m_serverTickRate; }
+            void setPlayerName(const std::string &playerName) override;
+            void setClientCapabilities(std::uint32_t caps) override;
 
-        private:
-            void startReceive();
-            void handleReceive(const asio::error_code &error, std::size_t bytesTransferred);
-            void handleSend(const asio::error_code &error, std::size_t bytesTransferred);
-            void processPacket(const std::vector<uint8_t> &data);
-            void processEvents(const std::vector<uint8_t> &payload);
-            void handleConnectAccept(const std::vector<uint8_t> &payload);
-            void handleReliablePacket(const rnp::PacketHeader &header);
-            void processAck(const std::vector<uint8_t> &payload);
-            void processWorldState(const std::vector<uint8_t> &payload);
-            void processEntityEvent(const std::vector<uint8_t> &payload);
-            void retransmitReliable();
+            ///
+            /// @brief Send custom packet to server
+            /// @param data Packet data
+            /// @param reliable Whether packet should be reliable
+            ///
+            void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false);
 
-            asio::io_context m_ioContext;
-            asio::ip::udp::socket m_socket;
-            asio::ip::udp::endpoint m_serverEndpoint;
-            std::array<uint8_t, rnp::MAX_PAYLOAD + 16> m_recvBuffer;
+            ///
+            /// @brief Get connection statistics
+            /// @return Current connection stats
+            ///
+            const ConnectionStats &getStats() const { return m_stats; }
+    };
 
-            std::unique_ptr<asio::executor_work_guard<asio::io_context::executor_type>> m_workGuard;
-            std::thread m_ioThread;
-            std::unordered_map<rnp::PacketType, PacketHandler> m_packetHandlers;
-            std::function<void(const std::vector<rnp::EventRecord> &)> m_eventsHandler;
-            uint32_t m_sequenceNumber = 0;
-            bool m_connected = false;
-            std::uint32_t m_sessionId = 0;
-            std::uint16_t m_serverTickRate = 0;
-            std::uint16_t m_serverMtu = 0;
-            std::uint32_t m_serverCaps = 0;
-            std::uint32_t m_clientCaps = 0;
-            std::unordered_map<std::uint32_t, std::vector<uint8_t>> m_pendingReliable;
-            std::uint32_t m_lastAckSent = 0;
-    }; // class AsioClient
 } // namespace eng

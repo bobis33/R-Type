@@ -1,5 +1,7 @@
 #include "Client/Scenes/Settings.hpp"
+#include "Client/Client.hpp"
 #include "Client/Common.hpp"
+#include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include <algorithm>
@@ -11,8 +13,8 @@ static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
-cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& config)
+    : m_renderer(renderer), m_audio(audio), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
 
@@ -133,6 +135,7 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
         .build();
 
     m_selectedIndex = 0;
+    loadFromConfig();
 }
 
 void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
@@ -193,19 +196,19 @@ void cli::Settings::updateSettingsDisplay()
         volumeValueText->content = std::to_string(m_audioVolume);
     if (auto *qualityValueText = registry.getComponent<ecs::Text>(m_qualityValueEntity))
     {
-        const std::vector<std::string> qualities = {"Low", "Medium", "High"};
-        qualityValueText->content = qualities[m_videoQuality];
+        const std::vector<std::string> fpsOptions = {"60 FPS", "144 FPS", "240 FPS"};
+        qualityValueText->content = fpsOptions[static_cast<size_t>(m_videoQuality)];
     }
     if (auto *controlValueText = registry.getComponent<ecs::Text>(m_controlValueEntity))
     {
         const std::vector<std::string> controlSchemes = {"WASD", "ZQSD", "Arrows"};
-        controlValueText->content = controlSchemes[m_controlScheme];
+        controlValueText->content = controlSchemes[static_cast<size_t>(m_controlScheme)];
     }
     if (auto *skinRect = registry.getComponent<ecs::Rect>(m_skinSpriteEntity))
     {
         const std::vector<float> shipLines = {0.0f, 17.0f, 34.0f, 51.0f, 68.0f};
 
-        skinRect->pos_y = shipLines[m_skinIndex];
+        skinRect->pos_y = shipLines[static_cast<size_t>(m_skinIndex)];
         skinRect->pos_x = 0.0f;
         skinRect->size_x = 33U;
         skinRect->size_y = 17U;
@@ -238,14 +241,17 @@ void cli::Settings::event(const eng::Event &event)
                 if (selectedOption == "Audio Volume")
                 {
                     int newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 10 : -10);
-                    m_audioVolume = std::max(0, std::min(100, newVolume));
+                    m_audioVolume = (std::max)(0, (std::min)(100, newVolume));
+                    const_cast<AppConfig&>(m_appConfig).audioVolume = m_audioVolume;
                 }
-                else if (selectedOption == "Video Quality")
+                else if (selectedOption == "FPS")
                 {
                     if (event.key == eng::Key::Left)
                         m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
                     else
                         m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
+                    const_cast<AppConfig&>(m_appConfig).videoQuality = m_videoQuality;
+                    applyVideoQuality();
                 }
                 else if (selectedOption == "Controls")
                 {
@@ -253,6 +259,7 @@ void cli::Settings::event(const eng::Event &event)
                         m_controlScheme = (m_controlScheme == 0) ? 2 : m_controlScheme - 1;
                     else
                         m_controlScheme = (m_controlScheme == 2) ? 0 : m_controlScheme + 1;
+                    const_cast<AppConfig&>(m_appConfig).controlScheme = m_controlScheme;
                 }
                 else if (selectedOption == "Skin")
                 {
@@ -260,6 +267,10 @@ void cli::Settings::event(const eng::Event &event)
                         m_skinIndex = (m_skinIndex == 0) ? 4 : m_skinIndex - 1;
                     else
                         m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
+                    const_cast<AppConfig&>(m_appConfig).skinIndex = m_skinIndex;
+                    
+                    // Appliquer immédiatement le nouveau skin
+                    applySkinChange();
                 }
                 updateSettingsDisplay();
             }
@@ -267,4 +278,40 @@ void cli::Settings::event(const eng::Event &event)
         default:
             break;
     }
+}
+
+void cli::Settings::loadFromConfig()
+{
+    m_audioVolume = m_appConfig.audioVolume;
+    m_videoQuality = m_appConfig.videoQuality;
+    m_controlScheme = m_appConfig.controlScheme;
+    m_skinIndex = m_appConfig.skinIndex;
+    
+    updateSettingsDisplay();
+    applyVideoQuality();
+}
+
+void cli::Settings::applyVideoQuality()
+{
+    unsigned int frameLimit;
+    switch (m_videoQuality) {
+        case 0:
+            frameLimit = 60;
+            break;
+        case 1:
+            frameLimit = 144;
+            break;
+        case 2:
+        default:
+            frameLimit = 240;
+            break;
+    }
+    if (m_renderer) {
+        m_renderer->setFrameLimit(frameLimit);
+    }
+}
+
+void cli::Settings::applySkinChange()
+{
+    float posY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
 }
