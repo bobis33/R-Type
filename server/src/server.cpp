@@ -7,10 +7,13 @@
 #include "Utils/Logger.hpp"
 
 srv::Server::Server(const ArgsConfig &config)
-    : m_pluginLoader(std::make_unique<utl::PluginLoader>()),
+    : m_pluginLoader(std::make_unique<utl::PluginLoader>()), m_clock(std::make_unique<utl::Clock>()),
       m_network(m_pluginLoader->loadPlugin<INetworkServer>(!config.network_lib_path.empty()
                                                                ? config.network_lib_path
-                                                               : Path::Plugin::PLUGINS_NETWORK_ASIO_SERVER.string()))
+                                                               : Path::Plugin::PLUGINS_NETWORK_ASIO_SERVER.string())),
+      m_game(m_pluginLoader->loadPlugin<gme::IGameServer>(!config.game_lib_path.empty()
+                                                                ? config.game_lib_path
+                                                         : Path::Plugin::PLUGINS_GAME_RTYPE_SERVER.string()))
 {
     utl::Logger::log("PROJECT INFO:", utl::LogLevel::INFO);
     std::cout << "\tName: " PROJECT_NAME "\n"
@@ -32,7 +35,7 @@ void srv::Server::run() const
     }
 }
 
-srv::AppConfig srv::Server::setupConfig(const ArgsConfig &cfg) const
+srv::AppConfig srv::Server::setupConfig(const ArgsConfig &cfg)
 {
     AppConfig config;
 

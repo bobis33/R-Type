@@ -1,9 +1,19 @@
-#include "Client/Scenes/Menu.hpp"
+#include <cmath>
+#include <ranges>
+#include <utility>
+
 #include "Client/Common.hpp"
+#include "Client/Scenes/Menu.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 
-static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
+static constexpr eng::Color CYAN_ELECTRIC = {.r = 0U, .g = 191U, .b = 255U, .a = 255U};
+static constexpr eng::Color GRAY_BLUE_SUBTLE = {.r = 160U, .g = 160U, .b = 160U, .a = 255U};
+static constexpr eng::Color STAR_BG = {.r = 100U, .g = 100U, .b = 150U, .a = 80U};
+static constexpr eng::Color STAR_MID = {.r = 150U, .g = 150U, .b = 200U, .a = 120U};
+static constexpr eng::Color SHOOTING_STAR = {.r = 255U, .g = 255U, .b = 200U, .a = 200U};
+static constexpr eng::Color CYAN_ELECTRIC_PARTICLES = {.r = 0U, .g = 191U, .b = 255U, .a = 100U};
+static constexpr eng::Color CYAN_ELECTRIC_FOREGROUND = {.r = 0U, .g = 191U, .b = 255U, .a = 180U};
 
 cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
     : m_audio(audio)
@@ -70,28 +80,99 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         });
 
     registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
-    registry.createEntity()
-        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-        .with<ecs::Transform>("transform_title", 10.F, 10.F, 0.F)
-        .with<ecs::Color>("color_title", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-        .with<ecs::Text>("id", std::string("RType Client"), 50U)
-        .build();
-    m_fpsEntity = registry.createEntity()
-                      .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                      .with<ecs::Transform>("transform_fps", 10.F, 70.F, 0.F)
-                      .with<ecs::Color>("color_fps", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-                      .with<ecs::Text>("id_text", std::string("FPS: 0"), 20U)
-                      .build();
+
+    m_titleEntity =
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
+            .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+            .with<ecs::Text>("id", std::string("RTYPE"), 72U)
+            .build();
 
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
-            .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
+            .with<ecs::Color>("color_menu", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b,
+                              GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 32U)
             .build();
     }
+    const int screenWidth = renderer->getWindowSize().width;
+    const int screenHeight = renderer->getWindowSize().height;
+
+    for (int i = 0; i < 40; ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Pixel>("star_background")
+            .with<ecs::Transform>("star_bg_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("star_bg_color", STAR_BG.r, STAR_BG.g, STAR_BG.b, STAR_BG.a)
+            .with<ecs::Velocity>("star_bg_vel", -10.0f, 0.0f)
+            .build();
+    }
+    for (int i = 0; i < 25; ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Pixel>("star_middle")
+            .with<ecs::Transform>("star_mid_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("star_mid_color", STAR_MID.r, STAR_MID.g, STAR_MID.b, STAR_MID.a)
+            .with<ecs::Velocity>("star_mid_vel", -25.0f, 0.0f)
+            .build();
+    }
+    for (int i = 0; i < 15; ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Pixel>("star_foreground")
+            .with<ecs::Transform>("star_fg_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("star_fg_color", CYAN_ELECTRIC_FOREGROUND.r, CYAN_ELECTRIC_FOREGROUND.g,
+                              CYAN_ELECTRIC_FOREGROUND.b, CYAN_ELECTRIC_FOREGROUND.a)
+            .with<ecs::Velocity>("star_fg_vel", -50.0f, 0.0f)
+            .build();
+    }
+    for (int i = 0; i < 8; ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Pixel>("shooting_star")
+            .with<ecs::Transform>("shooting_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("shooting_color", SHOOTING_STAR.r, SHOOTING_STAR.g, SHOOTING_STAR.b, SHOOTING_STAR.a)
+            .with<ecs::Velocity>("shooting_vel", -80.0f, static_cast<float>((std::rand() % 20) - 10))
+            .build();
+    }
+    for (int i = 0; i < 12; ++i)
+    {
+        registry.createEntity()
+            .with<ecs::Pixel>("cyan_particle")
+            .with<ecs::Transform>("cyan_transform", static_cast<float>(std::rand() % screenWidth),
+                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
+            .with<ecs::Color>("cyan_color", CYAN_ELECTRIC_PARTICLES.r, CYAN_ELECTRIC_PARTICLES.g,
+                              CYAN_ELECTRIC_PARTICLES.b, CYAN_ELECTRIC_PARTICLES.a)
+            .with<ecs::Velocity>("cyan_vel", -35.0f, static_cast<float>((std::rand() % 10) - 5))
+            .build();
+    }
+
+    std::string contributorsText = "Contributors ";
+    for (size_t i = 0; i < m_contributors.size(); ++i)
+    {
+        contributorsText += m_contributors[i];
+        if (i < m_contributors.size() - 1)
+        {
+            contributorsText += " ";
+        }
+    }
+    m_contributorsEntity = registry.createEntity()
+                               .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+                               .with<ecs::Transform>("transform_contributors", static_cast<float>(renderer->getWindowSize().width * 0.9F),
+                                                     static_cast<float>(renderer->getWindowSize().height * 0.9F))
+                               .with<ecs::Color>("color_contributors", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
+                                                 GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+                               .with<ecs::Text>("contributors_text", contributorsText, 24U)
+                               .build();
+
     m_selectedIndex = 2;
 }
 
@@ -101,16 +182,58 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
 
     auto &transforms = reg.getAll<ecs::Transform>();
     auto &colors = reg.getAll<ecs::Color>();
-    auto &texts = reg.getAll<ecs::Text>();
     auto &audios = reg.getAll<ecs::Audio>();
 
-    for (auto &audio : audios)
+    m_animationTime += dt;
+    m_titlePulseTime += dt;
+
+    if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
+        const float pulse = (std::sin(m_titlePulseTime * 1.2f) + 1.0f) * 0.5f;
+        titleColor->r = static_cast<uint8_t>(CYAN_ELECTRIC.r * (0.8f + pulse * 0.2f));
+        titleColor->g = static_cast<uint8_t>(CYAN_ELECTRIC.g * (0.8f + pulse * 0.2f));
+        titleColor->b = static_cast<uint8_t>(CYAN_ELECTRIC.b * (0.9f + pulse * 0.1f));
+    }
+
+    if (auto *titleTransform = reg.getComponent<ecs::Transform>(m_titleEntity))
+    {
+        titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 2.0f;
+    }
+
+    for (auto &val : audios | std::views::values)
+    {
+        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
         {
-            m_audio->stopAudio(audio.second.id);
+            m_audio->stopAudio(val.id);
         }
     }
+    for (const auto &entity : reg.getAll<ecs::Pixel>() | std::views::keys)
+    {
+        if (auto *transform = reg.getComponent<ecs::Transform>(entity))
+        {
+            if (const auto *velocity = reg.getComponent<ecs::Velocity>(entity))
+            {
+                transform->x += velocity->x * dt;
+                transform->y += velocity->y * dt;
+                if (transform->x < -10.0f)
+                {
+                    transform->x = static_cast<float>(size.width + (std::rand() % 100));
+                    transform->y = static_cast<float>(std::rand() % size.height);
+                }
+                else if (transform->x > size.width + 10.0f)
+                {
+                    transform->x = -10.0f;
+                }
+
+                if (transform->y < -10.0f || transform->y > size.height + 10.0f)
+                {
+                    transform->y = static_cast<float>(std::rand() % size.height);
+                }
+            }
+        }
+    }
+
+    auto &texts = reg.getAll<ecs::Text>();
     size_t i = 0;
     for (auto &[entity, text] : texts)
     {
@@ -118,26 +241,37 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
         {
             auto &color = colors.at(entity);
 
-            if (i == m_selectedIndex)
+            if (std::cmp_equal(i, m_selectedIndex))
             {
-                color.r = 255;
-                color.g = 200;
-                color.b = 0;
+                const float glowIntensity = std::sin(m_animationTime * 2.5f);
+                color.r = 0U;
+                color.g = static_cast<unsigned char>(191U + (glowIntensity * 50));
+                color.b = 255U;
             }
             else
             {
-                color.r = 255;
-                color.g = 255;
-                color.b = 255;
+                color.r = GRAY_BLUE_SUBTLE.r;
+                color.g = GRAY_BLUE_SUBTLE.g;
+                color.b = GRAY_BLUE_SUBTLE.b;
             }
 
             i++;
         }
     }
+    m_contributorsOffset += dt * 50.0f;
+    if (auto *contributorsTransform = reg.getComponent<ecs::Transform>(m_contributorsEntity))
+    {
+        contributorsTransform->x = (size.width * 0.9f) - m_contributorsOffset;
 
+        if (contributorsTransform->x < -(size.width * 0.9F))
+        {
+            m_contributorsOffset = 0.0f;
+            contributorsTransform->x = size.width * 0.9f;
+        }
+    }
     if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
     {
-        fpsText->content = "FPS: " + std::to_string(static_cast<int>(1 / dt));
+        fpsText->content = "FPS " + std::to_string(static_cast<int>(1 / dt));
     }
 }
 

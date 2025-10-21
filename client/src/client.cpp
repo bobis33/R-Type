@@ -6,8 +6,6 @@
 #include "Client/Scenes/game/solo/ConfigSolo.hpp"
 #include "Client/Scenes/game/solo/GameSolo.hpp"
 #include "Client/Systems/Systems.hpp"
-#include "R-TypeClient/RTypeClient.hpp"
-#include "Utils/Clock.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
 
@@ -55,8 +53,12 @@ cli::Client::Client(const ArgsConfig &cfg)
             return m_pluginLoader->loadPlugin<eng::IRenderer>(
                 !cfg.renderer_lib_path.empty() ? cfg.renderer_lib_path : Path::Plugin::PLUGIN_RENDERER_SFML.string());
         });
-    // m_game = std::make_unique<gme::RTypeClient>();
-    m_engine->getRenderer()->createWindow("R-Type Client", m_config.height, m_config.width, m_config.frameLimit, m_config.fullscreen);
+    m_gameSolo = m_pluginLoader->loadPlugin<gme::IGameClient>(
+        !cfg.game_solo_lib_path.empty() ? cfg.game_solo_lib_path : Path::Plugin::PLUGIN_GAME_SOLO.string());
+    m_gameMulti = m_pluginLoader->loadPlugin<gme::IGameClient>(
+        !cfg.game_multi_lib_path.empty() ? cfg.game_multi_lib_path : Path::Plugin::PLUGIN_GAME_MULTI.string());
+    m_engine->getRenderer()->createWindow("R-Type Client", m_config.height, m_config.width, m_config.frameLimit,
+                                          m_config.fullscreen);
     m_engine->getNetwork()->connect(m_config.host, m_config.port);
     m_engine->getNetwork()->sendConnect("Bobi");
     m_engine->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
@@ -76,11 +78,52 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     m_engine->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
 
+void cli::Client::stop() const
+{
+    m_engine->getNetwork()->disconnect();
+    m_engine->stop();
+}
+
+void cli::Client::setupScenes() const
+{
     auto menu = std::make_unique<Menu>(m_engine->getRenderer(), m_engine->getAudio());
+    menu->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    menu->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    menu->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
+    menu->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
+    menu->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     auto configMulti = std::make_unique<ConfigMulti>(m_engine->getRenderer(), m_engine->getAudio());
+    configMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    configMulti->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    configMulti->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
+    configMulti->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
+    configMulti->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     auto configSolo = std::make_unique<ConfigSolo>(m_engine->getRenderer(), m_engine->getAudio());
+    configSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    configSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    configSolo->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
+    configSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
+    configSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio());
+    gameSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    gameSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<BeamSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<PlayerDirectionSystem>());
+    gameSolo->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
     auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio());
+    settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    settings->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    settings->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
+    settings->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
+    settings->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     const auto menuId = menu->getId();
     const auto configMultiId = configMulti->getId();
     const auto configSoloId = configSolo->getId();
@@ -132,31 +175,11 @@ cli::Client::Client(const ArgsConfig &cfg)
         }
     };
     settings->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
+
     m_engine->getSceneManager()->addScene(std::move(menu));
     m_engine->getSceneManager()->addScene(std::move(configMulti));
     m_engine->getSceneManager()->addScene(std::move(configSolo));
     m_engine->getSceneManager()->addScene(std::move(gameSolo));
     m_engine->getSceneManager()->addScene(std::move(settings));
     m_engine->getSceneManager()->switchToScene(menuId);
-}
-
-void cli::Client::run()
-{
-    eng::Event event;
-
-    while (m_engine->getState() == eng::State::RUN && m_engine->getRenderer()->windowIsOpen())
-    {
-        const float delta = m_engine->getClock()->getDeltaSeconds();
-
-        m_engine->getClock()->restart();
-        m_engine->getSceneManager()->getCurrentScene()->update(delta, m_engine->getRenderer()->getWindowSize());
-        handleEvents(event);
-        m_engine->render(m_engine->getSceneManager()->getCurrentScene()->getRegistry(), DARK, delta);
-    }
-}
-
-void cli::Client::stop() const
-{
-    m_engine->getNetwork()->disconnect();
-    m_engine->stop();
 }

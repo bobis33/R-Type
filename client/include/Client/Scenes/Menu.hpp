@@ -42,5 +42,12 @@ namespace cli
             const std::shared_ptr<eng::IAudio> &m_audio;
 
             int m_selectedIndex = 0;
+            float m_animationTime = 0.0f;
+            float m_titlePulseTime = 0.0f;
+            ecs::Entity m_titleEntity;
+
+            const std::vector<std::string> m_contributors = {"Elliot", "Arthur", "Moana", "Aaron"};
+            ecs::Entity m_contributorsEntity;
+            float m_contributorsOffset = 0.0f;
     }; // class Menu
 } // namespace cli

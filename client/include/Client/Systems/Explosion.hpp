@@ -59,9 +59,9 @@ namespace cli
                     }
 
                     m_renderer->createSprite(texture->id + std::to_string(entity), texture->path, transform->x,
-                                            transform->y, scale->x, scale->y, static_cast<int>(rect->pos_x),
-                                            static_cast<int>(rect->pos_y), static_cast<int>(rect->size_x),
-                                            static_cast<int>(rect->size_y));
+                                             transform->y, scale->x, scale->y, static_cast<int>(rect->pos_x),
+                                             static_cast<int>(rect->pos_y), static_cast<int>(rect->size_x),
+                                             static_cast<int>(rect->size_y));
                     m_renderer->drawSprite(texture->id + std::to_string(entity));
 
                     explosion.current_lifetime += dt;

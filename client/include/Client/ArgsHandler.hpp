@@ -27,6 +27,8 @@ namespace cli
             std::string audio_lib_path = Path::Plugin::PLUGIN_AUDIO_SFML.string();
             std::string network_lib_path = Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string();
             std::string renderer_lib_path = Path::Plugin::PLUGIN_RENDERER_SFML.string();
+            std::string game_solo_lib_path = Path::Plugin::PLUGIN_GAME_SOLO.string();
+            std::string game_multi_lib_path = Path::Plugin::PLUGIN_GAME_MULTI.string();
 
             static ArgsConfig fromFile(const std::string &path);
     }; // struct Config

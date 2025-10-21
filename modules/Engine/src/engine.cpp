@@ -8,17 +8,12 @@ eng::Engine::Engine(const std::function<std::shared_ptr<IAudio>()> &audioFactory
 {
 }
 
-void eng::Engine::updateSystems(ecs::Registry &registry, const float dt) const
+void eng::Engine::render(const WindowSize &windowSize, const Color clearColor) const
 {
-    for (const auto &system : m_systems)
-    {
-        system->update(registry, dt);
-    }
-}
-
-void eng::Engine::render(ecs::Registry &registry, const Color clearColor, const float dt) const
-{
+    const float dt = m_clock->getDeltaSeconds();
+    m_clock->restart();
     m_renderer->clearWindow(clearColor);
-    updateSystems(registry, dt);
+    m_sceneManager->getCurrentScene()->updateSystems(dt);
+    m_sceneManager->getCurrentScene()->update(dt, windowSize);
     m_renderer->displayWindow();
 }

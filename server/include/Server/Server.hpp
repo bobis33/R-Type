@@ -8,8 +8,10 @@
 
 #include <memory>
 
+#include "Interfaces/IGameServer.hpp"
 #include "Interfaces/INetworkServer.hpp"
 #include "Server/ArgsHandler.hpp"
+#include "Utils/Clock.hpp"
 #include "Utils/PluginLoader.hpp"
 
 namespace srv
@@ -17,8 +19,8 @@ namespace srv
 
     struct AppConfig
     {
-        std::string host;
-        uint16_t port;
+            std::string host;
+            uint16_t port;
     };
 
     ///
@@ -41,12 +43,14 @@ namespace srv
             void run() const;
 
         private:
-            AppConfig setupConfig(const ArgsConfig &cfg) const;
+            [[nodiscard]] static AppConfig setupConfig(const ArgsConfig &cfg);
 
             AppConfig m_config;
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
+            std::unique_ptr<utl::Clock> m_clock;
             std::shared_ptr<INetworkServer> m_network;
+            std::shared_ptr<gme::IGameServer> m_game;
     }; // class Server
 
 } // namespace srv

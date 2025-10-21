@@ -31,7 +31,7 @@ namespace cli
                     const auto *color = registry.getComponent<ecs::Color>(entity);
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
                     m_renderer->drawPoint(transform->x, transform->y,
-                                         {.r = color->r, .g = color->g, .b = color->b, .a = color->a});
+                                          {.r = color->r, .g = color->g, .b = color->b, .a = color->a});
                 }
             }
 

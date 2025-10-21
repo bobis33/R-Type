@@ -9,8 +9,6 @@
 #include <functional>
 #include <memory>
 
-#include "ECS/Interfaces/ISystems.hpp"
-#include "ECS/Registry.hpp"
 #include "Engine/SceneManager.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Interfaces/INetworkClient.hpp"
@@ -53,22 +51,17 @@ namespace eng
             std::unique_ptr<SceneManager> &getSceneManager() { return m_sceneManager; }
             State getState() const { return m_state; }
 
-            void addSystem(std::unique_ptr<ISystem> system) { m_systems.emplace_back(std::move(system)); }
             void setState(const State newState) { m_state = newState; }
 
-            void render(ecs::Registry &registry, Color clearColor, float dt) const;
+            void render(const WindowSize &windowSize, Color clearColor) const;
             void stop() const { m_renderer->closeWindow(); }
 
         private:
-            void updateSystems(ecs::Registry &registry, float dt) const;
-
             State m_state = RUN;
             std::unique_ptr<utl::Clock> m_clock;
             std::unique_ptr<SceneManager> m_sceneManager;
-            std::vector<std::unique_ptr<ISystem>> m_systems;
             std::shared_ptr<IAudio> m_audio;
             std::shared_ptr<INetworkClient> m_network;
             std::shared_ptr<IRenderer> m_renderer;
     }; // class Engine
-
 } // namespace eng
