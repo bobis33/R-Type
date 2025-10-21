@@ -84,7 +84,6 @@ namespace cli
             inline constexpr auto TEXTURE_SHOOT_CHARGED = "assets/sprites/shootcharged.gif";
             inline constexpr auto TEXTURE_SHOOT_LOADING = "assets/sprites/shootchargedloading.gif";
             inline constexpr auto TEXTURE_ENEMY_EASY = "assets/sprites/r-typesheet5.gif";
-            inline constexpr auto TEXTURE_ASTEROID = "assets/sprites/r-typesheet3.gif";
             inline constexpr auto TEXTURE_EXPLOSION = "assets/sprites/r-typesheet44.gif";
             inline constexpr auto TEXTURE_STAGE1_FLOOR = "assets/sprites/floorstage1.png";
             inline constexpr auto TEXTURE_STAGE1_CEILING = "assets/sprites/ceillingstage1.png";
