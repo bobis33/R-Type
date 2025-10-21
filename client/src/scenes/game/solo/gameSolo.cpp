@@ -4,6 +4,7 @@
 #include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <algorithm>
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 static constexpr eng::Color WHITE_TRANS = {.r = 255U, .g = 255U, .b = 255U, .a = 100U};
@@ -327,12 +328,12 @@ void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
 
     playerTransform->x += playerVelocity->x * dt;
     playerTransform->y += playerVelocity->y * dt;
-    playerTransform->x = std::max(playerTransform->x, 0.F);
-    playerTransform->y = std::max(playerTransform->y, 0.F);
-    playerTransform->x = std::min(playerTransform->x, static_cast<float>(size.width) -
+    playerTransform->x = (std::max)(playerTransform->x, 0.F);
+    playerTransform->y = (std::max)(playerTransform->y, 0.F);
+    playerTransform->x = (std::min)(playerTransform->x, static_cast<float>(size.width) -
                                                           GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
     playerTransform->y =
-        std::min(playerTransform->y,
+        (std::min)(playerTransform->y,
                  static_cast<float>(size.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
 }
 

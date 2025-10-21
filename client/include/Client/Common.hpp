@@ -8,6 +8,7 @@
 #include <filesystem>
 
 #ifdef _WIN32
+#define NOMINMAX
 #define PLUGINS_EXTENSION ".dll"
 #elif __linux__
 #define PLUGINS_EXTENSION ".so"

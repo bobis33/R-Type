@@ -241,7 +241,7 @@ void cli::Settings::event(const eng::Event &event)
                 if (selectedOption == "Audio Volume")
                 {
                     int newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 10 : -10);
-                    m_audioVolume = std::max(0, std::min(100, newVolume));
+                    m_audioVolume = (std::max)(0, (std::min)(100, newVolume));
                     const_cast<AppConfig&>(m_appConfig).audioVolume = m_audioVolume;
                 }
                 else if (selectedOption == "FPS")
