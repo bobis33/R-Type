@@ -246,7 +246,7 @@ namespace eng
             /// @param data Packet data
             /// @param reliable Whether packet should be reliable
             ///
-            void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false);
+            void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false) override;
 
             ///
             /// @brief Get connection statistics
