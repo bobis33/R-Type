@@ -60,6 +60,11 @@ namespace cli
             inline constexpr auto AUDIO_TITLE = "assets/audio/title.mp3";
             inline constexpr auto AUDIO_COIN = "assets/audio/coin.mp3";
             inline constexpr auto AUDIO_BATTLE_THEME = "assets/audio/battle_theme.mp3";
+            inline constexpr auto AUDIO_INPUT = "assets/audio/input.wav";
+            inline constexpr auto AUDIO_DEATH_ALLIES = "assets/audio/deathallies.wav";
+            inline constexpr auto AUDIO_DEATH_ENEMIES = "assets/audio/deathennemies.wav";
+            inline constexpr auto AUDIO_SUPERCHARGED_SHOT = "assets/audio/shoot.wav";
+            inline constexpr auto AUDIO_BEGIN = "assets/audio/begin.wav";
         } // namespace Audio
         namespace Font
         {
