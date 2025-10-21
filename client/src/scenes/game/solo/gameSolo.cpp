@@ -1,4 +1,5 @@
 #include "Client/Scenes/game/solo/GameSolo.hpp"
+#include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
@@ -12,8 +13,8 @@ static constexpr eng::Color YELLOW = {.r = 255U, .g = 255U, .b = 200U, .a = 200U
 static constexpr eng::Color PURPLE = {.r = 100U, .g = 50U, .b = 150U, .a = 80U};
 static constexpr eng::Color GREEN = {.r = 200U, .g = 255U, .b = 200U, .a = 180U};
 
-cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& appConfig)
+    : m_audio(audio), m_appConfig(appConfig)
 {
     auto &registry = AScene::getRegistry();
 
@@ -279,10 +280,11 @@ void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
     playerVelocity->x = 0.0f;
     playerVelocity->y = 0.0f;
 
-    bool up = m_keysPressed[eng::Key::Up];
-    bool down = m_keysPressed[eng::Key::Down];
-    bool left = m_keysPressed[eng::Key::Left];
-    bool right = m_keysPressed[eng::Key::Right];
+    // Utiliser le mapping des coxntrôles selon AppConfig
+    bool up = isUpPressed();
+    bool down = isDownPressed();
+    bool left = isLeftPressed();
+    bool right = isRightPressed();
 
     if (up && right)
     {
@@ -332,32 +334,71 @@ void cli::GameSolo::event(const eng::Event &event)
     switch (event.type)
     {
         case eng::EventType::KeyPressed:
-            if (event.key == eng::Key::Up)
-                m_keysPressed[eng::Key::Up] = true;
-            if (event.key == eng::Key::Down)
-                m_keysPressed[eng::Key::Down] = true;
-            if (event.key == eng::Key::Left)
-                m_keysPressed[eng::Key::Left] = true;
-            if (event.key == eng::Key::Right)
-                m_keysPressed[eng::Key::Right] = true;
-            if (event.key == eng::Key::Space)
-                m_keysPressed[eng::Key::Space] = true;
+            m_keysPressed[event.key] = true;
             break;
 
         case eng::EventType::KeyReleased:
-            if (event.key == eng::Key::Up)
-                m_keysPressed[eng::Key::Up] = false;
-            if (event.key == eng::Key::Down)
-                m_keysPressed[eng::Key::Down] = false;
-            if (event.key == eng::Key::Left)
-                m_keysPressed[eng::Key::Left] = false;
-            if (event.key == eng::Key::Right)
-                m_keysPressed[eng::Key::Right] = false;
-            if (event.key == eng::Key::Space)
-                m_keysPressed[eng::Key::Space] = false;
+            m_keysPressed[event.key] = false;
             break;
 
         default:
             break;
     }
+}
+
+bool cli::GameSolo::isUpPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::Z) && m_keysPressed.at(eng::Key::Z);
+        case 1: 
+            return m_keysPressed.count(eng::Key::W) && m_keysPressed.at(eng::Key::W);
+        default:
+            return m_keysPressed.count(eng::Key::Up) && m_keysPressed.at(eng::Key::Up);
+    }
+}
+
+bool cli::GameSolo::isDownPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+        case 1:
+            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+        default:
+            return m_keysPressed.count(eng::Key::Down) && m_keysPressed.at(eng::Key::Down);
+    }
+}
+
+bool cli::GameSolo::isLeftPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::Q) && m_keysPressed.at(eng::Key::Q);
+        case 1:
+            return m_keysPressed.count(eng::Key::A) && m_keysPressed.at(eng::Key::A);
+        default:
+            return m_keysPressed.count(eng::Key::Left) && m_keysPressed.at(eng::Key::Left);
+    }
+}
+
+bool cli::GameSolo::isRightPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+        case 1:
+            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+        default:
+            return m_keysPressed.count(eng::Key::Right) && m_keysPressed.at(eng::Key::Right);
+    }
+}
+
+bool cli::GameSolo::isShootPressed() const
+{
+    return m_keysPressed.count(eng::Key::Space) && m_keysPressed.at(eng::Key::Space);
 }

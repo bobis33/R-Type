@@ -13,7 +13,7 @@
 
 namespace cli
 {
-    struct AppConfig; // Forward declaration
+    struct AppConfig;
 
     ///
     /// @class Settings
@@ -49,7 +49,7 @@ namespace cli
 
             int m_audioVolume = 50;
             int m_videoQuality = 1;
-            int m_controlScheme = 0;
+            int m_controlScheme = 2; // Arrows par défaut
             int m_skinIndex = 0;
 
             ecs::Entity m_volumeValueEntity;

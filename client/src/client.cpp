@@ -106,7 +106,7 @@ void cli::Client::setupScenes() const
     configSolo->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
     configSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     configSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio());
+    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
     gameSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     gameSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
