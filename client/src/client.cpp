@@ -118,7 +118,7 @@ void cli::Client::setupScenes() const
     gameSolo->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<PlayerDirectionSystem>());
+    gameSolo->addSystem(std::make_unique<PlayerDirectionSystem>(m_config));
     gameSolo->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
     auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
     settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
