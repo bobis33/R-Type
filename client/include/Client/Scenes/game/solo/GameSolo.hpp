@@ -33,6 +33,7 @@ namespace cli
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
+            void updatePlayerSkin();
 
         private:
             bool isUpPressed() const;
@@ -43,6 +44,7 @@ namespace cli
             std::unordered_map<eng::Key, bool> m_keysPressed;
 
             ecs::Entity m_playerEntity;
+            int m_lastAppliedSkinIndex = -1;
             ecs::Entity m_fpsEntity;
             ecs::Entity m_enemyCounterEntity;
             ecs::Entity m_asteroidCounterEntity;

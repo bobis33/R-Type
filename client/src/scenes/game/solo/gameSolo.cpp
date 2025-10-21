@@ -107,10 +107,11 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
                                   .with<ecs::Text>("id_asteroid_counter", std::string("Asteroids: 0"), 20U)
                                   .build();
 
+    float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", 200.F, 100.F, 0.F)
                          .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
-                         .with<ecs::Rect>("player_rect", 0.F, 0.F, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
+                         .with<ecs::Rect>("player_rect", 0.F, skinPosY, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
                                           static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
                          .with<ecs::Scale>("player_scale", GameConfig::Player::SCALE, GameConfig::Player::SCALE)
                          .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
@@ -213,6 +214,12 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
 void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
+    
+    if (m_appConfig.skinIndex != m_lastAppliedSkinIndex) {
+        updatePlayerSkin();
+        m_lastAppliedSkinIndex = m_appConfig.skinIndex;
+    }
+    
     auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
     auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
     auto &audios = reg.getAll<ecs::Audio>();
@@ -401,4 +408,15 @@ bool cli::GameSolo::isRightPressed() const
 bool cli::GameSolo::isShootPressed() const
 {
     return m_keysPressed.count(eng::Key::Space) && m_keysPressed.at(eng::Key::Space);
+}
+
+void cli::GameSolo::updatePlayerSkin()
+{
+    auto &registry = getRegistry();
+    auto *playerRect = registry.getComponent<ecs::Rect>(m_playerEntity);
+    
+    if (playerRect) {
+        float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        playerRect->pos_y = skinPosY;
+    }
 }

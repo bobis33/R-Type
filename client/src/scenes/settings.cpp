@@ -1,6 +1,7 @@
 #include "Client/Scenes/Settings.hpp"
 #include "Client/Client.hpp"
 #include "Client/Common.hpp"
+#include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include <algorithm>
@@ -267,6 +268,9 @@ void cli::Settings::event(const eng::Event &event)
                     else
                         m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
                     const_cast<AppConfig&>(m_appConfig).skinIndex = m_skinIndex;
+                    
+                    // Appliquer immédiatement le nouveau skin
+                    applySkinChange();
                 }
                 updateSettingsDisplay();
             }
@@ -305,4 +309,20 @@ void cli::Settings::applyVideoQuality()
     if (m_renderer) {
         m_renderer->setFrameLimit(frameLimit);
     }
+}
+
+void cli::Settings::applySkinChange()
+{
+    // Appliquer le changement de skin à tous les joueurs dans le jeu
+    // Chaque skin correspond à une ligne différente dans la sprite sheet
+    // skinIndex: 0=Cyan, 1=Violet, 2=Vert, 3=Rouge, 4=Bleu
+    
+    float posY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+    
+    // On ne peut pas modifier directement les entités d'autres scènes depuis Settings
+    // Cette méthode sera appelée directement par GameSolo quand il démarre
+    // pour appliquer le skin choisi dans les settings
+    
+    // Debug temporaire
+    std::cout << "Skin appliqué: " << m_skinIndex << " (posY: " << posY << ")" << std::endl;
 }

@@ -36,6 +36,7 @@ namespace cli
             void updateSettingsDisplay();
             void loadFromConfig();
             void applyVideoQuality();
+            void applySkinChange();
 
             std::function<void()> onLeave;
 
