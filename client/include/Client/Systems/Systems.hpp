@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Client/Systems/Animation.hpp"
-#include "Client/Systems/Asteroid.hpp"
 #include "Client/Systems/Audio.hpp"
 #include "Client/Systems/Beam.hpp"
 #include "Client/Systems/Collision.hpp"
