@@ -1,8 +1,10 @@
 #include "Client/Scenes/game/solo/GameSolo.hpp"
+#include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include <algorithm>
 
 static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
 static constexpr eng::Color WHITE_TRANS = {.r = 255U, .g = 255U, .b = 255U, .a = 100U};
@@ -12,8 +14,8 @@ static constexpr eng::Color YELLOW = {.r = 255U, .g = 255U, .b = 200U, .a = 200U
 static constexpr eng::Color PURPLE = {.r = 100U, .g = 50U, .b = 150U, .a = 80U};
 static constexpr eng::Color GREEN = {.r = 200U, .g = 255U, .b = 200U, .a = 180U};
 
-cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& appConfig)
+    : m_audio(audio), m_appConfig(appConfig)
 {
     auto &registry = AScene::getRegistry();
 
@@ -106,10 +108,11 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
                                   .with<ecs::Text>("id_asteroid_counter", std::string("Asteroids: 0"), 20U)
                                   .build();
 
+    float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", 200.F, 100.F, 0.F)
                          .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
-                         .with<ecs::Rect>("player_rect", 0.F, 0.F, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
+                         .with<ecs::Rect>("player_rect", 0.F, skinPosY, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
                                           static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
                          .with<ecs::Scale>("player_scale", GameConfig::Player::SCALE, GameConfig::Player::SCALE)
                          .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
@@ -212,6 +215,12 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
 void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
+    
+    if (m_appConfig.skinIndex != m_lastAppliedSkinIndex) {
+        updatePlayerSkin();
+        m_lastAppliedSkinIndex = m_appConfig.skinIndex;
+    }
+    
     auto *playerTransform = reg.getComponent<ecs::Transform>(m_playerEntity);
     auto *playerVelocity = reg.getComponent<ecs::Velocity>(m_playerEntity);
     auto &audios = reg.getAll<ecs::Audio>();
@@ -279,10 +288,11 @@ void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
     playerVelocity->x = 0.0f;
     playerVelocity->y = 0.0f;
 
-    bool up = m_keysPressed[eng::Key::Up];
-    bool down = m_keysPressed[eng::Key::Down];
-    bool left = m_keysPressed[eng::Key::Left];
-    bool right = m_keysPressed[eng::Key::Right];
+    // Utiliser le mapping des coxntrôles selon AppConfig
+    bool up = isUpPressed();
+    bool down = isDownPressed();
+    bool left = isLeftPressed();
+    bool right = isRightPressed();
 
     if (up && right)
     {
@@ -318,12 +328,12 @@ void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
 
     playerTransform->x += playerVelocity->x * dt;
     playerTransform->y += playerVelocity->y * dt;
-    playerTransform->x = std::max(playerTransform->x, 0.F);
-    playerTransform->y = std::max(playerTransform->y, 0.F);
-    playerTransform->x = std::min(playerTransform->x, static_cast<float>(size.width) -
+    playerTransform->x = (std::max)(playerTransform->x, 0.F);
+    playerTransform->y = (std::max)(playerTransform->y, 0.F);
+    playerTransform->x = (std::min)(playerTransform->x, static_cast<float>(size.width) -
                                                           GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
     playerTransform->y =
-        std::min(playerTransform->y,
+        (std::min)(playerTransform->y,
                  static_cast<float>(size.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
 }
 
@@ -332,32 +342,82 @@ void cli::GameSolo::event(const eng::Event &event)
     switch (event.type)
     {
         case eng::EventType::KeyPressed:
-            if (event.key == eng::Key::Up)
-                m_keysPressed[eng::Key::Up] = true;
-            if (event.key == eng::Key::Down)
-                m_keysPressed[eng::Key::Down] = true;
-            if (event.key == eng::Key::Left)
-                m_keysPressed[eng::Key::Left] = true;
-            if (event.key == eng::Key::Right)
-                m_keysPressed[eng::Key::Right] = true;
-            if (event.key == eng::Key::Space)
-                m_keysPressed[eng::Key::Space] = true;
+            m_keysPressed[event.key] = true;
             break;
 
         case eng::EventType::KeyReleased:
-            if (event.key == eng::Key::Up)
-                m_keysPressed[eng::Key::Up] = false;
-            if (event.key == eng::Key::Down)
-                m_keysPressed[eng::Key::Down] = false;
-            if (event.key == eng::Key::Left)
-                m_keysPressed[eng::Key::Left] = false;
-            if (event.key == eng::Key::Right)
-                m_keysPressed[eng::Key::Right] = false;
-            if (event.key == eng::Key::Space)
-                m_keysPressed[eng::Key::Space] = false;
+            m_keysPressed[event.key] = false;
             break;
 
         default:
             break;
+    }
+}
+
+bool cli::GameSolo::isUpPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::Z) && m_keysPressed.at(eng::Key::Z);
+        case 1: 
+            return m_keysPressed.count(eng::Key::W) && m_keysPressed.at(eng::Key::W);
+        default:
+            return m_keysPressed.count(eng::Key::Up) && m_keysPressed.at(eng::Key::Up);
+    }
+}
+
+bool cli::GameSolo::isDownPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+        case 1:
+            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+        default:
+            return m_keysPressed.count(eng::Key::Down) && m_keysPressed.at(eng::Key::Down);
+    }
+}
+
+bool cli::GameSolo::isLeftPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::Q) && m_keysPressed.at(eng::Key::Q);
+        case 1:
+            return m_keysPressed.count(eng::Key::A) && m_keysPressed.at(eng::Key::A);
+        default:
+            return m_keysPressed.count(eng::Key::Left) && m_keysPressed.at(eng::Key::Left);
+    }
+}
+
+bool cli::GameSolo::isRightPressed() const
+{
+    switch (m_appConfig.controlScheme)
+    {
+        case 0:
+            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+        case 1:
+            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+        default:
+            return m_keysPressed.count(eng::Key::Right) && m_keysPressed.at(eng::Key::Right);
+    }
+}
+
+bool cli::GameSolo::isShootPressed() const
+{
+    return m_keysPressed.count(eng::Key::Space) && m_keysPressed.at(eng::Key::Space);
+}
+
+void cli::GameSolo::updatePlayerSkin()
+{
+    auto &registry = getRegistry();
+    auto *playerRect = registry.getComponent<ecs::Rect>(m_playerEntity);
+    
+    if (playerRect) {
+        float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        playerRect->pos_y = skinPosY;
     }
 }

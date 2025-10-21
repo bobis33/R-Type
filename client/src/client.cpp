@@ -21,6 +21,11 @@ cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
     appConfig.width = cfg.width;
     appConfig.host = cfg.host;
     appConfig.port = cfg.port;
+    
+    appConfig.audioVolume = Config::Audio::DEFAULT_AUDIO_VOLUME;
+    appConfig.videoQuality = Config::Game::DEFAULT_VIDEO_QUALITY;
+    appConfig.controlScheme = Config::Game::DEFAULT_CONTROL_SCHEME;
+    appConfig.skinIndex = Config::Game::DEFAULT_SKIN_INDEX;
 
     return appConfig;
 }
@@ -84,25 +89,25 @@ void cli::Client::stop() const
 void cli::Client::setupScenes() const
 {
     auto menu = std::make_unique<Menu>(m_engine->getRenderer(), m_engine->getAudio());
-    menu->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    menu->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     menu->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     auto configMulti = std::make_unique<ConfigMulti>(m_engine->getRenderer(), m_engine->getAudio());
-    configMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    configMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     configMulti->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     configMulti->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
     configMulti->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     configMulti->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     auto configSolo = std::make_unique<ConfigSolo>(m_engine->getRenderer(), m_engine->getAudio());
-    configSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    configSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     configSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     configSolo->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
     configSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     configSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio());
-    gameSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
+    gameSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     gameSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
@@ -113,10 +118,10 @@ void cli::Client::setupScenes() const
     gameSolo->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<PlayerDirectionSystem>());
+    gameSolo->addSystem(std::make_unique<PlayerDirectionSystem>(m_config));
     gameSolo->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
-    auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio());
-    settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio()));
+    auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
+    settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     settings->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<AsteroidSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
