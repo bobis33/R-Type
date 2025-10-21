@@ -313,16 +313,5 @@ void cli::Settings::applyVideoQuality()
 
 void cli::Settings::applySkinChange()
 {
-    // Appliquer le changement de skin à tous les joueurs dans le jeu
-    // Chaque skin correspond à une ligne différente dans la sprite sheet
-    // skinIndex: 0=Cyan, 1=Violet, 2=Vert, 3=Rouge, 4=Bleu
-    
     float posY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
-    
-    // On ne peut pas modifier directement les entités d'autres scènes depuis Settings
-    // Cette méthode sera appelée directement par GameSolo quand il démarre
-    // pour appliquer le skin choisi dans les settings
-    
-    // Debug temporaire
-    std::cout << "Skin appliqué: " << m_skinIndex << " (posY: " << posY << ")" << std::endl;
 }
