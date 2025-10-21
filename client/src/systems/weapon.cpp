@@ -121,6 +121,14 @@ namespace cli
         using namespace GameConfig::Projectile;
 
         ProjectileManager::createSuperchargedProjectile(registry, x, y, Supercharged::SPEED, 0.0f);
+        ensureSuperShotAudio(registry);
+        if (m_superShotAudioEntity != ecs::INVALID_ENTITY)
+        {
+            if (auto *audio = registry.getComponent<ecs::Audio>(m_superShotAudioEntity))
+            {
+                audio->play = true;
+            }
+        }
         return true;
     }
 
@@ -181,5 +189,19 @@ namespace cli
             if (registry.hasComponent<ecs::LoadingAnimation>(entity))
                 registry.removeComponent<ecs::LoadingAnimation>(entity);
         }
+    }
+
+    void WeaponSystem::ensureSuperShotAudio(ecs::Registry &registry)
+    {
+        if (m_superShotAudioEntity != ecs::INVALID_ENTITY &&
+            registry.hasComponent<ecs::Audio>(m_superShotAudioEntity))
+        {
+            return;
+        }
+
+        m_superShotAudioEntity =
+            registry.createEntity()
+                .with<ecs::Audio>("player_super_shot", Path::Audio::AUDIO_SUPERCHARGED_SHOT, 2.0F, false, false)
+                .build();
     }
 } // namespace cli

@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
@@ -79,5 +81,9 @@ namespace cli
             /// @param playerEntity The player entity
             ///
             void hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity);
+
+            void ensureSuperShotAudio(ecs::Registry &registry);
+
+            ecs::Entity m_superShotAudioEntity = ecs::INVALID_ENTITY;
     }; // class WeaponSystem
 } // namespace cli
