@@ -10,8 +10,8 @@
 #include "Interfaces/IAudio.hpp"
 #include <algorithm>
 
-cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& appConfig)
+    : m_audio(audio), m_appConfig(appConfig)
 {
     auto &registry = AScene::getRegistry();
 
