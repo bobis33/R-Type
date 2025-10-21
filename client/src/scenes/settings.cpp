@@ -79,8 +79,6 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
             }
         });
 
-    registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
-
     m_titleEntity =
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
@@ -135,6 +133,12 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
                           INFO_TEXT_COLOR.a)
         .with<ecs::Text>("instruction", std::string("UP/DOWN navigate, LEFT/RIGHT change, ESC back"), 16U)
         .build();
+
+    m_selectionSoundEntity =
+        registry.createEntity()
+            .with<ecs::Audio>("settings_input", Path::Audio::AUDIO_INPUT, 8.F, false, false)
+            .build();
+    m_selectionSoundName = "settings_input" + std::to_string(m_selectionSoundEntity);
 
     m_selectedIndex = 0;
     loadFromConfig();
@@ -227,9 +231,15 @@ void cli::Settings::event(const eng::Event &event)
                 onLeave();
             }
             else if (event.key == eng::Key::Up)
+            {
                 m_selectedIndex = (m_selectedIndex == 0) ? m_settingsOptions.size() - 1 : m_selectedIndex - 1;
+                playInputSound();
+            }
             else if (event.key == eng::Key::Down)
+            {
                 m_selectedIndex = (m_selectedIndex == m_settingsOptions.size() - 1) ? 0 : m_selectedIndex + 1;
+                playInputSound();
+            }
             else if (event.key == eng::Key::Enter)
             {
                 const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
@@ -301,4 +311,13 @@ void cli::Settings::applyVideoQuality()
 void cli::Settings::applySkinChange()
 {
     float posY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+}
+
+void cli::Settings::playInputSound()
+{
+    if (m_selectionSoundName.empty())
+        return;
+
+    m_audio->stopAudio(m_selectionSoundName);
+    m_audio->playAudio(m_selectionSoundName);
 }
