@@ -13,7 +13,7 @@ static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
 cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& config)
-    : m_audio(audio), m_appConfig(config)
+    : m_renderer(renderer), m_audio(audio), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
 
@@ -134,8 +134,6 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
         .build();
 
     m_selectedIndex = 0;
-    
-    // Charger les valeurs depuis AppConfig
     loadFromConfig();
 }
 
@@ -197,8 +195,8 @@ void cli::Settings::updateSettingsDisplay()
         volumeValueText->content = std::to_string(m_audioVolume);
     if (auto *qualityValueText = registry.getComponent<ecs::Text>(m_qualityValueEntity))
     {
-        const std::vector<std::string> qualities = {"Low", "Medium", "High"};
-        qualityValueText->content = qualities[static_cast<size_t>(m_videoQuality)];
+        const std::vector<std::string> fpsOptions = {"60 FPS", "144 FPS", "240 FPS"};
+        qualityValueText->content = fpsOptions[static_cast<size_t>(m_videoQuality)];
     }
     if (auto *controlValueText = registry.getComponent<ecs::Text>(m_controlValueEntity))
     {
@@ -245,13 +243,14 @@ void cli::Settings::event(const eng::Event &event)
                     m_audioVolume = std::max(0, std::min(100, newVolume));
                     const_cast<AppConfig&>(m_appConfig).audioVolume = m_audioVolume;
                 }
-                else if (selectedOption == "Video Quality")
+                else if (selectedOption == "FPS")
                 {
                     if (event.key == eng::Key::Left)
                         m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
                     else
                         m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
                     const_cast<AppConfig&>(m_appConfig).videoQuality = m_videoQuality;
+                    applyVideoQuality();
                 }
                 else if (selectedOption == "Controls")
                 {
@@ -285,4 +284,25 @@ void cli::Settings::loadFromConfig()
     m_skinIndex = m_appConfig.skinIndex;
     
     updateSettingsDisplay();
+    applyVideoQuality();
+}
+
+void cli::Settings::applyVideoQuality()
+{
+    unsigned int frameLimit;
+    switch (m_videoQuality) {
+        case 0:
+            frameLimit = 60;
+            break;
+        case 1:
+            frameLimit = 144;
+            break;
+        case 2:
+        default:
+            frameLimit = 240;
+            break;
+    }
+    if (m_renderer) {
+        m_renderer->setFrameLimit(frameLimit);
+    }
 }
