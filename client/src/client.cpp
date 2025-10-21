@@ -59,8 +59,8 @@ cli::Client::Client(const ArgsConfig &cfg)
         !cfg.game_multi_lib_path.empty() ? cfg.game_multi_lib_path : Path::Plugin::PLUGIN_GAME_MULTI.string());
     m_engine->getRenderer()->createWindow("R-Type Client", m_config.height, m_config.width, m_config.frameLimit,
                                           m_config.fullscreen);
+    m_engine->getNetwork()->setPlayerName("Bobi");
     m_engine->getNetwork()->connect(m_config.host, m_config.port);
-    m_engine->getNetwork()->sendConnect("Bobi");
     setupScenes();
 }
 

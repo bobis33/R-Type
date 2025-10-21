@@ -15,6 +15,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
         "${CMAKE_SOURCE_DIR}/modules/Utils/include"
         "${CMAKE_SOURCE_DIR}/third-party/asio/asio/include"
+        "${CMAKE_SOURCE_DIR}/plugins/Network/Protocol/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
 target_link_libraries(${PROJECT_NAME} PRIVATE utils)
