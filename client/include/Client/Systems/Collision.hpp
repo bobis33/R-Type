@@ -58,7 +58,6 @@ namespace cli
 
                 std::vector<ecs::Entity> projectilesToRemove;
                 std::vector<ecs::Entity> enemiesToRemove;
-                std::vector<ecs::Entity> asteroidsToRemove;
 
                 for (auto &[projectileEntity, projectile] : registry.getAll<ecs::Projectile>())
                 {
@@ -102,35 +101,6 @@ namespace cli
                     }
                 }
 
-                for (auto &[projectileEntity, projectile] : registry.getAll<ecs::Projectile>())
-                {
-                    auto *projectileTransform = registry.getComponent<ecs::Transform>(projectileEntity);
-                    auto *projectileHitbox = registry.getComponent<ecs::Hitbox>(projectileEntity);
-                    if (!projectileTransform || !projectileHitbox)
-                        continue;
-
-                    for (auto &[asteroidEntity, asteroid] : registry.getAll<ecs::Asteroid>())
-                    {
-                        auto *asteroidTransform = registry.getComponent<ecs::Transform>(asteroidEntity);
-                        auto *asteroidHitbox = registry.getComponent<ecs::Hitbox>(asteroidEntity);
-                        if (!asteroidTransform || !asteroidHitbox)
-                            continue;
-
-                        if (checkCircularCollision(*projectileTransform, *projectileHitbox, *asteroidTransform,
-                                                   *asteroidHitbox))
-                        {
-                            asteroid.health -= projectile.damage;
-                            projectilesToRemove.push_back(projectileEntity);
-
-                            if (asteroid.health <= 0.0f)
-                            {
-                                createExplosion(registry, asteroidTransform->x, asteroidTransform->y);
-                                asteroidsToRemove.push_back(asteroidEntity);
-                            }
-                            break;
-                        }
-                    }
-                }
 
                 for (ecs::Entity entity : projectilesToRemove)
                 {
@@ -139,10 +109,6 @@ namespace cli
                 for (ecs::Entity entity : enemiesToRemove)
                 {
                     removeEnemy(registry, entity);
-                }
-                for (ecs::Entity entity : asteroidsToRemove)
-                {
-                    removeAsteroid(registry, entity);
                 }
                 if (ceilingBottomY.has_value() || floorTopY.has_value())
                 {
@@ -242,23 +208,6 @@ namespace cli
                     registry.removeComponent<ecs::Hitbox>(entity);
             }
 
-            void removeAsteroid(ecs::Registry &registry, ecs::Entity entity)
-            {
-                if (registry.hasComponent<ecs::Asteroid>(entity))
-                    registry.removeComponent<ecs::Asteroid>(entity);
-                if (registry.hasComponent<ecs::Transform>(entity))
-                    registry.removeComponent<ecs::Transform>(entity);
-                if (registry.hasComponent<ecs::Velocity>(entity))
-                    registry.removeComponent<ecs::Velocity>(entity);
-                if (registry.hasComponent<ecs::Rect>(entity))
-                    registry.removeComponent<ecs::Rect>(entity);
-                if (registry.hasComponent<ecs::Texture>(entity))
-                    registry.removeComponent<ecs::Texture>(entity);
-                if (registry.hasComponent<ecs::Scale>(entity))
-                    registry.removeComponent<ecs::Scale>(entity);
-                if (registry.hasComponent<ecs::Hitbox>(entity))
-                    registry.removeComponent<ecs::Hitbox>(entity);
-            }
 
             void createExplosion(ecs::Registry &registry, float x, float y)
             {
