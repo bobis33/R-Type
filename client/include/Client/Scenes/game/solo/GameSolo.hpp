@@ -6,11 +6,18 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <memory>
 
-#include "Client/Systems/Weapon.hpp"
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "Client/Managers/StageManager.hpp"
+
+namespace cli
+{
+    class HUDSystem;
+    class StarfieldSystem;
+    class PlayerController;
+}
 
 namespace cli
 {
@@ -36,21 +43,19 @@ namespace cli
             void updatePlayerSkin();
 
         private:
+            ecs::Entity m_playerEntity;
+            const std::shared_ptr<eng::IAudio> &m_audio;
+            const AppConfig& m_appConfig;
+            std::unique_ptr<HUDSystem> m_hudSystem;
+            std::unique_ptr<StarfieldSystem> m_starfieldSystem;
+            std::unique_ptr<PlayerController> m_playerController;
+            std::unique_ptr<StageManager> m_stageManager;
             bool isUpPressed() const;
             bool isDownPressed() const;
             bool isLeftPressed() const;
             bool isRightPressed() const;
             bool isShootPressed() const;
             std::unordered_map<eng::Key, bool> m_keysPressed;
-
-            ecs::Entity m_playerEntity;
             int m_lastAppliedSkinIndex = -1;
-            ecs::Entity m_fpsEntity;
-            ecs::Entity m_enemyCounterEntity;
-            ecs::Entity m_asteroidCounterEntity;
-            const std::shared_ptr<eng::IAudio> &m_audio;
-            const AppConfig& m_appConfig;
-
-            // WeaponSystem m_weaponSystem; TODO(bobis33): tofix
     }; // class GameSolo
 } // namespace cli

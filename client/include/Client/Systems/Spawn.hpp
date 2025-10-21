@@ -31,7 +31,6 @@ namespace cli
             void update(ecs::Registry &registry, float dt) override
             {
                 m_enemySpawnTimer += dt;
-                m_asteroidSpawnTimer += dt;
                 m_waveTimer += dt;
 
                 if (m_enemySpawnTimer >= GameConfig::Enemy::Easy::SPAWN_RATE)
@@ -45,18 +44,11 @@ namespace cli
                     spawnWave(registry);
                     m_waveTimer = 0.0f;
                 }
-
-                if (m_asteroidSpawnTimer >= GameConfig::Asteroid::Small::SPAWN_RATE)
-                {
-                    spawnAsteroid(registry, ecs::Asteroid::SMALL);
-                    m_asteroidSpawnTimer = 0.0f;
-                }
             }
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             float m_enemySpawnTimer = 0.0f;
-            float m_asteroidSpawnTimer = 0.0f;
             float m_waveTimer = 0.0f;
 
             void spawnEnemy(ecs::Registry &registry)
@@ -85,32 +77,6 @@ namespace cli
                     .build();
             }
 
-            void spawnAsteroid(ecs::Registry &registry, ecs::Asteroid::Size size)
-            {
-                float x = GameConfig::Screen::SPAWN_X;
-                float y = static_cast<float>(
-                    GameConfig::Screen::MIN_Y +
-                    (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y)));
-
-                registry.createEntity()
-                    .with<ecs::Transform>("asteroid_transform", x, y, 0.0f)
-                    .with<ecs::Velocity>("asteroid_velocity", -GameConfig::Asteroid::Small::SPEED, 0.0f)
-                    .with<ecs::Rect>("asteroid_rect", 0.0f, 0.0f,
-                                     static_cast<int>(GameConfig::Asteroid::Small::SPRITE_WIDTH),
-                                     static_cast<int>(GameConfig::Asteroid::Small::SPRITE_HEIGHT))
-                    .with<ecs::Scale>("asteroid_scale", GameConfig::Asteroid::Small::SCALE,
-                                      GameConfig::Asteroid::Small::SCALE)
-                    .with<ecs::Texture>("asteroid_texture", Path::Texture::TEXTURE_ASTEROID)
-                    .with<ecs::Animation>("asteroid_animation", 0, GameConfig::Asteroid::Small::ANIMATION_FRAMES,
-                                          GameConfig::Asteroid::Small::ANIMATION_DURATION, 0.0f,
-                                          static_cast<int>(GameConfig::Asteroid::Small::SPRITE_WIDTH),
-                                          static_cast<int>(GameConfig::Asteroid::Small::SPRITE_HEIGHT),
-                                          static_cast<int>(GameConfig::Asteroid::Small::FRAMES_PER_ROW))
-                    .with<ecs::Asteroid>("asteroid", size, GameConfig::Asteroid::Small::ROTATION_SPEED,
-                                         GameConfig::Asteroid::Small::HEALTH)
-                    .with<ecs::Hitbox>("asteroid_hitbox", GameConfig::Hitbox::ASTEROID_SMALL_RADIUS)
-                    .build();
-            }
 
             void spawnWave(ecs::Registry &registry)
             {

@@ -36,7 +36,7 @@ namespace cli
                                  static_cast<int>(Basic::SPRITE_HEIGHT))
                 .with<ecs::Scale>("projectile_scale", Basic::SCALE, Basic::SCALE)
                 .with<ecs::Texture>("projectile_texture", Path::Texture::TEXTURE_SHOOT)
-                .with<ecs::Projectile>("projectile", type, Basic::DAMAGE, Basic::LIFETIME, 0.0f)
+                .with<ecs::Projectile>("projectile", type, Basic::DAMAGE, Basic::LIFETIME, 0.0f, 1)
                 .with<ecs::Hitbox>("projectile_hitbox", GameConfig::Hitbox::PROJECTILE_BASIC_RADIUS)
                 .build();
         }
@@ -49,7 +49,7 @@ namespace cli
                                  static_cast<int>(Supercharged::SPRITE_HEIGHT))
                 .with<ecs::Scale>("projectile_scale", Supercharged::SCALE, Supercharged::SCALE)
                 .with<ecs::Texture>("projectile_texture", Path::Texture::TEXTURE_SHOOT_CHARGED)
-                .with<ecs::Projectile>("projectile", type, Supercharged::DAMAGE, Supercharged::LIFETIME, 0.0f)
+                .with<ecs::Projectile>("projectile", type, Supercharged::DAMAGE, Supercharged::LIFETIME, 0.0f, 3)
                 .with<ecs::Animation>("projectile_animation", 0, Supercharged::ANIMATION_FRAMES,
                                       Supercharged::ANIMATION_DURATION, 0.0f,
                                       static_cast<int>(Supercharged::SPRITE_WIDTH),

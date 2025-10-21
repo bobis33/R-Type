@@ -8,6 +8,7 @@
 
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
+#include "Interfaces/IRenderer.hpp"
 
 #include "ECS/Interfaces/ISystems.hpp"
 
@@ -21,7 +22,7 @@ namespace cli
     class WeaponSystem final : public eng::ASystem
     {
         public:
-            WeaponSystem() = default;
+            explicit WeaponSystem(const std::shared_ptr<eng::IRenderer> & /* renderer */) {}
             ~WeaponSystem() override = default;
 
             WeaponSystem(const WeaponSystem &) = delete;
@@ -33,9 +34,7 @@ namespace cli
             /// @brief Update weapon system
             /// @param registry The ECS registry
             /// @param dt Delta time
-            /// @param spacePressed Whether space is pressed
             ///
-            void update(ecs::Registry &registry, float dt, bool spacePressed);
             void update(ecs::Registry &registry, float dt) override;
 
             ///

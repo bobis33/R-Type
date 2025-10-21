@@ -52,6 +52,7 @@ namespace cli
 
         private:
             void handleEvents(eng::Event &event);
+            void updateKeyboardInput(ecs::Registry &registry);
             AppConfig setupConfig(const ArgsConfig &cfg);
             void setupScenes() const;
 

@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Client/Systems/Animation.hpp"
-#include "Client/Systems/Asteroid.hpp"
 #include "Client/Systems/Audio.hpp"
 #include "Client/Systems/Beam.hpp"
 #include "Client/Systems/Collision.hpp"
@@ -20,3 +19,8 @@
 #include "Client/Systems/Spawn.hpp"
 #include "Client/Systems/Sprite.hpp"
 #include "Client/Systems/Text.hpp"
+#include "Client/Systems/Weapon.hpp"
+#include "Client/Systems/Scrolling.hpp"
+#include "Client/Systems/HUD.hpp"
+#include "Client/Systems/Starfield.hpp"
+#include "Client/Systems/PlayerController.hpp"

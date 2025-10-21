@@ -94,6 +94,7 @@ namespace ecs
             float damage;
             float lifetime;
             float current_lifetime;
+        int pierce_remaining; // number of enemies it can still pass through (>=1)
     };
 
     struct BeamCharge final : IComponent
@@ -123,18 +124,6 @@ namespace ecs
             float shoot_cooldown;
     };
 
-    struct Asteroid final : IComponent
-    {
-            enum Size
-            {
-                SMALL,
-                MEDIUM,
-                LARGE
-            };
-            Size size;
-            float rotation_speed;
-            float health;
-    };
 
     struct Explosion final : IComponent
     {
@@ -152,6 +141,40 @@ namespace ecs
     struct Hitbox final : IComponent
     {
             float radius;
+    };
+
+    struct KeyboardInput final : IComponent
+    {
+            bool space_pressed{};
+            bool up_pressed{};
+            bool down_pressed{};
+            bool left_pressed{};
+            bool right_pressed{};
+    };
+
+    struct Floor final : IComponent
+    {
+    };
+
+    struct Ceiling final : IComponent
+    {
+    };
+
+    struct Scrolling final : IComponent
+    {
+            float speed_x;           // Negative to scroll left
+            float original_width;    // Unscaled texture width in pixels
+            float original_height;   // Unscaled texture height in pixels
+            bool fit_width;          // If true, scale X to fit window width
+    };
+
+    struct Score final : IComponent
+    {
+            int value;
+    };
+    struct Layer final : IComponent
+    {
+            int layer;
     };
 
 } // namespace ecs
