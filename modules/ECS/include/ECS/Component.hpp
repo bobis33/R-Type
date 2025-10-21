@@ -124,18 +124,6 @@ namespace ecs
             float shoot_cooldown;
     };
 
-    struct Asteroid final : IComponent
-    {
-            enum Size
-            {
-                SMALL,
-                MEDIUM,
-                LARGE
-            };
-            Size size;
-            float rotation_speed;
-            float health;
-    };
 
     struct Explosion final : IComponent
     {
