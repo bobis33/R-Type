@@ -89,8 +89,7 @@ namespace rnp
         PLAYER = 0x01,
         ENEMY = 0x02,
         PROJECTILE = 0x03,
-        POWERUP = 0x04,
-        OBSTACLE = 0x05
+        BOSS = 0x04,
     };
 
     ///
@@ -150,7 +149,7 @@ namespace rnp
     struct EntityState
     {
             std::uint32_t id;
-            std::uint16_t type; // EntityType
+            EntityType type; // EntityType
             float x, y;
             float vx, vy;
             std::uint8_t stateFlags;

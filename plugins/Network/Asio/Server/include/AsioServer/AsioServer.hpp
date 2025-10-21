@@ -10,6 +10,7 @@
 #include "Interfaces/Protocol/HandlerPacket.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/EventBus.hpp"
 
 #include <asio.hpp>
 #include <atomic>
@@ -102,6 +103,8 @@ namespace srv
             std::chrono::steady_clock::time_point m_lastPingTime;
             std::chrono::milliseconds m_pingInterval;
             std::chrono::milliseconds m_clientTimeout;
+
+            utl::EventBus &m_eventBus;
 
             ///
             /// @brief Initialize packet handlers

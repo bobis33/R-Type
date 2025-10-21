@@ -6,10 +6,9 @@
 
 #pragma once
 
-#include "Event.hpp"
-#include "Serializer.hpp"
+#include "Utils/Event.hpp"
+#include "Interfaces/Protocol/Serializer.hpp"
 #include "Utils/Logger.hpp"
-#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -17,7 +16,6 @@
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>

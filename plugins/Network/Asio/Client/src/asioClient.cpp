@@ -19,16 +19,23 @@ namespace eng
           m_socket(std::make_unique<asio::ip::udp::socket>(*m_ioContext)), m_serverPort(0),
           m_connectionState(ConnectionState::DISCONNECTED), m_sessionId(0), m_serverTickRate(60), m_clientCaps(0),
           m_running(false), m_packetHandler(std::make_unique<rnp::HandlerPacket>()), m_lastPingNonce(0), m_latency(0),
-          m_pingInterval(std::chrono::seconds(5)), m_connectionTimeout(std::chrono::seconds(30))
+          m_pingInterval(std::chrono::seconds(5)), m_connectionTimeout(std::chrono::seconds(30)),
+          m_eventBus(utl::EventBus::getInstance())
     {
         m_stats.connectionTime = std::chrono::steady_clock::now();
         setupPacketHandlers();
         utl::Logger::log("AsioClient: Initialized", utl::LogLevel::INFO);
+
+        m_eventBus.registerComponent(m_componentId, "Asio Client");
+        m_eventBus.subscribe(m_componentId, utl::EventType::SEND_PLAYER_INPUT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::REQUEST_CONNECT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::REQUEST_DISCONNECT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::SEND_ENTITY_EVENT);
     }
 
     AsioClient::~AsioClient()
     {
-        disconnect();
+        AsioClient::disconnect();
         utl::Logger::log("AsioClient: Destroyed", utl::LogLevel::INFO);
     }
 
@@ -588,5 +595,15 @@ namespace eng
         static std::uniform_int_distribution<std::uint32_t> dis(1, UINT32_MAX);
         return dis(gen);
     }
+
+    void AsioClient::processBusEvent()
+    {
+
+        for (const auto events = m_eventBus.consumeForTarget(m_componentId); const auto &e: events)
+        {
+            sendToServer(e.data);
+        }
+    }
+
 
 } // namespace eng

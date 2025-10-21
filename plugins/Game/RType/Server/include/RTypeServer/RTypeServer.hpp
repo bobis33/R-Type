@@ -7,6 +7,8 @@
 #pragma once
 
 #include "Interfaces/IGameServer.hpp"
+#include "Utils/EventBus.hpp"
+#include "ECS/Registry.hpp"
 
 namespace gme
 {
@@ -49,6 +51,8 @@ namespace gme
         private:
 
             ServerAPI m_ctx;
+            utl::EventBus &m_eventBus;
+            ecs::Registry m_registry;
 
             State m_gameState = State::PLAYING;
             LevelState m_levelState = LevelState::WAITING_FOR_PLAYERS;

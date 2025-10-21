@@ -24,13 +24,6 @@ srv::Server::Server(const ArgsConfig &config)
 
     m_config = setupConfig(config);
     m_network->init(config.host, config.port);
-
-    gme::ServerAPI ctx;
-    ctx.createScene = [this](std::unique_ptr<IScene> scene) { m_sceneManager->addScene(std::move(scene)); };
-    ctx.switchToScene = [this](const id sceneId) { m_sceneManager->switchToScene(sceneId); };
-    ctx.getCurrentScene = [this]() -> std::unique_ptr<IScene> & { return m_sceneManager->getCurrentScene(); };
-    //ctx.sendEventToClients = [this](const std::string &eventName) { m_network->broadcastEvent(eventName); };
-    m_game->
 }
 
 void srv::Server::run() const

@@ -37,48 +37,6 @@ namespace utl
         SEND_TO_CLIENT = 0x2010,
         REQUEST_CONNECT = 0x2020,
         REQUEST_DISCONNECT = 0x2021,
-
-        // Audio events (0x3000 - 0x3FFF)
-        PLAY_SOUND = 0x3000,
-        STOP_SOUND = 0x3001,
-        PAUSE_SOUND = 0x3002,
-        RESUME_SOUND = 0x3003,
-        SET_VOLUME = 0x3010,
-        PLAY_MUSIC = 0x3020,
-        STOP_MUSIC = 0x3021,
-
-        // Renderer events (0x4000 - 0x4FFF)
-        SPAWN_VISUAL_EFFECT = 0x4000,
-        UPDATE_CAMERA = 0x4001,
-        RENDER_TEXT = 0x4002,
-        RENDER_SPRITE = 0x4003,
-        UPDATE_ANIMATION = 0x4010,
-        SCREEN_RESIZE = 0x4020,
-
-        // System events (0x5000 - 0x5FFF)
-        PAUSE_GAME = 0x5000,
-        RESUME_GAME = 0x5001,
-        QUIT_GAME = 0x5002,
-        RESTART_GAME = 0x5003,
-        SAVE_GAME = 0x5010,
-        LOAD_GAME = 0x5011,
-
-        // Input events (0x6000 - 0x6FFF)
-        KEY_PRESSED = 0x6000,
-        KEY_RELEASED = 0x6001,
-        MOUSE_MOVED = 0x6002,
-        MOUSE_CLICKED = 0x6003,
-        MOUSE_RELEASED = 0x6004,
-        CONTROLLER_INPUT = 0x6010,
-
-        // Scene events (0x7000 - 0x7FFF)
-        SCENE_CHANGE = 0x7000,
-        SCENE_LOADED = 0x7001,
-        SCENE_UNLOADED = 0x7002,
-        MENU_OPTION_SELECTED = 0x7010,
-
-        // Custom/Plugin events (0x8000 - 0xFFFF)
-        CUSTOM_EVENT = 0x8000
     };
 
     ///
@@ -95,8 +53,10 @@ namespace utl
     ///
     /// @brief Event structure for inter-component communication
     ///
-    struct Event
+    class Event
     {
+        public:
+
             EventType type;                                  ///< Type of the event
             std::uint32_t sourceId = 0;                      ///< ID of the component that sent the event (0 = system)
             std::uint32_t targetId = 0;                      ///< ID of the target component (0 = broadcast)
@@ -107,7 +67,7 @@ namespace utl
             ///
             /// @brief Default constructor with current timestamp
             ///
-            Event() : timestamp(std::chrono::steady_clock::now()) {}
+            Event() : type(), timestamp(std::chrono::steady_clock::now()) {}
 
             ///
             /// @brief Constructor with event type
@@ -121,7 +81,7 @@ namespace utl
             /// @param d Event data
             ///
             Event(EventType t, const std::vector<std::uint8_t> &d)
-                : type(t), data(d), timestamp(std::chrono::steady_clock::now())
+                : type(t), timestamp(std::chrono::steady_clock::now()), data(d)
             {
             }
 
@@ -170,7 +130,7 @@ namespace utl
     ///
     /// @brief Event statistics structure
     ///
-    struct EventStats
+    class EventStats
     {
             std::uint64_t totalEventsPublished = 0;                         ///< Total events published
             std::uint64_t totalEventsConsumed = 0;                          ///< Total events consumed

@@ -1,10 +1,32 @@
+#include "Utils/EventBus.hpp"
+#include "ECS/Component.hpp"
 #include "RTypeServer/RTypeServer.hpp"
 
-void gme::RTypeServer::start()
+gme::RTypeServer::RTypeServer() : m_eventBus(utl::EventBus::getInstance()) {}
+
+void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
 {
     m_gameState = State::PLAYING;
 
     // create scenes, with necessary entities
+    uint32_t component = 1;
+    m_eventBus.registerComponent(component, "RType-Server");
+    m_eventBus.subscribe(component, utl::EventType::PLAYER_INPUT_RECEIVED);
+    auto events = m_eventBus.consumeForTarget(component);
+    for (auto &event : events)
+    {
+        switch (event.type)
+        {
+            case utl::EventType::BROADCAST_WORLD_STATE:
+
+                break;
+            case utl::EventType::PLAYER_INPUT_RECEIVED:
+
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 

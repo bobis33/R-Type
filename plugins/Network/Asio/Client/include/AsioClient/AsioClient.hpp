@@ -9,7 +9,7 @@
 #include "Interfaces/INetworkClient.hpp"
 #include "Interfaces/Protocol/HandlerPacket.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
-#include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/EventBus.hpp"
 
 #include <asio.hpp>
 #include <atomic>
@@ -54,7 +54,52 @@ namespace eng
     ///
     class AsioClient : public INetworkClient
     {
-        private:
+        public:
+            ///
+            /// @brief Constructor
+            ///
+            AsioClient();
+
+            ///
+            /// @brief Destructor
+            ///
+            ~AsioClient() override;
+
+            // INetworkClient implementation
+            void connect(const std::string &host, std::uint16_t port) override;
+            void disconnect() override;
+
+            void update() override;
+
+            [[nodiscard]] const std::string getName() const override { return "Network_Client"; }
+            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
+
+            [[nodiscard]] bool isConnected() const override;
+            [[nodiscard]] ConnectionState getConnectionState() const override;
+            [[nodiscard]] std::uint32_t getSessionId() const override;
+            [[nodiscard]] std::uint16_t getServerTickRate() const override;
+            [[nodiscard]] std::uint32_t getLatency() const override;
+
+            void setPlayerName(const std::string &playerName) override;
+            void setClientCapabilities(std::uint32_t caps) override;
+
+            void processBusEvent();
+
+            ///
+            /// @brief Send custom packet to server
+            /// @param data Packet data
+            /// @param reliable Whether packet should be reliable
+            ///
+            void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false) override;
+
+            ///
+            /// @brief Get connection statistics
+            /// @return Current connection stats
+            ///
+            const ConnectionStats &getStats() const { return m_stats; }
+
+
+                    private:
             // Network components
             std::unique_ptr<asio::io_context> m_ioContext;
             std::unique_ptr<asio::ip::udp::socket> m_socket;
@@ -98,6 +143,9 @@ namespace eng
 
             // Statistics
             ConnectionStats m_stats;
+
+            utl::EventBus &m_eventBus;
+            std::uint32_t m_componentId = 1;
 
             ///
             /// @brief Initialize packet handlers
@@ -211,48 +259,6 @@ namespace eng
             /// @return New ping nonce
             ///
             std::uint32_t generatePingNonce();
-
-        public:
-            ///
-            /// @brief Constructor
-            ///
-            AsioClient();
-
-            ///
-            /// @brief Destructor
-            ///
-            ~AsioClient() override;
-
-            // INetworkClient implementation
-            void connect(const std::string &host, std::uint16_t port) override;
-            void disconnect() override;
-
-            void update() override;
-
-            [[nodiscard]] const std::string getName() const override { return "Network_Client"; }
-            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
-
-            [[nodiscard]] bool isConnected() const override;
-            [[nodiscard]] ConnectionState getConnectionState() const override;
-            [[nodiscard]] std::uint32_t getSessionId() const override;
-            [[nodiscard]] std::uint16_t getServerTickRate() const override;
-            [[nodiscard]] std::uint32_t getLatency() const override;
-
-            void setPlayerName(const std::string &playerName) override;
-            void setClientCapabilities(std::uint32_t caps) override;
-
-            ///
-            /// @brief Send custom packet to server
-            /// @param data Packet data
-            /// @param reliable Whether packet should be reliable
-            ///
-            void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false) override;
-
-            ///
-            /// @brief Get connection statistics
-            /// @return Current connection stats
-            ///
-            const ConnectionStats &getStats() const { return m_stats; }
     };
 
 } // namespace eng
