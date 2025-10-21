@@ -110,53 +110,12 @@ namespace cli
             inline constexpr float LIFETIME = 0.4f;
             inline constexpr float SCALE = 2.0f;
         } // namespace Explosion
-        namespace Asteroid
-        {
-            namespace Small
-            {
-                inline constexpr float HEALTH = 20.0f;
-                inline constexpr float SPEED = 80.0f;
-                inline constexpr float SPRITE_WIDTH = 18.0f;
-                inline constexpr float SPRITE_HEIGHT = 18.0f;
-                inline constexpr float SCALE = 2.0f;
-                inline constexpr float ROTATION_SPEED = 90.0f;
-                inline constexpr float SPAWN_RATE = 1.0f;
-                inline constexpr int ANIMATION_FRAMES = 11;
-                inline constexpr float ANIMATION_DURATION = 0.5f;
-                inline constexpr int FRAMES_PER_ROW = 11;
-            } // namespace Small
-
-            namespace Medium
-            {
-                inline constexpr float HEALTH = 40.0f;
-                inline constexpr float SPEED = 60.0f;
-                inline constexpr float SPRITE_WIDTH = 32.0f;
-                inline constexpr float SPRITE_HEIGHT = 32.0f;
-                inline constexpr float SCALE = 1.0f;
-                inline constexpr float ROTATION_SPEED = 60.0f;
-                inline constexpr float SPAWN_RATE = 2.0f;
-            } // namespace Medium
-
-            namespace Large
-            {
-                inline constexpr float HEALTH = 80.0f;
-                inline constexpr float SPEED = 40.0f;
-                inline constexpr float SPRITE_WIDTH = 64.0f;
-                inline constexpr float SPRITE_HEIGHT = 64.0f;
-                inline constexpr float SCALE = 1.5f;
-                inline constexpr float ROTATION_SPEED = 30.0f;
-                inline constexpr float SPAWN_RATE = 4.0f;
-            } // namespace Large
-        } // namespace Asteroid
         namespace Hitbox
         {
             inline constexpr float PLAYER_RADIUS = 20.0f;
             inline constexpr float ENEMY_RADIUS = 15.0f;
             inline constexpr float PROJECTILE_BASIC_RADIUS = 5.0f;
             inline constexpr float PROJECTILE_SUPERCHARGED_RADIUS = 8.0f;
-            inline constexpr float ASTEROID_SMALL_RADIUS = 25.0f;
-            inline constexpr float ASTEROID_MEDIUM_RADIUS = 40.0f;
-            inline constexpr float ASTEROID_LARGE_RADIUS = 60.0f;
         } // namespace Hitbox
     } // namespace GameConfig
 } // namespace cli
