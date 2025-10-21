@@ -74,7 +74,6 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
             }
         });
 
-    registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
     registry.createEntity().with<ecs::Score>("score", 0).build();
 
     m_hudSystem = std::make_unique<HUDSystem>(renderer);
@@ -84,6 +83,14 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
 
     m_playerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
     m_hudSystem->createScoreHUD(registry, 10.0f, 10.0f);
+    m_starfieldSystem->createStarfield(registry, Config::Window::WINDOW_WIDTH, Config::Window::WINDOW_HEIGHT);
+    auto beginSoundEntity = registry.createEntity()
+        .with<ecs::Audio>("game_begin", Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
+        .build();
+    if (auto* audioComp = registry.getComponent<ecs::Audio>(beginSoundEntity))
+    {
+        audioComp->play = true;
+    }
 }
 
 void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
