@@ -21,7 +21,7 @@ namespace srv
           m_socket(std::make_unique<asio::ip::udp::socket>(*m_ioContext)), m_port(0), m_tickRate(60), m_serverCaps(0),
           m_running(false), m_started(false), m_nextSessionId(1),
           m_packetHandler(std::make_unique<rnp::HandlerPacket>()), m_pingInterval(std::chrono::seconds(5)),
-          m_clientTimeout(std::chrono::seconds(30)), m_eventBus(utl::EventBus::getInstance()), m_componentId(2)
+          m_clientTimeout(std::chrono::seconds(30)), m_eventBus(utl::EventBus::getInstance())
     {
         utl::Logger::log("AsioServer: Constructor called", utl::LogLevel::INFO);
         utl::Logger::log("AsioServer: Creating I/O context and socket", utl::LogLevel::INFO);
@@ -39,8 +39,7 @@ namespace srv
     AsioServer::~AsioServer()
     {
         utl::Logger::log("AsioServer: Destructor called", utl::LogLevel::INFO);
-        stop();
-        m_eventBus.unregisterComponent(m_componentId);
+        AsioServer::stop();
         utl::Logger::log("AsioServer: Destroyed", utl::LogLevel::INFO);
     }
 

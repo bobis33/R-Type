@@ -149,7 +149,7 @@ namespace rnp
     struct EntityState
     {
             std::uint32_t id;
-            EntityType type; // EntityType
+            std::uint16_t type; // EntityType
             float x, y;
             float vx, vy;
             std::uint8_t stateFlags;

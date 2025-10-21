@@ -30,7 +30,7 @@ namespace gme
     {
 
         public:
-            RTypeServer() = default;
+            RTypeServer();
             ~RTypeServer() override = default;
 
             RTypeServer(const RTypeServer &) = delete;
@@ -42,7 +42,6 @@ namespace gme
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_SERVER; }
 
             [[nodiscard]] State getState() const override { return m_gameState; }
-            void setContext(const ServerAPI &api) override { m_ctx = api; }
 
             void start() override;
             void stop() override;
@@ -50,7 +49,6 @@ namespace gme
 
         private:
 
-            ServerAPI m_ctx;
             utl::EventBus &m_eventBus;
             ecs::Registry m_registry;
 
