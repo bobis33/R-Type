@@ -34,9 +34,16 @@ namespace utl
         SEND_PLAYER_INPUT = 0x2000,
         SEND_ENTITY_EVENT = 0x2001,
         BROADCAST_WORLD_STATE = 0x2002,
+        BROADCAST_TO_CLIENTS = 0x2003,
         SEND_TO_CLIENT = 0x2010,
+        DISCONNECT_CLIENT = 0x2011,
         REQUEST_CONNECT = 0x2020,
         REQUEST_DISCONNECT = 0x2021,
+
+        // Server Management events (0x3000 - 0x3FFF)
+        SERVER_START = 0x3000,
+        SERVER_STOP = 0x3001,
+        SERVER_STATUS_UPDATE = 0x3002,
     };
 
     ///
@@ -56,7 +63,6 @@ namespace utl
     class Event
     {
         public:
-
             EventType type;                                  ///< Type of the event
             std::uint32_t sourceId = 0;                      ///< ID of the component that sent the event (0 = system)
             std::uint32_t targetId = 0;                      ///< ID of the target component (0 = broadcast)
@@ -132,6 +138,7 @@ namespace utl
     ///
     class EventStats
     {
+        public:
             std::uint64_t totalEventsPublished = 0;                         ///< Total events published
             std::uint64_t totalEventsConsumed = 0;                          ///< Total events consumed
             std::uint64_t totalEventsExpired = 0;                           ///< Total events that expired

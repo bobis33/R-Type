@@ -5,6 +5,8 @@
 ///
 
 #include "AsioServer/AsioServer.hpp"
+#include "Utils/Event.hpp"
+#include "Utils/EventBus.hpp"
 #include "Utils/Logger.hpp"
 
 #include <chrono>
@@ -19,19 +21,26 @@ namespace srv
           m_socket(std::make_unique<asio::ip::udp::socket>(*m_ioContext)), m_port(0), m_tickRate(60), m_serverCaps(0),
           m_running(false), m_started(false), m_nextSessionId(1),
           m_packetHandler(std::make_unique<rnp::HandlerPacket>()), m_pingInterval(std::chrono::seconds(5)),
-          m_clientTimeout(std::chrono::seconds(30))
+          m_clientTimeout(std::chrono::seconds(30)), m_eventBus(utl::EventBus::getInstance()), m_componentId(2)
     {
         utl::Logger::log("AsioServer: Constructor called", utl::LogLevel::INFO);
         utl::Logger::log("AsioServer: Creating I/O context and socket", utl::LogLevel::INFO);
         setupPacketHandlers();
         utl::Logger::log("AsioServer: Packet handlers setup complete", utl::LogLevel::INFO);
-        utl::Logger::log("AsioServer: Initialized successfully", utl::LogLevel::INFO);
+
+        // EventBus integration
+        m_eventBus.registerComponent(m_componentId, "Asio Server");
+        m_eventBus.subscribe(m_componentId, utl::EventType::SEND_TO_CLIENT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::BROADCAST_WORLD_STATE);
+
+        utl::Logger::log("AsioServer: Initialized with EventBus integration", utl::LogLevel::INFO);
     }
 
     AsioServer::~AsioServer()
     {
         utl::Logger::log("AsioServer: Destructor called", utl::LogLevel::INFO);
         stop();
+        m_eventBus.unregisterComponent(m_componentId);
         utl::Logger::log("AsioServer: Destroyed", utl::LogLevel::INFO);
     }
 
@@ -204,6 +213,9 @@ namespace srv
             return;
         }
 
+        // Process EventBus events
+        processEventBusEvents();
+
         // Process send queue
         processSendQueue();
 
@@ -329,6 +341,11 @@ namespace srv
         // PONG handler
         m_packetHandler->onPong([this](const rnp::PacketPingPong &packet, const rnp::PacketContext &context)
                                 { return handlePong(packet, context); });
+
+        // ENTITY_EVENT handler (for player inputs)
+        m_packetHandler->onEntityEvent(
+            [this](const std::vector<rnp::EventRecord> &events, const rnp::PacketContext &context)
+            { return handleEntityEvent(events, context); });
 
         utl::Logger::log("AsioServer: Packet handlers initialized", utl::LogLevel::INFO);
     }
@@ -510,7 +527,6 @@ namespace srv
 
     rnp::HandlerResult AsioServer::handleConnect(const rnp::PacketConnect &packet, const rnp::PacketContext &context)
     {
-
         utl::Logger::log("AsioServer: Handling CONNECT packet from " + context.senderAddress + ":" +
                              std::to_string(context.senderPort),
                          utl::LogLevel::INFO);
@@ -570,6 +586,14 @@ namespace srv
                              ")",
                          utl::LogLevel::INFO);
 
+        // Publier vers GameServer
+        m_eventBus.publish(utl::EventType::PLAYER_CONNECTED, sessionId, m_componentId,
+                           4000); // GameServer ID
+
+        utl::Logger::log(
+            "AsioServer: Nouvelle connexion publiée vers GameServer (sessionId: " + std::to_string(sessionId) + ")",
+            utl::LogLevel::INFO);
+
         return rnp::HandlerResult::SUCCESS;
     }
 
@@ -604,6 +628,14 @@ namespace srv
             utl::Logger::log("AsioServer: DISCONNECT from unknown session " + std::to_string(context.sessionId),
                              utl::LogLevel::WARNING);
         }
+
+        // Publier vers GameServer
+        m_eventBus.publish(utl::EventType::PLAYER_DISCONNECTED, context.sessionId, m_componentId,
+                           4000); // GameServer ID
+
+        utl::Logger::log(
+            "AsioServer: Déconnexion publiée vers GameServer (sessionId: " + std::to_string(context.sessionId) + ")",
+            utl::LogLevel::INFO);
 
         return rnp::HandlerResult::SUCCESS;
     }
@@ -806,6 +838,90 @@ namespace srv
             sendPacketImmediate(packet.data, packet.destination);
             m_sendQueue.pop();
         }
+    }
+
+    void AsioServer::processEventBusEvents()
+    {
+        // Consommer les événements du GameServer
+        auto events = m_eventBus.consumeForTarget(m_componentId);
+
+        for (const auto &event : events)
+        {
+            switch (event.type)
+            {
+                case utl::EventType::SEND_TO_CLIENT:
+                    handleSendToClientEvent(event);
+                    break;
+
+                case utl::EventType::BROADCAST_WORLD_STATE:
+                    handleBroadcastEvent(event);
+                    break;
+
+                default:
+                    utl::Logger::log("AsioServer: Événement non géré: " +
+                                         std::to_string(static_cast<uint32_t>(event.type)),
+                                     utl::LogLevel::WARNING);
+                    break;
+            }
+        }
+    }
+
+    void AsioServer::handleSendToClientEvent(const utl::Event &event)
+    {
+        // Extraire l'ID du client cible et les données
+        if (event.data.size() >= sizeof(uint32_t))
+        {
+            uint32_t sessionId = 0;
+            std::memcpy(&sessionId, event.data.data(), sizeof(uint32_t));
+
+            std::vector<uint8_t> messageData(event.data.begin() + sizeof(uint32_t), event.data.end());
+
+            // Utiliser la méthode existante
+            sendToClient(sessionId, messageData);
+
+            utl::Logger::log("AsioServer: Message envoye au client " + std::to_string(sessionId) +
+                                 " (taille: " + std::to_string(messageData.size()) + " bytes)",
+                             utl::LogLevel::INFO);
+        }
+    }
+
+    void AsioServer::handleBroadcastEvent(const utl::Event &event)
+    {
+        // Utiliser la méthode existante pour broadcaster
+        sendToAllClients(event.data);
+
+        utl::Logger::log(
+            "AsioServer: Message diffuse a tous les clients (taille: " + std::to_string(event.data.size()) + " bytes)",
+            utl::LogLevel::INFO);
+    }
+
+    rnp::HandlerResult AsioServer::handleEntityEvent(const std::vector<rnp::EventRecord> &events,
+                                                     const rnp::PacketContext &context)
+    {
+        // Filtrer les événements d'input et les publier vers GameServer
+        for (const auto &eventRecord : events)
+        {
+            if (eventRecord.type == rnp::EventType::INPUT)
+            {
+                m_eventBus.publish(utl::EventType::PLAYER_INPUT_RECEIVED, eventRecord, m_componentId,
+                                   4000); // GameServer ID
+
+                utl::Logger::log("AsioServer: Input joueur publie vers GameServer (sessionId: " +
+                                     std::to_string(context.sessionId) + ")",
+                                 utl::LogLevel::INFO);
+            }
+            else
+            {
+                m_eventBus.publish(utl::EventType::ENTITY_EVENT_RECEIVED, eventRecord, m_componentId,
+                                   4000); // GameServer ID
+
+                utl::Logger::log("AsioServer: Evenement entite publie vers GameServer (type: " +
+                                     std::to_string(static_cast<uint8_t>(eventRecord.type)) + ")",
+                                 utl::LogLevel::INFO);
+            }
+        }
+
+        return rnp::HandlerResult::SUCCESS;
     }
 
 } // namespace srv

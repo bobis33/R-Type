@@ -10,6 +10,7 @@
 #include "Interfaces/Protocol/HandlerPacket.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/Event.hpp"
 #include "Utils/EventBus.hpp"
 
 #include <asio.hpp>
@@ -67,6 +68,38 @@ namespace srv
     ///
     class AsioServer : public INetworkServer
     {
+
+        public:
+            ///
+            /// @brief Constructor
+            ///
+            AsioServer();
+
+            ///
+            /// @brief Destructor
+            ///
+            ~AsioServer() override;
+
+            [[nodiscard]] const std::string getName() const override { return "Network_Asio_Server"; }
+            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
+
+            // INetworkServer implementation
+            void init(const std::string &host, std::uint16_t port) override;
+            void start() override;
+            void stop() override;
+            void update() override;
+            void sendToClient(std::uint32_t sessionId, const std::vector<std::uint8_t> &data,
+                              bool reliable = false) override;
+            void sendToAllClients(const std::vector<std::uint8_t> &data, bool reliable = false) override;
+            void disconnectClient(std::uint32_t sessionId) override;
+
+            [[nodiscard]] std::size_t getClientCount() const override;
+            [[nodiscard]] std::vector<std::uint32_t> getConnectedSessions() const override;
+            [[nodiscard]] bool isRunning() const override;
+
+            void setTickRate(std::uint16_t tickRate) override;
+            void setServerCapabilities(std::uint32_t caps) override;
+
         private:
             // Network components
             std::unique_ptr<asio::io_context> m_ioContext;
@@ -104,6 +137,8 @@ namespace srv
             std::chrono::milliseconds m_pingInterval;
             std::chrono::milliseconds m_clientTimeout;
 
+            // EventBus
+            std::uint32_t m_componentId;
             utl::EventBus &m_eventBus;
 
             ///
@@ -214,36 +249,31 @@ namespace srv
             ///
             void processSendQueue();
 
-        public:
             ///
-            /// @brief Constructor
+            /// @brief Process EventBus events for network operations
             ///
-            AsioServer();
+            void processEventBusEvents();
 
             ///
-            /// @brief Destructor
+            /// @brief Handle send to client event from EventBus
+            /// @param event Send to client event
             ///
-            ~AsioServer() override;
+            void handleSendToClientEvent(const utl::Event &event);
 
-            [[nodiscard]] const std::string getName() const override { return "Network_Asio_Server"; }
-            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
+            ///
+            /// @brief Handle broadcast event from EventBus
+            /// @param event Broadcast event
+            ///
+            void handleBroadcastEvent(const utl::Event &event);
 
-            // INetworkServer implementation
-            void init(const std::string &host, std::uint16_t port) override;
-            void start() override;
-            void stop() override;
-            void update() override;
-            void sendToClient(std::uint32_t sessionId, const std::vector<std::uint8_t> &data,
-                              bool reliable = false) override;
-            void sendToAllClients(const std::vector<std::uint8_t> &data, bool reliable = false) override;
-            void disconnectClient(std::uint32_t sessionId) override;
-
-            [[nodiscard]] std::size_t getClientCount() const override;
-            [[nodiscard]] std::vector<std::uint32_t> getConnectedSessions() const override;
-            [[nodiscard]] bool isRunning() const override;
-
-            void setTickRate(std::uint16_t tickRate) override;
-            void setServerCapabilities(std::uint32_t caps) override;
+            ///
+            /// @brief Handle entity event packet (including player inputs)
+            /// @param events Entity event records
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleEntityEvent(const std::vector<rnp::EventRecord> &events,
+                                                 const rnp::PacketContext &context);
     };
 
 } // namespace srv
