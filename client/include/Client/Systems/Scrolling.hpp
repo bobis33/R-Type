@@ -6,10 +6,10 @@
 
 #pragma once
 
+#include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "Client/GameConfig.hpp"
 
 namespace cli
 {
@@ -56,7 +56,8 @@ namespace cli
                     }
                     else if (isFloor)
                     {
-                        transform->y = static_cast<float>(window.height) - scaledHeight - GameConfig::Stage::FLOOR_OFFSET_Y;
+                        transform->y =
+                            static_cast<float>(window.height) - scaledHeight - GameConfig::Stage::FLOOR_OFFSET_Y;
                     }
 
                     // Move horizontally
@@ -76,5 +77,3 @@ namespace cli
     }; // class ScrollingSystem
 
 } // namespace cli
-
-

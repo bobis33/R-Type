@@ -164,14 +164,15 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             contributorsText += " ";
         }
     }
-    m_contributorsEntity = registry.createEntity()
-                               .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
-                               .with<ecs::Transform>("transform_contributors", static_cast<float>(renderer->getWindowSize().width * 0.9F),
-                                                     static_cast<float>(renderer->getWindowSize().height * 0.9F))
-                               .with<ecs::Color>("color_contributors", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                                                 GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
-                               .with<ecs::Text>("contributors_text", contributorsText, 24U)
-                               .build();
+    m_contributorsEntity =
+        registry.createEntity()
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_contributors", static_cast<float>(renderer->getWindowSize().width * 0.9F),
+                                  static_cast<float>(renderer->getWindowSize().height * 0.9F))
+            .with<ecs::Color>("color_contributors", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b,
+                              GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Text>("contributors_text", contributorsText, 24U)
+            .build();
 
     m_selectedIndex = 2;
 }

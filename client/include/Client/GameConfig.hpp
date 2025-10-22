@@ -80,7 +80,7 @@ namespace cli
         } // namespace LoadingAnimation
         namespace Stage
         {
-            inline constexpr float FLOOR_OFFSET_Y = 16.0f; // remonte le sol par rapport au bas
+            inline constexpr float FLOOR_OFFSET_Y = 16.0f;   // remonte le sol par rapport au bas
             inline constexpr float CEILING_OFFSET_Y = -1.0f; // descend le plafond depuis le haut
         } // namespace Stage
         namespace Enemy

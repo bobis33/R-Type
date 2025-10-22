@@ -56,8 +56,9 @@ void cli::PlayerController::update(ecs::Registry &registry, float dt)
 {
     auto *playerTransform = registry.getComponent<ecs::Transform>(m_playerEntity);
     auto *playerVelocity = registry.getComponent<ecs::Velocity>(m_playerEntity);
-    
-    if (!playerTransform || !playerVelocity) return;
+
+    if (!playerTransform || !playerVelocity)
+        return;
 
     float speed = GameConfig::Player::SPEED;
     float diagonal_speed = speed * GameConfig::Player::DIAGONAL_SPEED_MULTIPLIER;
@@ -108,6 +109,7 @@ void cli::PlayerController::update(ecs::Registry &registry, float dt)
     playerTransform->y = std::max(playerTransform->y, 0.F);
     playerTransform->x = std::min(playerTransform->x, static_cast<float>(Config::Window::WINDOW_WIDTH) -
                                                           GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
-    playerTransform->y = std::min(playerTransform->y,
-                                 static_cast<float>(Config::Window::WINDOW_HEIGHT) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
+    playerTransform->y =
+        std::min(playerTransform->y, static_cast<float>(Config::Window::WINDOW_HEIGHT) -
+                                         GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
 }

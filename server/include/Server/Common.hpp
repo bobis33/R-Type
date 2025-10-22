@@ -36,5 +36,5 @@ namespace srv
         inline auto PLUGINS_GAME_RTYPE_SERVER =
             std::filesystem::path(PLUGINS_DIR) / ("game_rtype_server" + std::string(PLUGINS_EXTENSION));
 
-    }
+    } // namespace Path::Plugin
 } // namespace srv

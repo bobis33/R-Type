@@ -13,3 +13,9 @@
 [submodule "third-party/asio"]
 	path = third-party/asio
 	url = git@github.com:chriskohlhoff/asio.git
+[submodule "third-party/imgui-sfml"]
+	path = third-party/imgui-sfml
+	url = git@github.com:SFML/imgui-sfml.git
+[submodule "third-party/imgui"]
+	path = third-party/imgui
+	url = https://github.com/ocornut/imgui

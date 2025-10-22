@@ -77,7 +77,6 @@ namespace cli
                     .build();
             }
 
-
             void spawnWave(ecs::Registry &registry)
             {
                 int waveSize = 5 + (std::rand() % 4);

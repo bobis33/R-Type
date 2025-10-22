@@ -101,7 +101,6 @@ namespace cli
                     }
                 }
 
-
                 for (ecs::Entity entity : projectilesToRemove)
                 {
                     removeProjectile(registry, entity);
@@ -154,6 +153,7 @@ namespace cli
                     }
                 }
             }
+
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
 
@@ -207,7 +207,6 @@ namespace cli
                 if (registry.hasComponent<ecs::Hitbox>(entity))
                     registry.removeComponent<ecs::Hitbox>(entity);
             }
-
 
             void createExplosion(ecs::Registry &registry, float x, float y)
             {

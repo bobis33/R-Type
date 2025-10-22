@@ -23,7 +23,7 @@ namespace cli
     class PlayerDirectionSystem final : public eng::ASystem
     {
         public:
-            explicit PlayerDirectionSystem(const AppConfig& appConfig) : m_appConfig(appConfig) {}
+            explicit PlayerDirectionSystem(const AppConfig &appConfig) : m_appConfig(appConfig) {}
             ~PlayerDirectionSystem() override = default;
 
             PlayerDirectionSystem(const PlayerDirectionSystem &) = delete;
@@ -63,7 +63,7 @@ namespace cli
                         int frames_per_row = GameConfig::Player::FRAMES_PER_ROW;
                         int frame_x = (frame % frames_per_row) * frame_width;
                         int frame_y = (frame / frames_per_row) * frame_height;
-                        
+
                         int skin_offset = m_appConfig.skinIndex * static_cast<int>(GameConfig::Player::SPRITE_HEIGHT);
                         frame_y += skin_offset;
 
@@ -74,8 +74,9 @@ namespace cli
                     }
                 }
             }
+
         private:
-            const AppConfig& m_appConfig;
+            const AppConfig &m_appConfig;
     }; // class PlayerDirectionSystem
 
 } // namespace cli

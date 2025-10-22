@@ -135,6 +135,7 @@ namespace eng
             virtual void setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny) = 0;
 
             virtual void drawPoint(float x, float y, Color color) = 0;
+            virtual void renderGui() = 0;
 
         private:
     }; // class IRenderer

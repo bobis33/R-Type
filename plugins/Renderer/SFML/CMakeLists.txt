@@ -13,11 +13,13 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
         "${CMAKE_SOURCE_DIR}/third-party/SFML/include"
+        "${CMAKE_SOURCE_DIR}/third-party/imgui-sfml"
+        "${CMAKE_SOURCE_DIR}/third-party/imgui"
         "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
         "${CMAKE_SOURCE_DIR}/modules/Utils/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE utils sfml-graphics sfml-system sfml-window)
+target_link_libraries(${PROJECT_NAME} PRIVATE utils sfml-graphics sfml-system sfml-window ImGui-SFML::ImGui-SFML)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON

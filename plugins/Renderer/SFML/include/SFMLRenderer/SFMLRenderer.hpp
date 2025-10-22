@@ -25,7 +25,7 @@ namespace eng
 
         public:
             SFMLRenderer() = default;
-            ~SFMLRenderer() override = default;
+            ~SFMLRenderer() override;
 
             SFMLRenderer(const SFMLRenderer &) = delete;
             SFMLRenderer &operator=(const SFMLRenderer &) = delete;
@@ -63,6 +63,7 @@ namespace eng
             void drawSprite(const std::string &name) override;
 
             void drawPoint(float x, float y, Color color) override;
+            void renderGui() override;
 
         private:
             std::unordered_map<std::string, sf::Texture> textures;
@@ -71,6 +72,9 @@ namespace eng
             std::unordered_map<std::string, sf::Font> fonts;
             std::unordered_map<std::string, sf::Text> texts;
             std::unordered_map<std::string, sf::Sprite> sprites;
+            sf::Clock deltaClock;
+
+            bool showDebugOverlay = false;
 
     }; // class SFMLRenderer
 

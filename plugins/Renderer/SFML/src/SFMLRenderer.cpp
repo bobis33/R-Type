@@ -1,8 +1,12 @@
 #include <iostream>
 
+#include "imgui-SFML.h"
+#include "imgui.h"
 #include <SFML/Graphics.hpp>
 
 #include "SFMLRenderer/SFMLRenderer.hpp"
+
+eng::SFMLRenderer::~SFMLRenderer() { ImGui::SFML::Shutdown(); }
 
 void eng::SFMLRenderer::createWindow(const std::string &title, unsigned int height, unsigned int width,
                                      const unsigned int frameLimit, const bool fullscreen)
@@ -10,6 +14,7 @@ void eng::SFMLRenderer::createWindow(const std::string &title, unsigned int heig
     const sf::VideoMode mode = fullscreen ? sf::VideoMode::getDesktopMode() : sf::VideoMode({width, height});
     window.create(mode, title, fullscreen ? sf::State::Fullscreen : sf::State::Windowed);
     window.setFramerateLimit(frameLimit);
+    ImGui::SFML::Init(window);
 }
 
 bool eng::SFMLRenderer::windowIsOpen() const { return window.isOpen(); }
@@ -192,6 +197,7 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
     if (const auto eventOpt = window.pollEvent())
     {
         const auto &e = *eventOpt;
+        ImGui::SFML::ProcessEvent(window, e);
 
         if (e.is<sf::Event::Closed>())
         {
@@ -201,6 +207,10 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
 
         if (const auto *const key = e.getIf<sf::Event::KeyPressed>())
         {
+            if (key->scancode == sf::Keyboard::Scancode::LControl)
+            {
+                showDebugOverlay = !showDebugOverlay;
+            }
             event.type = EventType::KeyPressed;
             std::cout << "Key pressed: " << std::to_string(static_cast<int>(key->scancode)) << '\n';
             event.key = scancodeToKey(key->scancode);
@@ -333,4 +343,24 @@ eng::WindowSize eng::SFMLRenderer::getWindowSize()
 {
     const sf::Vector2u size = window.getSize();
     return {.width = size.x, .height = size.y};
+}
+
+void eng::SFMLRenderer::renderGui()
+{
+    ImGui::SFML::Update(window, deltaClock.restart());
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.35f);
+
+    if (showDebugOverlay)
+    {
+        constexpr ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                                  ImGuiWindowFlags_NoSavedSettings |
+                                                  ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+        ImGui::Begin("FPS Overlay", nullptr, window_flags);
+        const float fps = ImGui::GetIO().Framerate;
+        ImGui::Text("FPS: %.1f (%.3f ms/frame)", fps, 1000.0f / fps);
+        ImGui::End();
+    }
+
+    ImGui::SFML::Render(window);
 }

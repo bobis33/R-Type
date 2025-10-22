@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "ECS/Component.hpp"
-#include "ECS/Registry.hpp"
-#include "ECS/Interfaces/ISystems.hpp"
-#include "Interfaces/IRenderer.hpp"
 #include "Client/Common.hpp"
+#include "ECS/Component.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
+#include "ECS/Registry.hpp"
+#include "Interfaces/IRenderer.hpp"
 
 namespace cli
 {
@@ -31,9 +31,9 @@ namespace cli
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-            
-            void createStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight, 
-                           const eng::Color &color, float velocity, const std::string &id);
+
+            void createStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight,
+                             const eng::Color &color, float velocity, const std::string &id);
             void createShootingStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
             void createPlanets(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
             void createNebulae(ecs::Registry &registry, int count, int screenWidth, int screenHeight);

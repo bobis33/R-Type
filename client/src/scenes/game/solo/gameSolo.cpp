@@ -2,15 +2,16 @@
 #include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
-#include "Client/Systems/HUD.hpp"
-#include "Client/Systems/Starfield.hpp"
 #include "Client/Managers/StageManager.hpp"
+#include "Client/Systems/HUD.hpp"
 #include "Client/Systems/PlayerController.hpp"
+#include "Client/Systems/Starfield.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include <algorithm>
 
-cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& appConfig)
+cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
+                        const AppConfig &appConfig)
     : m_audio(audio), m_appConfig(appConfig)
 {
     auto &registry = AScene::getRegistry();
@@ -118,7 +119,7 @@ bool cli::GameSolo::isUpPressed() const
     {
         case 0:
             return m_keysPressed.count(eng::Key::Z) && m_keysPressed.at(eng::Key::Z);
-        case 1: 
+        case 1:
             return m_keysPressed.count(eng::Key::W) && m_keysPressed.at(eng::Key::W);
         default:
             return m_keysPressed.count(eng::Key::Up) && m_keysPressed.at(eng::Key::Up);
@@ -173,8 +174,9 @@ void cli::GameSolo::updatePlayerSkin()
 {
     auto &registry = getRegistry();
     auto *playerRect = registry.getComponent<ecs::Rect>(m_playerEntity);
-    
-    if (playerRect) {
+
+    if (playerRect)
+    {
         float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }

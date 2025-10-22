@@ -13,7 +13,8 @@ static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
-cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& config)
+cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
+                        const AppConfig &config)
     : m_renderer(renderer), m_audio(audio), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
@@ -242,7 +243,7 @@ void cli::Settings::event(const eng::Event &event)
                 {
                     int newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 10 : -10);
                     m_audioVolume = (std::max)(0, (std::min)(100, newVolume));
-                    const_cast<AppConfig&>(m_appConfig).audioVolume = m_audioVolume;
+                    const_cast<AppConfig &>(m_appConfig).audioVolume = m_audioVolume;
                 }
                 else if (selectedOption == "FPS")
                 {
@@ -250,7 +251,7 @@ void cli::Settings::event(const eng::Event &event)
                         m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
                     else
                         m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
-                    const_cast<AppConfig&>(m_appConfig).videoQuality = m_videoQuality;
+                    const_cast<AppConfig &>(m_appConfig).videoQuality = m_videoQuality;
                     applyVideoQuality();
                 }
                 else if (selectedOption == "Controls")
@@ -259,7 +260,7 @@ void cli::Settings::event(const eng::Event &event)
                         m_controlScheme = (m_controlScheme == 0) ? 2 : m_controlScheme - 1;
                     else
                         m_controlScheme = (m_controlScheme == 2) ? 0 : m_controlScheme + 1;
-                    const_cast<AppConfig&>(m_appConfig).controlScheme = m_controlScheme;
+                    const_cast<AppConfig &>(m_appConfig).controlScheme = m_controlScheme;
                 }
                 else if (selectedOption == "Skin")
                 {
@@ -267,8 +268,8 @@ void cli::Settings::event(const eng::Event &event)
                         m_skinIndex = (m_skinIndex == 0) ? 4 : m_skinIndex - 1;
                     else
                         m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
-                    const_cast<AppConfig&>(m_appConfig).skinIndex = m_skinIndex;
-                    
+                    const_cast<AppConfig &>(m_appConfig).skinIndex = m_skinIndex;
+
                     // Appliquer immédiatement le nouveau skin
                     applySkinChange();
                 }
@@ -286,7 +287,7 @@ void cli::Settings::loadFromConfig()
     m_videoQuality = m_appConfig.videoQuality;
     m_controlScheme = m_appConfig.controlScheme;
     m_skinIndex = m_appConfig.skinIndex;
-    
+
     updateSettingsDisplay();
     applyVideoQuality();
 }
@@ -294,7 +295,8 @@ void cli::Settings::loadFromConfig()
 void cli::Settings::applyVideoQuality()
 {
     unsigned int frameLimit;
-    switch (m_videoQuality) {
+    switch (m_videoQuality)
+    {
         case 0:
             frameLimit = 60;
             break;
@@ -306,7 +308,8 @@ void cli::Settings::applyVideoQuality()
             frameLimit = 240;
             break;
     }
-    if (m_renderer) {
+    if (m_renderer)
+    {
         m_renderer->setFrameLimit(frameLimit);
     }
 }
