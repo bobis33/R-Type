@@ -295,23 +295,6 @@ void cli::Settings::loadFromConfig()
 void cli::Settings::applyVideoQuality()
 {
     unsigned int frameLimit;
-    switch (m_videoQuality)
-    {
-        case 0:
-            frameLimit = 60;
-            break;
-        case 1:
-            frameLimit = 144;
-            break;
-        case 2:
-        default:
-            frameLimit = 240;
-            break;
-    }
-    if (m_renderer)
-    {
-        m_renderer->setFrameLimit(frameLimit);
-    }
 }
 
 void cli::Settings::applySkinChange()

@@ -139,7 +139,7 @@ namespace eng
             return;
         }
 
-        std::cout << "[CLIENT DEBUG] AsioClient::update() called\n";
+        utl::Logger::log("[CLIENT DEBUG] AsioClient::update() called\n", utl::LogLevel::INFO);
 
         // Process send queue
         processSendQueue();

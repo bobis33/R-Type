@@ -6,6 +6,8 @@
 
 #include "SFMLRenderer/SFMLRenderer.hpp"
 
+#include "Utils/Logger.hpp"
+
 eng::SFMLRenderer::~SFMLRenderer() { ImGui::SFML::Shutdown(); }
 
 void eng::SFMLRenderer::createWindow(const std::string &title, unsigned int height, unsigned int width,
@@ -212,7 +214,7 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
                 showDebugOverlay = !showDebugOverlay;
             }
             event.type = EventType::KeyPressed;
-            std::cout << "Key pressed: " << std::to_string(static_cast<int>(key->scancode)) << '\n';
+            utl::Logger::log("Key pressed: " + std::to_string(static_cast<int>(key->scancode)), utl::LogLevel::INFO);
             event.key = scancodeToKey(key->scancode);
             return true;
         }
@@ -220,7 +222,7 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
         if (const auto *const key = e.getIf<sf::Event::KeyReleased>())
         {
             event.type = EventType::KeyReleased;
-            std::cout << "Key released: " << std::to_string(static_cast<int>(key->scancode)) << '\n';
+            utl::Logger::log("Key pressed: " + std::to_string(static_cast<int>(key->scancode)), utl::LogLevel::INFO);
             event.key = scancodeToKey(key->scancode);
             return true;
         }
