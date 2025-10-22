@@ -66,6 +66,7 @@ cli::Client::Client(const ArgsConfig &cfg)
                                           m_config.fullscreen);
     m_engine->getNetwork()->setPlayerName("Bobi");
     m_engine->getNetwork()->connect(m_config.host, m_config.port);
+    m_gameSolo->init(m_engine);
 }
 
 void cli::Client::run()
@@ -73,12 +74,10 @@ void cli::Client::run()
     setupScenes();
 
     eng::Event event;
-    const eng::Color clearColor = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
-
     while (m_engine->getState() == eng::State::RUN)
     {
         handleEvents(event);
-        m_engine->render(m_engine->getRenderer()->getWindowSize(), clearColor);
+        m_engine->render(m_engine->getRenderer()->getWindowSize(), DARK);
     }
 }
 

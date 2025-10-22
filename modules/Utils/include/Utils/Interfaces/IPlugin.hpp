@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #if defined(_WIN32) || defined(_WIN64)

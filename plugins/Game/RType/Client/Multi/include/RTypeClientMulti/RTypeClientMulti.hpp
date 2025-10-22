@@ -31,9 +31,11 @@ namespace gme
             [[nodiscard]] const std::string getName() const override { return "RType_Client_Multi"; }
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_CLIENT; }
 
-            void update(float deltaTime, unsigned int width, unsigned int height) override {}
+            void init(std::unique_ptr<eng::Engine> &engine) override { m_engine = std::move(engine); }
+            void update(float deltaTime, unsigned int width, unsigned int height) override;
 
         private:
+            std::shared_ptr<eng::Engine> m_engine;
     }; // class RTypeClientMulti
 
 } // namespace gme
