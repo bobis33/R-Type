@@ -91,6 +91,10 @@ More specific documentation for each part of the project can be found in their r
   - [Client documentation](https://github.com/bobis33/R-Type/blob/main/client/README.md)
   - [Server documentation](https://github.com/bobis33/R-Type/blob/main/server/README.md)
 
+## Technology Stack Analysis
+For a detailed comparative study of the technologies used in this project and the reasoning behind our architectural choices, see:
+📊 [**Technical Analysis & Technology Comparison**](TECH_ANALYSIS.md)
+
 ## External Libraries
 All dependencies are included as submodules in the [third-party](https://github.com/bobis33/R-Type/tree/main/third-party) directory.
 
