@@ -67,6 +67,7 @@ cli::Client::Client(const ArgsConfig &cfg)
     m_engine->getNetwork()->setPlayerName("Bobi");
     m_engine->getNetwork()->connect(m_config.host, m_config.port);
     m_gameSolo->init(m_engine);
+    m_gameMulti->init(m_engine);
 }
 
 void cli::Client::run()

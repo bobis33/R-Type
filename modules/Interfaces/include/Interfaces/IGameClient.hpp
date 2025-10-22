@@ -20,7 +20,7 @@ namespace gme
     class IGameClient : public utl::IPlugin
     {
         public:
-            virtual void init(std::unique_ptr<eng::Engine> &engine) = 0;
+            virtual void init(const std::unique_ptr<eng::Engine> &engine) = 0;
             virtual void update(float deltaTime, unsigned int width, unsigned int height) = 0;
 
         private:
