@@ -5,10 +5,11 @@
 ///
 
 #include "AsioClient/AsioClient.hpp"
+#include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/Event.hpp"
 #include "Utils/Logger.hpp"
 
 #include <chrono>
-#include <iostream>
 #include <random>
 
 namespace eng
@@ -19,16 +20,23 @@ namespace eng
           m_socket(std::make_unique<asio::ip::udp::socket>(*m_ioContext)), m_serverPort(0),
           m_connectionState(ConnectionState::DISCONNECTED), m_sessionId(0), m_serverTickRate(60), m_clientCaps(0),
           m_running(false), m_packetHandler(std::make_unique<rnp::HandlerPacket>()), m_lastPingNonce(0), m_latency(0),
-          m_pingInterval(std::chrono::seconds(5)), m_connectionTimeout(std::chrono::seconds(30))
+          m_pingInterval(std::chrono::seconds(5)), m_connectionTimeout(std::chrono::seconds(30)),
+          m_eventBus(utl::EventBus::getInstance()), m_componentId(utl::NETWORK_CLIENT)
     {
         m_stats.connectionTime = std::chrono::steady_clock::now();
         setupPacketHandlers();
         utl::Logger::log("AsioClient: Initialized", utl::LogLevel::INFO);
+
+        m_eventBus.registerComponent(m_componentId, "Asio Client");
+        m_eventBus.subscribe(m_componentId, utl::EventType::SEND_PLAYER_INPUT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::REQUEST_CONNECT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::REQUEST_DISCONNECT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::SEND_ENTITY_EVENT);
     }
 
     AsioClient::~AsioClient()
     {
-        disconnect();
+        AsioClient::disconnect();
         utl::Logger::log("AsioClient: Destroyed", utl::LogLevel::INFO);
     }
 
@@ -138,6 +146,8 @@ namespace eng
         {
             return;
         }
+        // Process EventBus events
+        processBusEvent();
 
         utl::Logger::log("[CLIENT DEBUG] AsioClient::update() called\n", utl::LogLevel::INFO);
 
@@ -202,12 +212,17 @@ namespace eng
                                 { return handlePing(packet, context); });
 
         // ERROR handler
-        m_packetHandler->onError([this](const rnp::PacketError &packet, const rnp::PacketContext &context)
+        m_packetHandler->onError([](const rnp::PacketError &packet, const rnp::PacketContext &context)
                                  { return handleError(packet, context); });
 
         // WORLD_STATE handler
         m_packetHandler->onWorldState([this](const rnp::PacketWorldState &packet, const rnp::PacketContext &context)
                                       { return handleWorldState(packet, context); });
+
+        // ENTITY_EVENT handler (for server events)
+        m_packetHandler->onEntityEvent(
+            [this](const std::vector<rnp::EventRecord> &events, const rnp::PacketContext &context)
+            { return handleEntityEvent(events, context); });
 
         utl::Logger::log("AsioClient: Packet handlers initialized", utl::LogLevel::INFO);
     }
@@ -241,7 +256,7 @@ namespace eng
 
         m_lastServerResponse = std::chrono::steady_clock::now();
         m_stats.packetsReceived++;
-        m_stats.bytesTransferred += bytesReceived;
+        m_stats.bytesTransferred += static_cast<std::uint32_t>(bytesReceived);
 
         // Create packet context
         rnp::PacketContext context;
@@ -268,7 +283,7 @@ namespace eng
         }
     }
 
-    void AsioClient::networkThreadLoop()
+    void AsioClient::networkThreadLoop() const
     {
         utl::Logger::log("AsioClient: Network thread started", utl::LogLevel::INFO);
 
@@ -305,7 +320,7 @@ namespace eng
         {
             m_socket->send_to(asio::buffer(data), m_serverEndpoint);
             m_stats.packetsSent++;
-            m_stats.bytesTransferred += data.size();
+            m_stats.bytesTransferred += static_cast<std::uint32_t>(data.size());
         }
         catch (const std::exception &e)
         {
@@ -324,6 +339,9 @@ namespace eng
                              ", Tick rate: " + std::to_string(m_serverTickRate) + "Hz",
                          utl::LogLevel::INFO);
 
+        rnp::Serializer serializer;
+        m_eventBus.publish(utl::EventType::CONNECTION_ACCEPTED, serializer.getData(), m_componentId,
+                           utl::RENDERING_ENGINE); // GameClient ID
         return rnp::HandlerResult::SUCCESS;
     }
 
@@ -390,7 +408,7 @@ namespace eng
 
     rnp::HandlerResult AsioClient::handleError(const rnp::PacketError &packet, const rnp::PacketContext &context)
     {
-        auto errorCode = static_cast<rnp::ErrorCode>(packet.errorCode);
+        const auto errorCode = static_cast<rnp::ErrorCode>(packet.errorCode);
         std::string errorStr = "Unknown error";
 
         switch (errorCode)
@@ -418,14 +436,17 @@ namespace eng
     }
 
     rnp::HandlerResult AsioClient::handleWorldState(const rnp::PacketWorldState &packet,
-                                                    const rnp::PacketContext &context)
+                                                    const rnp::PacketContext &context) const
     {
         // Handle world state update
         utl::Logger::log("AsioClient: World state received - Tick: " + std::to_string(packet.serverTick) +
                              ", Entities: " + std::to_string(packet.entityCount),
                          utl::LogLevel::INFO);
 
-        // TODO: Forward to game engine for processing
+        // Forward to GameClient via EventBus
+        m_eventBus.publish(utl::EventType::WORLD_STATE_RECEIVED, packet, m_componentId,
+                           utl::RENDERING_ENGINE); // GameClient ID
+
         return rnp::HandlerResult::SUCCESS;
     }
 
@@ -587,6 +608,62 @@ namespace eng
         static std::mt19937 gen(rd());
         static std::uniform_int_distribution<std::uint32_t> dis(1, UINT32_MAX);
         return dis(gen);
+    }
+
+    void AsioClient::processBusEvent()
+    {
+
+        for (const auto events = m_eventBus.consumeForTarget(m_componentId); const auto &e : events)
+        {
+            switch (e.type)
+            {
+                case utl::EventType::SEND_PLAYER_INPUT:
+                {
+                    sendToServer(e.data);
+                    break;
+                }
+                case utl::EventType::REQUEST_CONNECT:
+                {
+                    if (m_connectionState == ConnectionState::DISCONNECTED)
+                    {
+                        connect("127.0.0.1", 4242);
+                    }
+                    break;
+                }
+                case utl::EventType::REQUEST_DISCONNECT:
+                {
+                    if (m_connectionState == ConnectionState::CONNECTED)
+                    {
+                        disconnect();
+                    }
+                    break;
+                }
+                case utl::EventType::SEND_ENTITY_EVENT:
+                {
+                    // Forward entity events to server
+                    sendToServer(e.data);
+                    break;
+                }
+                default:
+                {
+                    utl::Logger::log("AsioClient: Unhandled event type: " + std::to_string(static_cast<int>(e.type)),
+                                     utl::LogLevel::WARNING);
+                    break;
+                }
+            }
+        }
+    }
+
+    rnp::HandlerResult AsioClient::handleEntityEvent(const std::vector<rnp::EventRecord> &events,
+                                                     const rnp::PacketContext &context) const
+    {
+        utl::Logger::log("AsioClient: Received " + std::to_string(events.size()) + " entity events from server",
+                         utl::LogLevel::INFO);
+
+        m_eventBus.publish(utl::EventType::ENTITY_EVENT_RECEIVED, events, m_componentId,
+                           utl::RENDERING_ENGINE); // GameClient ID
+
+        return rnp::HandlerResult::SUCCESS;
     }
 
 } // namespace eng

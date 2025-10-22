@@ -8,7 +8,6 @@
 #include "Client/Systems/Starfield.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <algorithm>
 
 cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
                         const AppConfig &appConfig)

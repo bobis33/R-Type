@@ -9,7 +9,7 @@
 #include "Interfaces/INetworkClient.hpp"
 #include "Interfaces/Protocol/HandlerPacket.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
-#include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/EventBus.hpp"
 
 #include <asio.hpp>
 #include <atomic>
@@ -32,7 +32,7 @@ namespace eng
             std::vector<std::uint8_t> data;
             bool reliable;
 
-            QueuedPacket(const std::vector<std::uint8_t> &d, bool rel = false) : data(d), reliable(rel) {}
+            explicit QueuedPacket(const std::vector<std::uint8_t> &d, const bool rel = false) : data(d), reliable(rel) {}
     };
 
     ///
@@ -52,8 +52,52 @@ namespace eng
     /// @brief Asio UDP client implementation
     /// @namespace eng
     ///
-    class AsioClient : public INetworkClient
+    class AsioClient final : public INetworkClient
     {
+        public:
+            ///
+            /// @brief Constructor
+            ///
+            AsioClient();
+
+            ///
+            /// @brief Destructor
+            ///
+            ~AsioClient() override;
+
+            // INetworkClient implementation
+            void connect(const std::string &host, std::uint16_t port) override;
+            void disconnect() override;
+
+            void update() override;
+
+            [[nodiscard]] const std::string getName() const override { return "Network_Client"; }
+            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
+
+            [[nodiscard]] bool isConnected() const override;
+            [[nodiscard]] ConnectionState getConnectionState() const override;
+            [[nodiscard]] std::uint32_t getSessionId() const override;
+            [[nodiscard]] std::uint16_t getServerTickRate() const override;
+            [[nodiscard]] std::uint32_t getLatency() const override;
+
+            void setPlayerName(const std::string &playerName) override;
+            void setClientCapabilities(std::uint32_t caps) override;
+
+            void processBusEvent();
+
+            ///
+            /// @brief Send custom packet to server
+            /// @param data Packet data
+            /// @param reliable Whether packet should be reliable
+            ///
+            void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false) override;
+
+            ///
+            /// @brief Get connection statistics
+            /// @return Current connection stats
+            ///
+            const ConnectionStats &getStats() const { return m_stats; }
+
         private:
             // Network components
             std::unique_ptr<asio::io_context> m_ioContext;
@@ -99,6 +143,9 @@ namespace eng
             // Statistics
             ConnectionStats m_stats;
 
+            utl::EventBus &m_eventBus;
+            std::uint32_t m_componentId = 1;
+
             ///
             /// @brief Initialize packet handlers
             ///
@@ -118,7 +165,7 @@ namespace eng
             ///
             /// @brief Network thread main loop
             ///
-            void networkThreadLoop();
+            void networkThreadLoop() const;
 
             ///
             /// @brief Send packet immediately
@@ -165,7 +212,7 @@ namespace eng
             /// @param context Packet context
             /// @return Handler result
             ///
-            rnp::HandlerResult handleError(const rnp::PacketError &packet, const rnp::PacketContext &context);
+            static rnp::HandlerResult handleError(const rnp::PacketError &packet, const rnp::PacketContext &context);
 
             ///
             /// @brief Handle WORLD_STATE packet
@@ -173,7 +220,16 @@ namespace eng
             /// @param context Packet context
             /// @return Handler result
             ///
-            rnp::HandlerResult handleWorldState(const rnp::PacketWorldState &packet, const rnp::PacketContext &context);
+            rnp::HandlerResult handleWorldState(const rnp::PacketWorldState &packet, const rnp::PacketContext &context) const;
+
+            ///
+            /// @brief Handle ENTITY_EVENT packet
+            /// @param events Vector of event records
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleEntityEvent(const std::vector<rnp::EventRecord> &events,
+                                                 const rnp::PacketContext &context) const;
 
             ///
             /// @brief Send CONNECT packet
@@ -210,49 +266,7 @@ namespace eng
             /// @brief Generate ping nonce
             /// @return New ping nonce
             ///
-            std::uint32_t generatePingNonce();
-
-        public:
-            ///
-            /// @brief Constructor
-            ///
-            AsioClient();
-
-            ///
-            /// @brief Destructor
-            ///
-            ~AsioClient() override;
-
-            // INetworkClient implementation
-            void connect(const std::string &host, std::uint16_t port) override;
-            void disconnect() override;
-
-            void update() override;
-
-            [[nodiscard]] const std::string getName() const override { return "Network_Client"; }
-            [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::NETWORK_CLIENT; }
-
-            [[nodiscard]] bool isConnected() const override;
-            [[nodiscard]] ConnectionState getConnectionState() const override;
-            [[nodiscard]] std::uint32_t getSessionId() const override;
-            [[nodiscard]] std::uint16_t getServerTickRate() const override;
-            [[nodiscard]] std::uint32_t getLatency() const override;
-
-            void setPlayerName(const std::string &playerName) override;
-            void setClientCapabilities(std::uint32_t caps) override;
-
-            ///
-            /// @brief Send custom packet to server
-            /// @param data Packet data
-            /// @param reliable Whether packet should be reliable
-            ///
-            void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false);
-
-            ///
-            /// @brief Get connection statistics
-            /// @return Current connection stats
-            ///
-            const ConnectionStats &getStats() const { return m_stats; }
+            static std::uint32_t generatePingNonce();
     };
 
 } // namespace eng

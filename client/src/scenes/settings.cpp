@@ -1,11 +1,12 @@
+#include <algorithm>
+#include <cmath>
+
 #include "Client/Scenes/Settings.hpp"
 #include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <algorithm>
-#include <cmath>
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};

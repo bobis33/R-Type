@@ -6,6 +6,7 @@
 
 #include "Client/ProjectileManager.hpp"
 #include "Client/Common.hpp"
+#include "Client/GameConfig.hpp"
 #include "ECS/Registry.hpp"
 
 namespace cli

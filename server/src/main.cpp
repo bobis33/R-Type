@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "Server/ArgsHandler.hpp"
 #include "Server/Server.hpp"
 #include "Utils/Logger.hpp"

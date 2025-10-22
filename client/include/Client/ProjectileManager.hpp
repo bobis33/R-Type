@@ -8,7 +8,6 @@
 
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
-#include "GameConfig.hpp"
 
 namespace cli
 {

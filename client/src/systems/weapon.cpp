@@ -1,12 +1,7 @@
-///
-/// @file WeaponSystem.cpp
-/// @brief Implementation of WeaponSystem
-/// @namespace cli
-///
-
 #include "Client/Systems/Weapon.hpp"
 #include "Client/Common.hpp"
 #include "Client/ProjectileManager.hpp"
+#include "Client/GameConfig.hpp"
 
 namespace cli
 {

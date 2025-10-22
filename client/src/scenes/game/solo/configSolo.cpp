@@ -1,8 +1,9 @@
+#include <cmath>
+
 #include "Client/Scenes/game/solo/ConfigSolo.hpp"
 #include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <cmath>
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};

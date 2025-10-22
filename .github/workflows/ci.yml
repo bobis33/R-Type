@@ -44,7 +44,7 @@ jobs:
               cmake -S . -B cmake-build-release -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
               cmake --build cmake-build-release --config Release
             build_test: |
-              cmake -S . -B cmake-build-tests -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+              cmake -S . -B cmake-build-tests -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=Test
               cmake --build cmake-build-tests
             binary_test: .\cmake-build-tests\bin\Debug\r-type_tests.exe
             deps: choco install cmake -y

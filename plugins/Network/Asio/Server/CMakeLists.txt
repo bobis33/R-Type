@@ -18,6 +18,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_SOURCE_DIR}/plugins/Network/Protocol/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
+target_compile_definitions(${PROJECT_NAME}
+        PRIVATE
+        $<$<PLATFORM_ID:Windows>:_WIN32_WINNT=0x0A00>
+)
 target_link_libraries(${PROJECT_NAME} PRIVATE utils)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES

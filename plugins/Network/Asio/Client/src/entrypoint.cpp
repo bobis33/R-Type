@@ -1,7 +1,6 @@
 #include <memory>
 
 #include "AsioClient/AsioClient.hpp"
-#include "Utils/Interfaces/IPlugin.hpp"
 
 extern "C"
 {
