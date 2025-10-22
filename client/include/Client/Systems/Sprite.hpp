@@ -6,12 +6,12 @@
 
 #pragma once
 
+#include "ECS/Component.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
+#include "ECS/Registry.hpp"
+#include "Interfaces/IRenderer.hpp"
 #include <algorithm>
 #include <vector>
-#include "ECS/Component.hpp"
-#include "ECS/Registry.hpp"
-#include "ECS/Interfaces/ISystems.hpp"
-#include "Interfaces/IRenderer.hpp"
 
 namespace cli
 {
@@ -36,8 +36,8 @@ namespace cli
                     int layerValue = (layer != nullptr) ? layer->layer : 0;
                     spritesWithLayers.push_back({entity, layerValue});
                 }
-                std::sort(spritesWithLayers.begin(), spritesWithLayers.end(), 
-                    [](const auto &a, const auto &b) { return a.second < b.second; });
+                std::sort(spritesWithLayers.begin(), spritesWithLayers.end(),
+                          [](const auto &a, const auto &b) { return a.second < b.second; });
                 for (auto &[entity, layerValue] : spritesWithLayers)
                 {
                     const auto *sprite = registry.getComponent<ecs::Texture>(entity);
@@ -52,18 +52,18 @@ namespace cli
                     m_renderer->setSpritePosition(sprite->id + std::to_string(entity), x, y);
                     if (scale && !hasScrolling)
                     {
-                        m_renderer->setSpriteScale(sprite->id + std::to_string(entity), 
-                                                  static_cast<int>(scale->x), 
-                                                  static_cast<int>(scale->y));
+                        m_renderer->setSpriteScale(sprite->id + std::to_string(entity), static_cast<int>(scale->x),
+                                                   static_cast<int>(scale->y));
                     }
                     if (rect)
                     {
                         m_renderer->setSpriteFrame(sprite->id + std::to_string(entity), static_cast<int>(rect->pos_x),
-                                                  static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
+                                                   static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
                     }
                     m_renderer->drawSprite(sprite->id + std::to_string(entity));
                 }
             }
+
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class SpriteSystem

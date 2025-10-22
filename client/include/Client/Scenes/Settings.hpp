@@ -23,7 +23,8 @@ namespace cli
     class Settings final : public eng::AScene
     {
         public:
-            Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& config);
+            Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
+                     const AppConfig &config);
             ~Settings() override = default;
 
             Settings(const Settings &other) = delete;
@@ -44,7 +45,7 @@ namespace cli
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             const std::shared_ptr<eng::IAudio> &m_audio;
-            const AppConfig& m_appConfig;
+            const AppConfig &m_appConfig;
 
             size_t m_selectedIndex = 0;
             const std::vector<std::string> m_settingsOptions = {"Audio Volume", "FPS", "Controls", "Skin",

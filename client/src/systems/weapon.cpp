@@ -103,7 +103,6 @@ namespace cli
         }
     }
 
-
     void WeaponSystem::reset()
     {
         m_fireCooldown = 0.0f;

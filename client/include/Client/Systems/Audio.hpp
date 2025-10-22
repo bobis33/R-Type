@@ -22,7 +22,10 @@ namespace cli
     class AudioSystem final : public eng::ASystem
     {
         public:
-            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio, const AppConfig& appConfig) : m_audio(audio), m_appConfig(appConfig) {}
+            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio, const AppConfig &appConfig)
+                : m_audio(audio), m_appConfig(appConfig)
+            {
+            }
             ~AudioSystem() override = default;
 
             AudioSystem(const AudioSystem &) = delete;
@@ -52,7 +55,7 @@ namespace cli
 
         private:
             const std::shared_ptr<eng::IAudio> &m_audio;
-            const AppConfig& m_appConfig;
+            const AppConfig &m_appConfig;
     }; // class AudioSystem
 
 } // namespace cli

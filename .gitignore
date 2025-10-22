@@ -6,3 +6,5 @@
 cmake-build-*
 Generated
 compile_commands.json
+
+*.ini

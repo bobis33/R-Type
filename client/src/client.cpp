@@ -21,7 +21,7 @@ cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
     appConfig.width = cfg.width;
     appConfig.host = cfg.host;
     appConfig.port = cfg.port;
-    
+
     appConfig.audioVolume = Config::Audio::DEFAULT_AUDIO_VOLUME;
     appConfig.videoQuality = Config::Game::DEFAULT_VIDEO_QUALITY;
     appConfig.controlScheme = Config::Game::DEFAULT_CONTROL_SCHEME;
@@ -71,10 +71,10 @@ cli::Client::Client(const ArgsConfig &cfg)
 void cli::Client::run()
 {
     setupScenes();
-    
+
     eng::Event event;
     const eng::Color clearColor = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
-    
+
     while (m_engine->getState() == eng::State::RUN)
     {
         handleEvents(event);

@@ -18,8 +18,8 @@ void cli::StarfieldSystem::createStarfield(ecs::Registry &registry, int screenWi
     createComets(registry, 8, screenWidth, screenHeight);
 }
 
-void cli::StarfieldSystem::createStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight, 
-                                      const eng::Color &color, float velocity, const std::string &id)
+void cli::StarfieldSystem::createStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight,
+                                       const eng::Color &color, float velocity, const std::string &id)
 {
     for (int i = 0; i < count; ++i)
     {

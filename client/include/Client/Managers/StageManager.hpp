@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "Client/Common.hpp"
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
-#include "Client/Common.hpp"
 #include "Interfaces/IRenderer.hpp"
 
 namespace cli

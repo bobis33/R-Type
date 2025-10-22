@@ -15,5 +15,6 @@ void eng::Engine::render(const WindowSize &windowSize, const Color clearColor) c
     m_renderer->clearWindow(clearColor);
     m_sceneManager->getCurrentScene()->updateSystems(dt);
     m_sceneManager->getCurrentScene()->update(dt, windowSize);
+    m_renderer->renderGui();
     m_renderer->displayWindow();
 }

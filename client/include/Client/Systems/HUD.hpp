@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "ECS/Component.hpp"
-#include "ECS/Registry.hpp"
-#include "ECS/Interfaces/ISystems.hpp"
-#include "Interfaces/IRenderer.hpp"
 #include "Client/Common.hpp"
+#include "ECS/Component.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
+#include "ECS/Registry.hpp"
+#include "Interfaces/IRenderer.hpp"
 
 namespace cli
 {

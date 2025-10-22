@@ -94,7 +94,7 @@ namespace ecs
             float damage;
             float lifetime;
             float current_lifetime;
-        int pierce_remaining; // number of enemies it can still pass through (>=1)
+            int pierce_remaining; // number of enemies it can still pass through (>=1)
     };
 
     struct BeamCharge final : IComponent
@@ -123,7 +123,6 @@ namespace ecs
             float last_shot_time;
             float shoot_cooldown;
     };
-
 
     struct Explosion final : IComponent
     {
@@ -162,10 +161,10 @@ namespace ecs
 
     struct Scrolling final : IComponent
     {
-            float speed_x;           // Negative to scroll left
-            float original_width;    // Unscaled texture width in pixels
-            float original_height;   // Unscaled texture height in pixels
-            bool fit_width;          // If true, scale X to fit window width
+            float speed_x;         // Negative to scroll left
+            float original_width;  // Unscaled texture width in pixels
+            float original_height; // Unscaled texture height in pixels
+            bool fit_width;        // If true, scale X to fit window width
     };
 
     struct Score final : IComponent

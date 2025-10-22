@@ -8,16 +8,16 @@
 
 #include <memory>
 
+#include "Client/Managers/StageManager.hpp"
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "Client/Managers/StageManager.hpp"
 
 namespace cli
 {
     class HUDSystem;
     class StarfieldSystem;
     class PlayerController;
-}
+} // namespace cli
 
 namespace cli
 {
@@ -30,7 +30,8 @@ namespace cli
     class GameSolo final : public eng::AScene
     {
         public:
-            GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio, const AppConfig& appConfig);
+            GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
+                     const AppConfig &appConfig);
             ~GameSolo() override = default;
 
             GameSolo(const GameSolo &other) = delete;
@@ -45,7 +46,7 @@ namespace cli
         private:
             ecs::Entity m_playerEntity;
             const std::shared_ptr<eng::IAudio> &m_audio;
-            const AppConfig& m_appConfig;
+            const AppConfig &m_appConfig;
             std::unique_ptr<HUDSystem> m_hudSystem;
             std::unique_ptr<StarfieldSystem> m_starfieldSystem;
             std::unique_ptr<PlayerController> m_playerController;

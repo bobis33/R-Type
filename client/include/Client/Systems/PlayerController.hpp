@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "ECS/Component.hpp"
-#include "ECS/Registry.hpp"
-#include "ECS/Interfaces/ISystems.hpp"
-#include "Interfaces/IRenderer.hpp"
-#include "Client/GameConfig.hpp"
 #include "Client/Common.hpp"
+#include "Client/GameConfig.hpp"
+#include "ECS/Component.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
+#include "ECS/Registry.hpp"
+#include "Interfaces/IRenderer.hpp"
 
 namespace cli
 {
