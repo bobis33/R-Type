@@ -44,7 +44,6 @@ namespace cli
                         float angle = std::atan2(velocity->y, velocity->x);
                         if (std::abs(velocity->x) < 0.1f && std::abs(velocity->y) < 0.1f)
                         {
-                            // Le joueur est arrêté, utiliser le sprite par défaut (frame 0)
                             frame = 0;
                         }
                         else
