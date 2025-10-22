@@ -223,6 +223,15 @@ namespace eng
             rnp::HandlerResult handleWorldState(const rnp::PacketWorldState &packet, const rnp::PacketContext &context);
 
             ///
+            /// @brief Handle ENTITY_EVENT packet
+            /// @param events Vector of event records
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleEntityEvent(const std::vector<rnp::EventRecord> &events,
+                                                 const rnp::PacketContext &context);
+
+            ///
             /// @brief Send CONNECT packet
             ///
             void sendConnect();

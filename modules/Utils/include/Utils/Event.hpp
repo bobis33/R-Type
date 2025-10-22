@@ -14,6 +14,11 @@
 namespace utl
 {
 
+    static constexpr std::uint32_t NETWORK_CLIENT = 1;
+    static constexpr std::uint32_t NETWORK_SERVER = 2;
+    static constexpr std::uint32_t GAME_LOGIC = 3;
+    static constexpr std::uint32_t RENDERING_ENGINE = 4;
+
     ///
     /// @brief Event types for inter-component communication
     ///

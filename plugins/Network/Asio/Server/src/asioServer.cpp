@@ -21,7 +21,8 @@ namespace srv
           m_socket(std::make_unique<asio::ip::udp::socket>(*m_ioContext)), m_port(0), m_tickRate(60), m_serverCaps(0),
           m_running(false), m_started(false), m_nextSessionId(1),
           m_packetHandler(std::make_unique<rnp::HandlerPacket>()), m_pingInterval(std::chrono::seconds(5)),
-          m_clientTimeout(std::chrono::seconds(30)), m_eventBus(utl::EventBus::getInstance())
+          m_clientTimeout(std::chrono::seconds(30)), m_eventBus(utl::EventBus::getInstance()),
+          m_componentId(utl::NETWORK_SERVER)
     {
         utl::Logger::log("AsioServer: Constructor called", utl::LogLevel::INFO);
         utl::Logger::log("AsioServer: Creating I/O context and socket", utl::LogLevel::INFO);
@@ -587,7 +588,7 @@ namespace srv
 
         // Publier vers GameServer
         m_eventBus.publish(utl::EventType::PLAYER_CONNECTED, sessionId, m_componentId,
-                           4000); // GameServer ID
+                           utl::GAME_LOGIC); // GameServer ID
 
         utl::Logger::log(
             "AsioServer: Nouvelle connexion publiée vers GameServer (sessionId: " + std::to_string(sessionId) + ")",
@@ -630,7 +631,7 @@ namespace srv
 
         // Publier vers GameServer
         m_eventBus.publish(utl::EventType::PLAYER_DISCONNECTED, context.sessionId, m_componentId,
-                           4000); // GameServer ID
+                           utl::GAME_LOGIC); // GameServer ID
 
         utl::Logger::log(
             "AsioServer: Déconnexion publiée vers GameServer (sessionId: " + std::to_string(context.sessionId) + ")",
@@ -902,8 +903,8 @@ namespace srv
         {
             if (eventRecord.type == rnp::EventType::INPUT)
             {
-                m_eventBus.publish(utl::EventType::PLAYER_INPUT_RECEIVED, eventRecord, m_componentId,
-                                   4000); // GameServer ID
+                m_eventBus.publish(utl::EventType::PLAYER_INPUT_RECEIVED, eventRecord.data, m_componentId,
+                                   utl::GAME_LOGIC); // GameServer ID
 
                 utl::Logger::log("AsioServer: Input joueur publie vers GameServer (sessionId: " +
                                      std::to_string(context.sessionId) + ")",
@@ -911,8 +912,8 @@ namespace srv
             }
             else
             {
-                m_eventBus.publish(utl::EventType::ENTITY_EVENT_RECEIVED, eventRecord, m_componentId,
-                                   4000); // GameServer ID
+                m_eventBus.publish(utl::EventType::ENTITY_EVENT_RECEIVED, eventRecord.data, m_componentId,
+                                   utl::GAME_LOGIC); // GameServer ID
 
                 utl::Logger::log("AsioServer: Evenement entite publie vers GameServer (type: " +
                                      std::to_string(static_cast<uint8_t>(eventRecord.type)) + ")",
