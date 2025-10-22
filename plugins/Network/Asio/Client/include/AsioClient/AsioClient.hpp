@@ -98,8 +98,7 @@ namespace eng
             ///
             const ConnectionStats &getStats() const { return m_stats; }
 
-
-                    private:
+        private:
             // Network components
             std::unique_ptr<asio::io_context> m_ioContext;
             std::unique_ptr<asio::ip::udp::socket> m_socket;

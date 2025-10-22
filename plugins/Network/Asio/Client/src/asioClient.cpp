@@ -599,11 +599,10 @@ namespace eng
     void AsioClient::processBusEvent()
     {
 
-        for (const auto events = m_eventBus.consumeForTarget(m_componentId); const auto &e: events)
+        for (const auto events = m_eventBus.consumeForTarget(m_componentId); const auto &e : events)
         {
             sendToServer(e.data);
         }
     }
-
 
 } // namespace eng

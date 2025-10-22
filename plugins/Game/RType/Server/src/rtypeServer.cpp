@@ -1,6 +1,6 @@
-#include "Utils/EventBus.hpp"
-#include "ECS/Component.hpp"
 #include "RTypeServer/RTypeServer.hpp"
+#include "ECS/Component.hpp"
+#include "Utils/EventBus.hpp"
 
 gme::RTypeServer::RTypeServer() : m_eventBus(utl::EventBus::getInstance()) {}
 
@@ -28,7 +28,6 @@ void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
         }
     }
 }
-
 
 void gme::RTypeServer::stop() { m_gameState = State::LOSE; }
 

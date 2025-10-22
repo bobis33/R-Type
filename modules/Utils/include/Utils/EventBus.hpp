@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "Utils/Event.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/Event.hpp"
 #include "Utils/Logger.hpp"
 #include <atomic>
 #include <chrono>

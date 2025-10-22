@@ -13,7 +13,6 @@
 namespace gme
 {
 
-
     enum class State : uint8_t
     {
         PLAYING = 0,

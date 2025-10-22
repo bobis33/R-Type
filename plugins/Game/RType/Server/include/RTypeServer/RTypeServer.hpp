@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "ECS/Registry.hpp"
 #include "Interfaces/IGameServer.hpp"
 #include "Utils/EventBus.hpp"
-#include "ECS/Registry.hpp"
 
 namespace gme
 {
@@ -48,7 +48,6 @@ namespace gme
             void update(float deltaTime) override;
 
         private:
-
             utl::EventBus &m_eventBus;
             ecs::Registry m_registry;
 
