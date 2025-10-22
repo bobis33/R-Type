@@ -70,7 +70,6 @@ void cli::PlayerController::update(ecs::Registry &registry, float dt)
     bool down = m_keysPressed[eng::Key::Down];
     bool left = m_keysPressed[eng::Key::Left];
     bool right = m_keysPressed[eng::Key::Right];
-
     if (up && right)
     {
         playerVelocity->x = diagonal_speed;

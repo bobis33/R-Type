@@ -44,20 +44,24 @@ namespace cli
                         float angle = std::atan2(velocity->y, velocity->x);
                         if (std::abs(velocity->x) < 0.1f && std::abs(velocity->y) < 0.1f)
                         {
-                            return;
+                            // Le joueur est arrêté, utiliser le sprite par défaut (frame 0)
+                            frame = 0;
                         }
-                        if (angle < 0)
-                            angle += 2.0f * static_cast<float>(M_PI);
-                        if (angle >= 0 && angle < M_PI / 4)
-                            frame = 0; // Droite
-                        else if (angle >= M_PI / 4 && angle < 3 * M_PI / 4)
-                            frame = 1; // Haut
-                        else if (angle >= 3 * M_PI / 4 && angle < 5 * M_PI / 4)
-                            frame = 2; // Gauche
-                        else if (angle >= 5 * M_PI / 4 && angle < 7 * M_PI / 4)
-                            frame = 3; // Bas
                         else
-                            frame = 4; // Droite (retour)
+                        {
+                            if (angle < 0)
+                                angle += 2.0f * static_cast<float>(M_PI);
+                            if (angle >= 0 && angle < M_PI / 4)
+                                frame = 0; // Droite
+                            else if (angle >= M_PI / 4 && angle < 3 * M_PI / 4)
+                                frame = 1; // Haut
+                            else if (angle >= 3 * M_PI / 4 && angle < 5 * M_PI / 4)
+                                frame = 2; // Gauche
+                            else if (angle >= 5 * M_PI / 4 && angle < 7 * M_PI / 4)
+                                frame = 3; // Bas
+                            else
+                                frame = 4; // Droite (retour)
+                        }
                         int frame_width = static_cast<int>(GameConfig::Player::SPRITE_WIDTH);
                         int frame_height = static_cast<int>(GameConfig::Player::SPRITE_HEIGHT);
                         int frames_per_row = GameConfig::Player::FRAMES_PER_ROW;
