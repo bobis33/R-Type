@@ -341,6 +341,9 @@ namespace eng
                              ", Tick rate: " + std::to_string(m_serverTickRate) + "Hz",
                          utl::LogLevel::INFO);
 
+        rnp::Serializer serializer;
+        m_eventBus.publish(utl::EventType::CONNECTION_ACCEPTED, serializer.getData(), m_componentId,
+                           utl::RENDERING_ENGINE); // GameClient ID
         return rnp::HandlerResult::SUCCESS;
     }
 
@@ -619,7 +622,6 @@ namespace eng
             {
                 case utl::EventType::SEND_PLAYER_INPUT:
                 {
-                    // The data should already be serialized as a complete packet
                     sendToServer(e.data);
                     break;
                 }
@@ -627,7 +629,6 @@ namespace eng
                 {
                     if (m_connectionState == ConnectionState::DISCONNECTED)
                     {
-                        // Extract server info from event data if needed
                         connect("127.0.0.1", 4242);
                     }
                     break;
@@ -662,13 +663,8 @@ namespace eng
         utl::Logger::log("AsioClient: Received " + std::to_string(events.size()) + " entity events from server",
                          utl::LogLevel::INFO);
 
-        // Process each event received from server
-        for (const auto &eventRecord : events)
-        {
-            // Forward to GameClient via EventBus
-            m_eventBus.publish(utl::EventType::ENTITY_EVENT_RECEIVED, eventRecord.data, m_componentId,
-                               utl::RENDERING_ENGINE); // GameClient ID
-        }
+        m_eventBus.publish(utl::EventType::ENTITY_EVENT_RECEIVED, events, m_componentId,
+                           utl::RENDERING_ENGINE); // GameClient ID
 
         return rnp::HandlerResult::SUCCESS;
     }

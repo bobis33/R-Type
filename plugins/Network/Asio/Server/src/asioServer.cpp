@@ -33,6 +33,7 @@ namespace srv
         m_eventBus.registerComponent(m_componentId, "Asio Server");
         m_eventBus.subscribe(m_componentId, utl::EventType::SEND_TO_CLIENT);
         m_eventBus.subscribe(m_componentId, utl::EventType::BROADCAST_WORLD_STATE);
+        m_eventBus.subscribe(m_componentId, utl::EventType::SEND_ENTITY_EVENTS);
 
         utl::Logger::log("AsioServer: Initialized with EventBus integration", utl::LogLevel::INFO);
     }
@@ -857,6 +858,10 @@ namespace srv
                     handleBroadcastEvent(event);
                     break;
 
+                case utl::EventType::SEND_ENTITY_EVENTS:
+                    handleSendEntityEventToClients(event);
+                    break;
+
                 default:
                     utl::Logger::log("AsioServer: Événement non géré: " +
                                          std::to_string(static_cast<uint32_t>(event.type)),
@@ -893,6 +898,16 @@ namespace srv
         utl::Logger::log(
             "AsioServer: Message diffuse a tous les clients (taille: " + std::to_string(event.data.size()) + " bytes)",
             utl::LogLevel::INFO);
+    }
+
+    void AsioServer::handleSendEntityEventToClients(const utl::Event &event)
+    {
+        // Forward entity events to all clients
+        sendToAllClients(event.data);
+
+        utl::Logger::log("AsioServer: Entity events diffuses a tous les clients (taille: " +
+                             std::to_string(event.data.size()) + " bytes)",
+                         utl::LogLevel::INFO);
     }
 
     rnp::HandlerResult AsioServer::handleEntityEvent(const std::vector<rnp::EventRecord> &events,

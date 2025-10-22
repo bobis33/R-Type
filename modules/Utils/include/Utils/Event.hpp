@@ -38,8 +38,9 @@ namespace utl
         // Game → Network events (0x2000 - 0x2FFF)
         SEND_PLAYER_INPUT = 0x2000,
         SEND_ENTITY_EVENT = 0x2001,
-        BROADCAST_WORLD_STATE = 0x2002,
-        BROADCAST_TO_CLIENTS = 0x2003,
+        SEND_ENTITY_EVENTS = 0x2002,
+        BROADCAST_WORLD_STATE = 0x2003,
+        BROADCAST_TO_CLIENTS = 0x2004,
         SEND_TO_CLIENT = 0x2010,
         DISCONNECT_CLIENT = 0x2011,
         REQUEST_CONNECT = 0x2020,

@@ -267,6 +267,12 @@ namespace srv
             void handleBroadcastEvent(const utl::Event &event);
 
             ///
+            /// @brief Handle send entity event to clients from EventBus
+            /// @param event Entity event to send to clients
+            ///
+            void handleSendEntityEventToClients(const utl::Event &event);
+
+            ///
             /// @brief Handle entity event packet (including player inputs)
             /// @param events Entity event records
             /// @param context Packet context
