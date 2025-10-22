@@ -85,7 +85,6 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
 
     m_playerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
     m_hudSystem->createScoreHUD(registry, 10.0f, 10.0f);
-    m_starfieldSystem->createStarfield(registry, Config::Window::WINDOW_WIDTH, Config::Window::WINDOW_HEIGHT);
 }
 
 void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
@@ -101,6 +100,12 @@ void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
         }
     }
 
+    static bool starfieldCreated = false;
+    if (!starfieldCreated)
+    {
+        m_starfieldSystem->createStarfield(reg, static_cast<int>(size.width), static_cast<int>(size.height));
+        starfieldCreated = true;
+    }
     m_starfieldSystem->update(reg, dt);
     m_hudSystem->update(reg, dt);
     m_playerController->update(reg, dt);

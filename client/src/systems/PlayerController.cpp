@@ -107,9 +107,11 @@ void cli::PlayerController::update(ecs::Registry &registry, float dt)
     playerTransform->y += playerVelocity->y * dt;
     playerTransform->x = std::max(playerTransform->x, 0.F);
     playerTransform->y = std::max(playerTransform->y, 0.F);
-    playerTransform->x = std::min(playerTransform->x, static_cast<float>(Config::Window::WINDOW_WIDTH) -
-                                                          GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
-    playerTransform->y =
-        std::min(playerTransform->y, static_cast<float>(Config::Window::WINDOW_HEIGHT) -
-                                         GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
+    
+    auto windowSize = m_renderer->getWindowSize();
+    float maxX = static_cast<float>(windowSize.width) - GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE;
+    float maxY = static_cast<float>(windowSize.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE;
+    
+    playerTransform->x = std::min(playerTransform->x, maxX);
+    playerTransform->y = std::min(playerTransform->y, maxY);
 }

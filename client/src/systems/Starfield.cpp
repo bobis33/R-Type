@@ -91,6 +91,10 @@ void cli::StarfieldSystem::createComets(ecs::Registry &registry, int count, int 
 
 void cli::StarfieldSystem::update(ecs::Registry &registry, float dt)
 {
+    auto windowSize = m_renderer->getWindowSize();
+    float screenWidth = static_cast<float>(windowSize.width);
+    float screenHeight = static_cast<float>(windowSize.height);
+    
     for (auto &[entity, pixel] : registry.getAll<ecs::Pixel>())
     {
         if (auto *transform = registry.getComponent<ecs::Transform>(entity))
@@ -100,10 +104,10 @@ void cli::StarfieldSystem::update(ecs::Registry &registry, float dt)
                 transform->x += velocity->x * dt;
                 transform->y += velocity->y * dt;
 
-                if (transform->x < -10.0f || transform->x > 970.0f || transform->y < -10.0f || transform->y > 550.0f)
+                if (transform->x < -10.0f || transform->x > screenWidth + 10.0f || transform->y < -10.0f || transform->y > screenHeight + 10.0f)
                 {
-                    transform->x = static_cast<float>(970 + std::rand() % 200);
-                    transform->y = static_cast<float>(std::rand() % 540);
+                    transform->x = static_cast<float>(screenWidth + std::rand() % 200);
+                    transform->y = static_cast<float>(std::rand() % static_cast<int>(screenHeight));
                 }
             }
         }
