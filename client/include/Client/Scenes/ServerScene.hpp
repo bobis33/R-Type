@@ -37,15 +37,20 @@ namespace cli
             const std::shared_ptr<eng::IAudio> &m_audio;
 
             size_t m_selectedIndex = 0;
-            const std::vector<std::string> m_serverOptions = {"Player Name", "Server IP", "Server Port", "Connect", "Back to Menu"};
+            float m_animationTime = 0.0f;
+            bool m_isEditing = false;
+            const std::vector<std::string> m_serverOptions = {"Player Name", "Server IP", "Server Port", "Connect", "Back"};
 
-            std::string m_playerName = "";
-            std::string m_serverIP = "";
-            std::string m_serverPort = "";
+            std::string m_playerName = "Player";
+            std::string m_serverIP = "0.0.0.0";
+            std::string m_serverPort = "2560";
 
-            ecs::Entity m_playerNameValueEntity;
-            ecs::Entity m_serverIPValueEntity;
-            ecs::Entity m_serverPortValueEntity;
-            ecs::Entity m_titleEntity;
+            ecs::Entity m_titleEntity = 0;
+            ecs::Entity m_playerNameValueEntity = 0;
+            ecs::Entity m_serverIPValueEntity = 0;
+            ecs::Entity m_serverPortValueEntity = 0;
+
+            std::string &getCurrentEditField();
+            void updateValueDisplay();
     }; // class ServerScene
 } // namespace cli

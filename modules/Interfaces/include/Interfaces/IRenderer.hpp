@@ -40,6 +40,7 @@ namespace eng
         Down,
         Left,
         Right,
+        Delete,
         A,
         B,
         C,

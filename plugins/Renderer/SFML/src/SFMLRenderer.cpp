@@ -115,6 +115,8 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
             return eng::Key::Left;
         case S::Right:
             return eng::Key::Right;
+        case S::Delete:
+            return eng::Key::Delete;
         case S::A:
             return eng::Key::A;
         case S::B:
@@ -188,6 +190,12 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
         case S::Num9:
             return eng::Key::Num9;
         default:
+            if (static_cast<int>(sc) == 38 ||   // macOS
+                static_cast<int>(sc) == 83 ||   // Windows
+                static_cast<int>(sc) == 119)    // Linux
+            {
+                return eng::Key::Delete;
+            }
             return eng::Key::Unknown;
     }
 }
