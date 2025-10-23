@@ -1,8 +1,15 @@
 #include "Client/Systems/PlayerController.hpp"
 #include "Client/Common.hpp"
+#include "Client/Utils/HitboxUtils.hpp"
 
 ecs::Entity cli::PlayerController::createPlayer(ecs::Registry &registry, float x, float y)
 {
+    auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
+        GameConfig::Player::SPRITE_WIDTH, 
+        GameConfig::Player::SPRITE_HEIGHT, 
+        GameConfig::Player::SCALE
+    );
+    
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", x, y, 0.F)
                          .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
@@ -12,7 +19,7 @@ ecs::Entity cli::PlayerController::createPlayer(ecs::Registry &registry, float x
                          .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
                          .with<ecs::Player>("player", true)
                          .with<ecs::BeamCharge>("beam_charge", 0.0f, GameConfig::Beam::MAX_CHARGE)
-                         .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS)
+                         .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
                          .build();
     return m_playerEntity;
 }

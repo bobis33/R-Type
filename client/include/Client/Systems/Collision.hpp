@@ -128,15 +128,16 @@ namespace cli
                         auto *vel = registry.getComponent<ecs::Velocity>(playerEntity);
                         if (!t || !hb)
                             continue;
-                        if (ceilingBottomY.has_value() && (t->y - hb->radius < ceilingBottomY.value()))
+                        float hitboxY = t->y + hb->offsetY;
+                        if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
-                            t->y = ceilingBottomY.value() + hb->radius;
+                            t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::max(0.0f, vel->y);
                         }
-                        if (floorTopY.has_value() && (t->y + hb->radius > floorTopY.value()))
+                        if (floorTopY.has_value() && (hitboxY + hb->radius > floorTopY.value()))
                         {
-                            t->y = floorTopY.value() - hb->radius;
+                            t->y = floorTopY.value() - hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::min(0.0f, vel->y);
                         }
@@ -148,15 +149,16 @@ namespace cli
                         auto *vel = registry.getComponent<ecs::Velocity>(enemyEntity);
                         if (!t || !hb)
                             continue;
-                        if (ceilingBottomY.has_value() && (t->y - hb->radius < ceilingBottomY.value()))
+                        float hitboxY = t->y + hb->offsetY;
+                        if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
-                            t->y = ceilingBottomY.value() + hb->radius;
+                            t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::max(0.0f, vel->y);
                         }
-                        if (floorTopY.has_value() && (t->y + hb->radius > floorTopY.value()))
+                        if (floorTopY.has_value() && (hitboxY + hb->radius > floorTopY.value()))
                         {
-                            t->y = floorTopY.value() - hb->radius;
+                            t->y = floorTopY.value() - hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::min(0.0f, vel->y);
                         }
@@ -180,8 +182,14 @@ namespace cli
             bool checkCircularCollision(const ecs::Transform &transform1, const ecs::Hitbox &hitbox1,
                                         const ecs::Transform &transform2, const ecs::Hitbox &hitbox2)
             {
-                float dx = transform1.x - transform2.x;
-                float dy = transform1.y - transform2.y;
+                // Prendre en compte les offsets des hitbox
+                float x1 = transform1.x + hitbox1.offsetX;
+                float y1 = transform1.y + hitbox1.offsetY;
+                float x2 = transform2.x + hitbox2.offsetX;
+                float y2 = transform2.y + hitbox2.offsetY;
+                
+                float dx = x1 - x2;
+                float dy = y1 - y2;
                 float distance = std::sqrt(dx * dx + dy * dy);
                 float combinedRadius = hitbox1.radius + hitbox2.radius;
 

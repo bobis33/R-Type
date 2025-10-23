@@ -31,11 +31,13 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
             // if hitBox, createCircleShape from renderer
             if (hitBox && transform)
             {
+                float hitboxX = transform->x + hitBox->offsetX;
+                float hitboxY = transform->y + hitBox->offsetY;
                 renderer->createCircleShape({.name = "hitbox_" + std::to_string(e),
                                              .radius = hitBox->radius,
                                              .color = {.r = 255, .g = 0, .b = 0, .a = 100},
-                                             .x = transform->x,
-                                             .y = transform->y,
+                                             .x = hitboxX,
+                                             .y = hitboxY,
                                              .outline_thickness = 1.0f,
                                              .outline_color = {.r = 255, .g = 0, .b = 0, .a = 200}});
             }

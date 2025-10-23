@@ -7,6 +7,7 @@
 #include "Client/ProjectileManager.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
+#include "Client/Utils/HitboxUtils.hpp"
 #include "ECS/Registry.hpp"
 
 namespace cli
@@ -30,6 +31,12 @@ namespace cli
 
         if (type == ecs::Projectile::BASIC)
         {
+            auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
+                Basic::SPRITE_WIDTH, 
+                Basic::SPRITE_HEIGHT, 
+                Basic::SCALE
+            );
+            
             return registry.createEntity()
                 .with<ecs::Transform>("projectile_transform", x, y, 0.F)
                 .with<ecs::Velocity>("projectile_velocity", velocityX, velocityY)
@@ -38,11 +45,17 @@ namespace cli
                 .with<ecs::Scale>("projectile_scale", Basic::SCALE, Basic::SCALE)
                 .with<ecs::Texture>("projectile_texture", Path::Texture::TEXTURE_SHOOT)
                 .with<ecs::Projectile>("projectile", type, Basic::DAMAGE, Basic::LIFETIME, 0.0f, 1)
-                .with<ecs::Hitbox>("projectile_hitbox", GameConfig::Hitbox::PROJECTILE_BASIC_RADIUS)
+                .with<ecs::Hitbox>("projectile_hitbox", GameConfig::Hitbox::PROJECTILE_BASIC_RADIUS, offsetX, offsetY)
                 .build();
         }
         else
         {
+            auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
+                Supercharged::SPRITE_WIDTH, 
+                Supercharged::SPRITE_HEIGHT, 
+                Supercharged::SCALE
+            );
+            
             return registry.createEntity()
                 .with<ecs::Transform>("projectile_transform", x, y, 0.F)
                 .with<ecs::Velocity>("projectile_velocity", velocityX, velocityY)
@@ -55,7 +68,7 @@ namespace cli
                                       Supercharged::ANIMATION_DURATION, 0.0f,
                                       static_cast<int>(Supercharged::SPRITE_WIDTH),
                                       static_cast<int>(Supercharged::SPRITE_HEIGHT), Supercharged::ANIMATION_FRAMES)
-                .with<ecs::Hitbox>("projectile_hitbox", GameConfig::Hitbox::PROJECTILE_SUPERCHARGED_RADIUS)
+                .with<ecs::Hitbox>("projectile_hitbox", GameConfig::Hitbox::PROJECTILE_SUPERCHARGED_RADIUS, offsetX, offsetY)
                 .build();
         }
     }

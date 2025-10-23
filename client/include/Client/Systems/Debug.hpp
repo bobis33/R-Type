@@ -47,8 +47,9 @@ namespace cli
                     {
                         continue;
                     }
-                    m_renderer->setCircleShapePosition("hitbox_" + std::to_string(key), transform->x - hitbox->radius,
-                                                       transform->y - hitbox->radius);
+                    float hitboxX = transform->x + hitbox->offsetX - hitbox->radius;
+                    float hitboxY = transform->y + hitbox->offsetY - hitbox->radius;
+                    m_renderer->setCircleShapePosition("hitbox_" + std::to_string(key), hitboxX, hitboxY);
                     if (m_showDebug)
                     {
                         m_renderer->drawCircleShape("hitbox_" + std::to_string(key));

@@ -140,6 +140,8 @@ namespace ecs
     struct Hitbox final : IComponent
     {
             float radius;
+            float offsetX = 0.0f;
+            float offsetY = 0.0f;
     };
 
     struct KeyboardInput final : IComponent
