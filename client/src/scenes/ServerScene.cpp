@@ -27,8 +27,8 @@ namespace cli
             case eng::Key::H: return shift ? 'H' : 'h';
             case eng::Key::J: return shift ? 'J' : 'j';
             case eng::Key::K: return shift ? 'K' : 'k';
-            case eng::Key::L: return shift ? 'L' : 'l';
             case eng::Key::M: return shift ? 'M' : 'm';
+            case eng::Key::L: return shift ? '.' : '.';
 
             case eng::Key::Z: return shift ? 'W' : 'w';
             case eng::Key::X: return shift ? 'X' : 'x';
