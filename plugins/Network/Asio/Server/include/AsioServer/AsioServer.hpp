@@ -37,10 +37,32 @@ namespace srv
             bool isConnected;
             std::uint32_t lastPingSent;
             std::uint32_t latency;
+            std::uint32_t currentLobbyId; // 0 if not in lobby
 
             ClientSession()
                 : sessionId(0), lastSeen(std::chrono::steady_clock::now()), clientCaps(0), isConnected(false),
-                  lastPingSent(0), latency(0)
+                  lastPingSent(0), latency(0), currentLobbyId(0)
+            {
+            }
+    };
+
+    ///
+    /// @brief Lobby structure
+    ///
+    struct Lobby
+    {
+            std::uint32_t lobbyId;
+            std::string lobbyName;
+            std::uint32_t hostSessionId;
+            std::vector<std::uint32_t> playerSessions;
+            std::uint8_t maxPlayers;
+            std::uint8_t gameMode;
+            rnp::LobbyStatus status;
+            std::chrono::steady_clock::time_point createdTime;
+
+            Lobby(std::uint32_t id, const std::string &name, std::uint32_t host, std::uint8_t max, std::uint8_t mode)
+                : lobbyId(id), lobbyName(name), hostSessionId(host), maxPlayers(max), gameMode(mode),
+                  status(rnp::LobbyStatus::WAITING), createdTime(std::chrono::steady_clock::now())
             {
             }
     };
@@ -120,6 +142,11 @@ namespace srv
             std::unordered_map<std::string, std::uint32_t> m_endpointToSession;
             std::uint32_t m_nextSessionId;
             mutable std::mutex m_clientsMutex;
+
+            // Lobby management
+            std::unordered_map<std::uint32_t, Lobby> m_lobbies;
+            std::uint32_t m_nextLobbyId;
+            mutable std::mutex m_lobbiesMutex;
 
             // Packet handling
             std::unique_ptr<rnp::HandlerPacket> m_packetHandler;
@@ -278,7 +305,108 @@ namespace srv
             /// @return Handler result
             ///
             rnp::HandlerResult handleEntityEvent(const std::vector<rnp::EventRecord> &events,
-                                                 const rnp::PacketContext &context) const;
+                                                 const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle LOBBY_LIST_REQUEST packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleLobbyListRequest(const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle LOBBY_CREATE packet
+            /// @param packet Lobby create packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleLobbyCreate(const rnp::PacketLobbyCreate &packet,
+                                                 const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle LOBBY_JOIN packet
+            /// @param packet Lobby join packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleLobbyJoin(const rnp::PacketLobbyJoin &packet, const rnp::PacketContext &context);
+
+            ///
+            /// @brief Handle LOBBY_LEAVE packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleLobbyLeave(const rnp::PacketContext &context);
+
+            ///
+            /// @brief Send lobby list to client
+            /// @param sessionId Target client session ID
+            ///
+            void sendLobbyList(std::uint32_t sessionId);
+
+            ///
+            /// @brief Create new lobby
+            /// @param name Lobby name
+            /// @param hostSession Host session ID
+            /// @param maxPlayers Maximum players
+            /// @param gameMode Game mode
+            /// @return New lobby ID
+            ///
+            std::uint32_t createLobby(const std::string &name, std::uint32_t hostSession, std::uint8_t maxPlayers,
+                                      std::uint8_t gameMode);
+
+            ///
+            /// @brief Join player to lobby
+            /// @param lobbyId Target lobby ID
+            /// @param sessionId Player session ID
+            /// @return Success status
+            ///
+            bool joinLobby(std::uint32_t lobbyId, std::uint32_t sessionId);
+
+            ///
+            /// @brief Remove player from lobby
+            /// @param sessionId Player session ID
+            ///
+            void leaveLobby(std::uint32_t sessionId);
+
+            ///
+            /// @brief Broadcast lobby update to all lobby members
+            /// @param lobbyId Target lobby ID
+            ///
+            void broadcastLobbyUpdate(std::uint32_t lobbyId);
+
+            ///
+            /// @brief Convert Lobby to LobbyInfo for network transmission
+            /// @param lobby Lobby structure
+            /// @return LobbyInfo structure
+            ///
+            rnp::LobbyInfo lobbyToLobbyInfo(const Lobby &lobby);
+
+            ///
+            /// @brief Send lobby create response
+            /// @param sessionId Target client session ID
+            /// @param lobbyId Created lobby ID (0 if failed)
+            /// @param success Success status
+            /// @param errorCode Error code if failed
+            ///
+            void sendLobbyCreateResponse(std::uint32_t sessionId, std::uint32_t lobbyId, bool success,
+                                         rnp::ErrorCode errorCode = rnp::ErrorCode::INTERNAL_ERROR);
+
+            ///
+            /// @brief Send lobby join response
+            /// @param sessionId Target client session ID
+            /// @param lobbyId Target lobby ID
+            /// @param success Success status
+            /// @param errorCode Error code if failed
+            /// @param lobbyInfo Lobby information if successful
+            ///
+            void sendLobbyJoinResponse(std::uint32_t sessionId, std::uint32_t lobbyId, bool success,
+                                       rnp::ErrorCode errorCode, const rnp::LobbyInfo *lobbyInfo = nullptr);
+
+            ///
+            /// @brief Clean up empty lobbies
+            ///
+            void cleanupEmptyLobbies();
     };
 
 } // namespace srv

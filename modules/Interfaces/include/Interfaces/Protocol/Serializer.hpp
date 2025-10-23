@@ -678,14 +678,222 @@ namespace rnp
             /// @param entityId Entity to despawn
             /// @return EventRecord for despawn
             ///
-            static EventRecord createDespawnEvent(std::uint32_t entityId)
+            EventRecord createDespawnEvent(std::uint32_t entityId)
             {
                 EventRecord event;
                 event.type = EventType::DESPAWN;
                 event.entityId = entityId;
-                // Despawn events don't need additional data
-
                 return event;
+            }
+
+            ///
+            /// @brief Serialize LobbyInfo structure
+            /// @param lobbyInfo The lobby info to serialize
+            ///
+            void serializeLobbyInfo(const LobbyInfo &lobbyInfo)
+            {
+                writeUInt32(lobbyInfo.lobbyId);
+                writeBytes(reinterpret_cast<const std::uint8_t *>(lobbyInfo.lobbyName.data()),
+                           lobbyInfo.lobbyName.size());
+                writeByte(lobbyInfo.currentPlayers);
+                writeByte(lobbyInfo.maxPlayers);
+                writeByte(lobbyInfo.gameMode);
+                writeByte(lobbyInfo.status);
+                writeUInt32(lobbyInfo.hostSessionId);
+
+                // Serialize player names array
+                for (const auto &playerName : lobbyInfo.playerNames)
+                {
+                    writeBytes(reinterpret_cast<const std::uint8_t *>(playerName.data()), playerName.size());
+                }
+            }
+
+            ///
+            /// @brief Deserialize LobbyInfo structure
+            /// @return Deserialized lobby info
+            ///
+            LobbyInfo deserializeLobbyInfo()
+            {
+                LobbyInfo lobbyInfo;
+                lobbyInfo.lobbyId = readUInt32();
+                readBytes(reinterpret_cast<std::uint8_t *>(lobbyInfo.lobbyName.data()), lobbyInfo.lobbyName.size());
+                lobbyInfo.currentPlayers = readByte();
+                lobbyInfo.maxPlayers = readByte();
+                lobbyInfo.gameMode = readByte();
+                lobbyInfo.status = readByte();
+                lobbyInfo.hostSessionId = readUInt32();
+
+                // Deserialize player names array
+                for (auto &playerName : lobbyInfo.playerNames)
+                {
+                    readBytes(reinterpret_cast<std::uint8_t *>(playerName.data()), playerName.size());
+                }
+
+                return lobbyInfo;
+            }
+
+            ///
+            /// @brief Serialize LOBBY_LIST_RESPONSE packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeLobbyListResponse(const PacketLobbyListResponse &packet)
+            {
+                writeUInt16(packet.lobbyCount);
+                for (const auto &lobby : packet.lobbies)
+                {
+                    serializeLobbyInfo(lobby);
+                }
+            }
+
+            ///
+            /// @brief Deserialize LOBBY_LIST_RESPONSE packet
+            /// @return Deserialized packet
+            ///
+            PacketLobbyListResponse deserializeLobbyListResponse()
+            {
+                PacketLobbyListResponse packet;
+                packet.lobbyCount = readUInt16();
+                packet.lobbies.reserve(packet.lobbyCount);
+
+                for (std::uint16_t i = 0; i < packet.lobbyCount; ++i)
+                {
+                    packet.lobbies.push_back(deserializeLobbyInfo());
+                }
+
+                return packet;
+            }
+
+            ///
+            /// @brief Serialize LOBBY_CREATE packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeLobbyCreate(const PacketLobbyCreate &packet)
+            {
+                writeByte(packet.nameLen);
+                writeBytes(reinterpret_cast<const std::uint8_t *>(packet.lobbyName.data()), packet.lobbyName.size());
+                writeByte(packet.maxPlayers);
+                writeByte(packet.gameMode);
+            }
+
+            ///
+            /// @brief Deserialize LOBBY_CREATE packet
+            /// @return Deserialized packet
+            ///
+            PacketLobbyCreate deserializeLobbyCreate()
+            {
+                PacketLobbyCreate packet;
+                packet.nameLen = readByte();
+                readBytes(reinterpret_cast<std::uint8_t *>(packet.lobbyName.data()), packet.lobbyName.size());
+                packet.maxPlayers = readByte();
+                packet.gameMode = readByte();
+                return packet;
+            }
+
+            ///
+            /// @brief Serialize LOBBY_CREATE_RESPONSE packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeLobbyCreateResponse(const PacketLobbyCreateResponse &packet)
+            {
+                writeUInt32(packet.lobbyId);
+                writeByte(packet.success);
+                writeUInt16(packet.errorCode);
+            }
+
+            ///
+            /// @brief Deserialize LOBBY_CREATE_RESPONSE packet
+            /// @return Deserialized packet
+            ///
+            PacketLobbyCreateResponse deserializeLobbyCreateResponse()
+            {
+                PacketLobbyCreateResponse packet;
+                packet.lobbyId = readUInt32();
+                packet.success = readByte();
+                packet.errorCode = readUInt16();
+                return packet;
+            }
+
+            ///
+            /// @brief Serialize LOBBY_JOIN packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeLobbyJoin(const PacketLobbyJoin &packet) { writeUInt32(packet.lobbyId); }
+
+            ///
+            /// @brief Deserialize LOBBY_JOIN packet
+            /// @return Deserialized packet
+            ///
+            PacketLobbyJoin deserializeLobbyJoin()
+            {
+                PacketLobbyJoin packet;
+                packet.lobbyId = readUInt32();
+                return packet;
+            }
+
+            ///
+            /// @brief Serialize LOBBY_JOIN_RESPONSE packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeLobbyJoinResponse(const PacketLobbyJoinResponse &packet)
+            {
+                writeUInt32(packet.lobbyId);
+                writeByte(packet.success);
+                writeUInt16(packet.errorCode);
+                if (packet.success == 1)
+                {
+                    serializeLobbyInfo(packet.lobbyInfo);
+                }
+            }
+
+            ///
+            /// @brief Deserialize LOBBY_JOIN_RESPONSE packet
+            /// @return Deserialized packet
+            ///
+            PacketLobbyJoinResponse deserializeLobbyJoinResponse()
+            {
+                PacketLobbyJoinResponse packet;
+                packet.lobbyId = readUInt32();
+                packet.success = readByte();
+                packet.errorCode = readUInt16();
+                if (packet.success == 1)
+                {
+                    packet.lobbyInfo = deserializeLobbyInfo();
+                }
+                return packet;
+            }
+
+            ///
+            /// @brief Serialize LOBBY_UPDATE packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeLobbyUpdate(const PacketLobbyUpdate &packet) { serializeLobbyInfo(packet.lobbyInfo); }
+
+            ///
+            /// @brief Deserialize LOBBY_UPDATE packet
+            /// @return Deserialized packet
+            ///
+            PacketLobbyUpdate deserializeLobbyUpdate()
+            {
+                PacketLobbyUpdate packet;
+                packet.lobbyInfo = deserializeLobbyInfo();
+                return packet;
+            }
+
+            ///
+            /// @brief Serialize GAME_START packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeGameStart(const PacketGameStart &packet) { writeUInt32(packet.lobbyId); }
+
+            ///
+            /// @brief Deserialize GAME_START packet
+            /// @return Deserialized packet
+            ///
+            PacketGameStart deserializeGameStart()
+            {
+                PacketGameStart packet;
+                packet.lobbyId = readUInt32();
+                return packet;
             }
     };
 

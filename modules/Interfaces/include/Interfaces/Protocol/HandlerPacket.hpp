@@ -58,6 +58,20 @@ namespace rnp
     using EntityEventHandler = std::function<HandlerResult(const std::vector<EventRecord> &, const PacketContext &)>;
     using AckHandler = std::function<HandlerResult(std::uint32_t sequenceId, const PacketContext &)>;
 
+    // Lobby system handlers
+    using LobbyListRequestHandler = std::function<HandlerResult(const PacketContext &)>;
+    using LobbyListResponseHandler =
+        std::function<HandlerResult(const PacketLobbyListResponse &, const PacketContext &)>;
+    using LobbyCreateHandler = std::function<HandlerResult(const PacketLobbyCreate &, const PacketContext &)>;
+    using LobbyCreateResponseHandler =
+        std::function<HandlerResult(const PacketLobbyCreateResponse &, const PacketContext &)>;
+    using LobbyJoinHandler = std::function<HandlerResult(const PacketLobbyJoin &, const PacketContext &)>;
+    using LobbyJoinResponseHandler =
+        std::function<HandlerResult(const PacketLobbyJoinResponse &, const PacketContext &)>;
+    using LobbyLeaveHandler = std::function<HandlerResult(const PacketContext &)>;
+    using LobbyUpdateHandler = std::function<HandlerResult(const PacketLobbyUpdate &, const PacketContext &)>;
+    using GameStartHandler = std::function<HandlerResult(const PacketGameStart &, const PacketContext &)>;
+
     ///
     /// @brief Statistics for packet handling
     ///
@@ -87,6 +101,17 @@ namespace rnp
             ErrorHandler errorHandler_;
             EntityEventHandler entityEventHandler_;
             AckHandler ackHandler_;
+
+            // Lobby system handlers
+            LobbyListRequestHandler lobbyListRequestHandler_;
+            LobbyListResponseHandler lobbyListResponseHandler_;
+            LobbyCreateHandler lobbyCreateHandler_;
+            LobbyCreateResponseHandler lobbyCreateResponseHandler_;
+            LobbyJoinHandler lobbyJoinHandler_;
+            LobbyJoinResponseHandler lobbyJoinResponseHandler_;
+            LobbyLeaveHandler lobbyLeaveHandler_;
+            LobbyUpdateHandler lobbyUpdateHandler_;
+            GameStartHandler gameStartHandler_;
 
             // Statistics
             HandlerStats stats_;
@@ -246,6 +271,69 @@ namespace rnp
             void onEntityEvent(EntityEventHandler handler) { entityEventHandler_ = std::move(handler); }
 
             ///
+            /// @brief Register LOBBY_LIST_REQUEST packet handler
+            /// @param handler Callback function for LOBBY_LIST_REQUEST packets
+            ///
+            void onLobbyListRequest(LobbyListRequestHandler handler) { lobbyListRequestHandler_ = std::move(handler); }
+
+            ///
+            /// @brief Register LOBBY_LIST_RESPONSE packet handler
+            /// @param handler Callback function for LOBBY_LIST_RESPONSE packets
+            ///
+            void onLobbyListResponse(LobbyListResponseHandler handler)
+            {
+                lobbyListResponseHandler_ = std::move(handler);
+            }
+
+            ///
+            /// @brief Register LOBBY_CREATE packet handler
+            /// @param handler Callback function for LOBBY_CREATE packets
+            ///
+            void onLobbyCreate(LobbyCreateHandler handler) { lobbyCreateHandler_ = std::move(handler); }
+
+            ///
+            /// @brief Register LOBBY_CREATE_RESPONSE packet handler
+            /// @param handler Callback function for LOBBY_CREATE_RESPONSE packets
+            ///
+            void onLobbyCreateResponse(LobbyCreateResponseHandler handler)
+            {
+                lobbyCreateResponseHandler_ = std::move(handler);
+            }
+
+            ///
+            /// @brief Register LOBBY_JOIN packet handler
+            /// @param handler Callback function for LOBBY_JOIN packets
+            ///
+            void onLobbyJoin(LobbyJoinHandler handler) { lobbyJoinHandler_ = std::move(handler); }
+
+            ///
+            /// @brief Register LOBBY_JOIN_RESPONSE packet handler
+            /// @param handler Callback function for LOBBY_JOIN_RESPONSE packets
+            ///
+            void onLobbyJoinResponse(LobbyJoinResponseHandler handler)
+            {
+                lobbyJoinResponseHandler_ = std::move(handler);
+            }
+
+            ///
+            /// @brief Register LOBBY_LEAVE packet handler
+            /// @param handler Callback function for LOBBY_LEAVE packets
+            ///
+            void onLobbyLeave(LobbyLeaveHandler handler) { lobbyLeaveHandler_ = std::move(handler); }
+
+            ///
+            /// @brief Register LOBBY_UPDATE packet handler
+            /// @param handler Callback function for LOBBY_UPDATE packets
+            ///
+            void onLobbyUpdate(LobbyUpdateHandler handler) { lobbyUpdateHandler_ = std::move(handler); }
+
+            ///
+            /// @brief Register GAME_START packet handler
+            /// @param handler Callback function for GAME_START packets
+            ///
+            void onGameStart(GameStartHandler handler) { gameStartHandler_ = std::move(handler); }
+
+            ///
             /// @brief Process a received packet
             /// @param data Raw packet data
             /// @param context Packet context information
@@ -344,6 +432,76 @@ namespace rnp
                             {
                                 auto events = parseEntityEvents(serializer, header.length);
                                 result = entityEventHandler_(events, context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_LIST_REQUEST:
+                            if (lobbyListRequestHandler_)
+                            {
+                                result = lobbyListRequestHandler_(context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_LIST_RESPONSE:
+                            if (lobbyListResponseHandler_)
+                            {
+                                auto packet = serializer.deserializeLobbyListResponse();
+                                result = lobbyListResponseHandler_(packet, context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_CREATE:
+                            if (lobbyCreateHandler_)
+                            {
+                                auto packet = serializer.deserializeLobbyCreate();
+                                result = lobbyCreateHandler_(packet, context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_CREATE_RESPONSE:
+                            if (lobbyCreateResponseHandler_)
+                            {
+                                auto packet = serializer.deserializeLobbyCreateResponse();
+                                result = lobbyCreateResponseHandler_(packet, context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_JOIN:
+                            if (lobbyJoinHandler_)
+                            {
+                                auto packet = serializer.deserializeLobbyJoin();
+                                result = lobbyJoinHandler_(packet, context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_JOIN_RESPONSE:
+                            if (lobbyJoinResponseHandler_)
+                            {
+                                auto packet = serializer.deserializeLobbyJoinResponse();
+                                result = lobbyJoinResponseHandler_(packet, context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_LEAVE:
+                            if (lobbyLeaveHandler_)
+                            {
+                                result = lobbyLeaveHandler_(context);
+                            }
+                            break;
+
+                        case PacketType::LOBBY_UPDATE:
+                            if (lobbyUpdateHandler_)
+                            {
+                                auto packet = serializer.deserializeLobbyUpdate();
+                                result = lobbyUpdateHandler_(packet, context);
+                            }
+                            break;
+
+                        case PacketType::GAME_START:
+                            if (gameStartHandler_)
+                            {
+                                auto packet = serializer.deserializeGameStart();
+                                result = gameStartHandler_(packet, context);
                             }
                             break;
 
