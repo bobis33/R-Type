@@ -24,7 +24,8 @@ namespace cli
     class CollisionSystem final : public eng::ISystem
     {
         public:
-            explicit CollisionSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer)
+            explicit CollisionSystem(const std::shared_ptr<eng::IRenderer> &renderer, bool &showDebug)
+                : m_renderer(renderer), m_showDebug(showDebug)
             {
                 m_enemyDeathAudioEntities.fill(ecs::INVALID_ENTITY);
             }
@@ -44,7 +45,6 @@ namespace cli
 
                 std::optional<float> ceilingBottomY;
                 std::optional<float> floorTopY;
-
                 for (auto &[entity, tag] : registry.getAll<ecs::Ceiling>())
                 {
                     const auto *t = registry.getComponent<ecs::Transform>(entity);
@@ -175,6 +175,7 @@ namespace cli
             ecs::Entity m_playerDeathAudioEntity = ecs::INVALID_ENTITY;
             std::size_t m_nextEnemyDeathChannel = 0;
             bool m_wasPlayerPresent = false;
+            bool &m_showDebug;
 
             bool checkCircularCollision(const ecs::Transform &transform1, const ecs::Hitbox &hitbox1,
                                         const ecs::Transform &transform2, const ecs::Hitbox &hitbox2)
@@ -225,6 +226,8 @@ namespace cli
                     registry.removeComponent<ecs::Animation>(entity);
                 if (registry.hasComponent<ecs::Hitbox>(entity))
                     registry.removeComponent<ecs::Hitbox>(entity);
+                if (registry.hasComponent<ecs::Projectile>(entity))
+                    registry.removeComponent<ecs::Projectile>(entity);
             }
 
             void createExplosion(ecs::Registry &registry, float x, float y)

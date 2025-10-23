@@ -30,6 +30,17 @@ namespace eng
             std::string name;
     };
 
+    struct CircleShape
+    {
+            std::string name;
+            float radius;
+            Color color;
+            float x;
+            float y;
+            float outline_thickness;
+            Color outline_color;
+    };
+
     enum class Key
     {
         Unknown,
@@ -75,7 +86,8 @@ namespace eng
         Num6,
         Num7,
         Num8,
-        Num9
+        Num9,
+        LControl,
     };
     enum class EventType
     {
@@ -134,8 +146,12 @@ namespace eng
             virtual void setSpriteScale(const std::string &name, int x, int y) = 0;
             virtual void setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny) = 0;
 
+            virtual void createCircleShape(CircleShape circleShape) = 0;
+            virtual void setCircleShapePosition(const std::string &name, float x, float y) = 0;
+            virtual void drawCircleShape(const std::string &name) = 0;
+
             virtual void drawPoint(float x, float y, Color color) = 0;
-            virtual void renderGui() = 0;
+            virtual void renderGui(const WindowSize &windowSize) = 0;
 
         private:
     }; // class IRenderer

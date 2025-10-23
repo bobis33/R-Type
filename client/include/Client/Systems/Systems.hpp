@@ -10,6 +10,7 @@
 #include "Client/Systems/Audio.hpp"
 #include "Client/Systems/Beam.hpp"
 #include "Client/Systems/Collision.hpp"
+#include "Client/Systems/Debug.hpp"
 #include "Client/Systems/Enemy.hpp"
 #include "Client/Systems/Explosion.hpp"
 #include "Client/Systems/HUD.hpp"

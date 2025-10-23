@@ -80,15 +80,11 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         });
 
     m_menuBgmEntity =
-        registry.createEntity()
-            .with<ecs::Audio>("menu_bgm", Path::Audio::AUDIO_TITLE, 1.F, false, false)
-            .build();
+        registry.createEntity().with<ecs::Audio>("menu_bgm", Path::Audio::AUDIO_TITLE, 1.F, false, false).build();
     m_menuBgmName = "menu_bgm" + std::to_string(m_menuBgmEntity);
 
     m_selectionSoundEntity =
-        registry.createEntity()
-            .with<ecs::Audio>("menu_input", Path::Audio::AUDIO_INPUT, 5.F, false, false)
-            .build();
+        registry.createEntity().with<ecs::Audio>("menu_input", Path::Audio::AUDIO_INPUT, 5.F, false, false).build();
     m_selectionSoundName = "menu_input" + std::to_string(m_selectionSoundEntity);
 
     startMenuMusicOnce();

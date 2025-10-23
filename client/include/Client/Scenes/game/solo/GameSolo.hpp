@@ -31,7 +31,7 @@ namespace cli
     {
         public:
             GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
-                     const AppConfig &appConfig);
+                     const AppConfig &appConfig, bool &showDebug);
             ~GameSolo() override = default;
 
             GameSolo(const GameSolo &other) = delete;
@@ -46,6 +46,7 @@ namespace cli
         private:
             ecs::Entity m_playerEntity;
             const std::shared_ptr<eng::IAudio> &m_audio;
+            const std::shared_ptr<eng::IRenderer> &m_renderer;
             const AppConfig &m_appConfig;
             std::unique_ptr<HUDSystem> m_hudSystem;
             std::unique_ptr<StarfieldSystem> m_starfieldSystem;
@@ -58,5 +59,7 @@ namespace cli
             bool isShootPressed() const;
             std::unordered_map<eng::Key, bool> m_keysPressed;
             int m_lastAppliedSkinIndex = -1;
+
+            bool &m_showDebug;
     }; // class GameSolo
 } // namespace cli

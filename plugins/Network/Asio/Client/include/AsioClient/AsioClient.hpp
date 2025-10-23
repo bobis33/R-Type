@@ -32,7 +32,9 @@ namespace eng
             std::vector<std::uint8_t> data;
             bool reliable;
 
-            explicit QueuedPacket(const std::vector<std::uint8_t> &d, const bool rel = false) : data(d), reliable(rel) {}
+            explicit QueuedPacket(const std::vector<std::uint8_t> &d, const bool rel = false) : data(d), reliable(rel)
+            {
+            }
     };
 
     ///
@@ -220,7 +222,8 @@ namespace eng
             /// @param context Packet context
             /// @return Handler result
             ///
-            rnp::HandlerResult handleWorldState(const rnp::PacketWorldState &packet, const rnp::PacketContext &context) const;
+            rnp::HandlerResult handleWorldState(const rnp::PacketWorldState &packet,
+                                                const rnp::PacketContext &context) const;
 
             ///
             /// @brief Handle ENTITY_EVENT packet
