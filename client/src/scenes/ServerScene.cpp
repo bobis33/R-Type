@@ -1,6 +1,14 @@
-#include <Client/scenes/ServerScene.hpp>
-#include <Client/Common.hpp>
 #include <cmath>
+
+#include "Client/Scenes/ServerScene.hpp"
+#include "Client/Common.hpp"
+#include "ECS/Component.hpp"
+#include "Interfaces/IAudio.hpp"
+
+static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
+static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
+static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
+static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
 namespace cli
 {
@@ -51,23 +59,10 @@ namespace cli
             case eng::Key::Dot: return '.';
             default: return '\0';
         }
-    }
-    static char getSpecialChar(eng::Key key)
-    {
-        return '\0';
-    }
-}
+    }   
 
-#include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
-
-static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
-static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
-static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
-
-cli::ServerScene::ServerScene(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+ServerScene::ServerScene(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
+: m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
 
@@ -235,8 +230,6 @@ void cli::ServerScene::event(const eng::Event &event)
                 if (m_selectedIndex < 3)
                 {
                     char c = keyToChar(event.key);
-                    if (c == '\0')
-                        c = getSpecialChar(event.key);
                     
                     if (c != '\0')
                     {
@@ -282,3 +275,5 @@ void cli::ServerScene::updateValueDisplay()
     if (auto *serverPortText = reg.getComponent<ecs::Text>(m_serverPortValueEntity))
         serverPortText->content = m_serverPort;
 }
+
+} // namespace cli
