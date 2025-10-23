@@ -30,6 +30,16 @@ namespace rnp
         PACKET_ERROR = 0x06,
         ENTITY_EVENT = 0x07,
         CONNECT_ACCEPT = 0x08,
+        // Lobby system packets
+        LOBBY_LIST_REQUEST = 0x09,
+        LOBBY_LIST_RESPONSE = 0x0A,
+        LOBBY_CREATE = 0x0B,
+        LOBBY_CREATE_RESPONSE = 0x0C,
+        LOBBY_JOIN = 0x0D,
+        LOBBY_JOIN_RESPONSE = 0x0E,
+        LOBBY_LEAVE = 0x0F,
+        LOBBY_UPDATE = 0x10,
+        GAME_START = 0x11,
     };
 
     ///
@@ -64,7 +74,12 @@ namespace rnp
         INVALID_PAYLOAD = 1,
         UNAUTHORIZED_SESSION = 2,
         RATE_LIMITED = 3,
-        INTERNAL_ERROR = 4
+        INTERNAL_ERROR = 4,
+        LOBBY_NOT_FOUND = 5,
+        LOBBY_FULL = 6,
+        ALREADY_IN_LOBBY = 7,
+        NOT_IN_LOBBY = 8,
+        NOT_LOBBY_HOST = 9
     };
 
     ///
@@ -182,6 +197,96 @@ namespace rnp
             std::uint16_t errorCode; // ErrorCode
             std::uint16_t msgLen;
             std::string description;
+    };
+
+    ///
+    /// @brief Lobby status enumeration
+    ///
+    enum class LobbyStatus : std::uint8_t
+    {
+        WAITING = 0,
+        IN_GAME = 1,
+        FINISHED = 2
+    };
+
+    ///
+    /// @brief Lobby information structure
+    ///
+    struct LobbyInfo
+    {
+            std::uint32_t lobbyId;
+            std::array<char, 32> lobbyName;
+            std::uint8_t currentPlayers;
+            std::uint8_t maxPlayers;
+            std::uint8_t gameMode;
+            std::uint8_t status; // LobbyStatus
+            std::uint32_t hostSessionId;
+            std::array<std::array<char, 32>, 8> playerNames; // Max 8 players
+    };
+
+    ///
+    /// @brief LOBBY_LIST_RESPONSE packet payload
+    ///
+    struct PacketLobbyListResponse
+    {
+            std::uint16_t lobbyCount;
+            std::vector<LobbyInfo> lobbies;
+    };
+
+    ///
+    /// @brief LOBBY_CREATE packet payload
+    ///
+    struct PacketLobbyCreate
+    {
+            std::uint8_t nameLen;
+            std::array<char, 32> lobbyName;
+            std::uint8_t maxPlayers;
+            std::uint8_t gameMode;
+    };
+
+    ///
+    /// @brief LOBBY_CREATE_RESPONSE packet payload
+    ///
+    struct PacketLobbyCreateResponse
+    {
+            std::uint32_t lobbyId;
+            std::uint8_t success;    // 0=failure, 1=success
+            std::uint16_t errorCode; // ErrorCode if success=0
+    };
+
+    ///
+    /// @brief LOBBY_JOIN packet payload
+    ///
+    struct PacketLobbyJoin
+    {
+            std::uint32_t lobbyId;
+    };
+
+    ///
+    /// @brief LOBBY_JOIN_RESPONSE packet payload
+    ///
+    struct PacketLobbyJoinResponse
+    {
+            std::uint32_t lobbyId;
+            std::uint8_t success;    // 0=failure, 1=success
+            std::uint16_t errorCode; // ErrorCode if success=0
+            LobbyInfo lobbyInfo;     // Current lobby state if success=1
+    };
+
+    ///
+    /// @brief LOBBY_UPDATE packet payload
+    ///
+    struct PacketLobbyUpdate
+    {
+            LobbyInfo lobbyInfo;
+    };
+
+    ///
+    /// @brief GAME_START packet payload
+    ///
+    struct PacketGameStart
+    {
+            std::uint32_t lobbyId;
     };
 
 } // namespace rnp
