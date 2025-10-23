@@ -305,8 +305,7 @@ namespace srv
     std::size_t AsioServer::getClientCount() const
     {
         std::lock_guard clientLock(m_clientsMutex);
-        return std::ranges::count_if(m_clients,
-                             [](const auto &pair) { return pair.second.isConnected; });
+        return std::ranges::count_if(m_clients, [](const auto &pair) { return pair.second.isConnected; });
     }
 
     std::vector<std::uint32_t> AsioServer::getConnectedSessions() const
@@ -938,7 +937,7 @@ namespace srv
     }
 
     rnp::HandlerResult AsioServer::handleEntityEvent(const std::vector<rnp::EventRecord> &events,
-                                                     const rnp::PacketContext &context) const
+                                                     const rnp::PacketContext &context)
     {
         // Filtrer les événements d'input et les publier vers GameServer
         for (const auto &eventRecord : events)
