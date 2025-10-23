@@ -52,6 +52,7 @@ namespace eng
         Left,
         Right,
         Delete,
+        Dot,
         A,
         B,
         C,
