@@ -189,7 +189,17 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
             return eng::Key::Num8;
         case S::Num9:
             return eng::Key::Num9;
+        case S::Semicolon:
+            return eng::Key::Dot;
+        case S::Period:
+            return eng::Key::Dot;
+        case S::Comma:
+            return eng::Key::Dot;
+        case S::NumpadDecimal:
+            return eng::Key::Dot;
         default:
+            if (static_cast<int>(sc) == 49)
+                return eng::Key::Dot;
             if (static_cast<int>(sc) == 38 ||   // macOS
                 static_cast<int>(sc) == 83 ||   // Windows
                 static_cast<int>(sc) == 119)    // Linux
@@ -197,7 +207,7 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
                 return eng::Key::Delete;
             }
             return eng::Key::Unknown;
-    }
+        }
 }
 
 bool eng::SFMLRenderer::pollEvent(Event &event)

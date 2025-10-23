@@ -28,7 +28,7 @@ namespace cli
             case eng::Key::J: return shift ? 'J' : 'j';
             case eng::Key::K: return shift ? 'K' : 'k';
             case eng::Key::M: return shift ? 'M' : 'm';
-            case eng::Key::L: return shift ? '.' : '.';
+            case eng::Key::L: return shift ? 'L' : 'l';
 
             case eng::Key::Z: return shift ? 'W' : 'w';
             case eng::Key::X: return shift ? 'X' : 'x';
@@ -48,12 +48,12 @@ namespace cli
             case eng::Key::Num8: return '8';
             case eng::Key::Num9: return '9';
             case eng::Key::Space: return ' ';
+            case eng::Key::Dot: return '.';
             default: return '\0';
         }
     }
     static char getSpecialChar(eng::Key key)
     {
-        if (key == eng::Key::L) return '.';
         return '\0';
     }
 }
