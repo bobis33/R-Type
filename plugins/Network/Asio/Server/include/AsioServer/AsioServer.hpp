@@ -60,6 +60,11 @@ namespace srv
             rnp::LobbyStatus status;
             std::chrono::steady_clock::time_point createdTime;
 
+            Lobby()
+                : lobbyId(0), lobbyName(""), hostSessionId(0), maxPlayers(0), gameMode(0),
+                  status(rnp::LobbyStatus::WAITING), createdTime(std::chrono::steady_clock::now())
+            {
+            }
             Lobby(std::uint32_t id, const std::string &name, std::uint32_t host, std::uint8_t max, std::uint8_t mode)
                 : lobbyId(id), lobbyName(name), hostSessionId(host), maxPlayers(max), gameMode(mode),
                   status(rnp::LobbyStatus::WAITING), createdTime(std::chrono::steady_clock::now())
