@@ -22,7 +22,7 @@ namespace cli
     {
         namespace Audio
         {
-            inline constexpr auto DEFAULT_AUDIO_VOLUME = 100;   // unused
+            inline constexpr auto DEFAULT_AUDIO_VOLUME = 100;  // unused
             inline constexpr auto DEFAULT_AUDIO_MUTED = false; // unused
         } // namespace Audio
         namespace Network

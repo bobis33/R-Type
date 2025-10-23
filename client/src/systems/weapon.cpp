@@ -1,7 +1,7 @@
 #include "Client/Systems/Weapon.hpp"
 #include "Client/Common.hpp"
-#include "Client/ProjectileManager.hpp"
 #include "Client/GameConfig.hpp"
+#include "Client/ProjectileManager.hpp"
 
 namespace cli
 {
@@ -168,8 +168,7 @@ namespace cli
 
     void WeaponSystem::ensureSuperShotAudio(ecs::Registry &registry)
     {
-        if (m_superShotAudioEntity != ecs::INVALID_ENTITY &&
-            registry.hasComponent<ecs::Audio>(m_superShotAudioEntity))
+        if (m_superShotAudioEntity != ecs::INVALID_ENTITY && registry.hasComponent<ecs::Audio>(m_superShotAudioEntity))
         {
             return;
         }

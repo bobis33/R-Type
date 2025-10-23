@@ -64,8 +64,6 @@ cli::Client::Client(const ArgsConfig &cfg)
         !cfg.game_multi_lib_path.empty() ? cfg.game_multi_lib_path : Path::Plugin::PLUGIN_GAME_MULTI.string());
     m_engine->getRenderer()->createWindow("R-Type Client", m_config.height, m_config.width, m_config.frameLimit,
                                           m_config.fullscreen);
-    m_engine->getNetwork()->setPlayerName("Bobi");
-    m_engine->getNetwork()->connect(m_config.host, m_config.port);
     m_gameSolo->init(m_engine);
     m_gameMulti->init(m_engine);
 }
@@ -78,7 +76,7 @@ void cli::Client::run()
     while (m_engine->getState() == eng::State::RUN)
     {
         handleEvents(event);
-        m_engine->render(m_engine->getRenderer()->getWindowSize(), DARK);
+        m_engine->render(m_engine->getRenderer()->getWindowSize(), DARK, m_showDebug);
     }
 }
 
@@ -88,7 +86,7 @@ void cli::Client::stop() const
     m_engine->stop();
 }
 
-void cli::Client::setupScenes() const
+void cli::Client::setupScenes()
 {
     auto menu = std::make_unique<Menu>(m_engine->getRenderer(), m_engine->getAudio());
     menu->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
@@ -105,14 +103,14 @@ void cli::Client::setupScenes() const
     configSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     configSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     configSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
+    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio(), m_config, m_showDebug);
     gameSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     gameSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<BeamSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer(), m_showDebug));
     gameSolo->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
@@ -121,6 +119,7 @@ void cli::Client::setupScenes() const
     gameSolo->addSystem(std::make_unique<ScrollingSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
     settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     settings->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));

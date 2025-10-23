@@ -293,8 +293,7 @@ namespace srv
     std::size_t AsioServer::getClientCount() const
     {
         std::lock_guard clientLock(m_clientsMutex);
-        return std::ranges::count_if(m_clients,
-                             [](const auto &pair) { return pair.second.isConnected; });
+        return std::ranges::count_if(m_clients, [](const auto &pair) { return pair.second.isConnected; });
     }
 
     std::vector<std::uint32_t> AsioServer::getConnectedSessions() const

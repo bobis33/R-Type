@@ -43,7 +43,7 @@ namespace cli
 
         private:
             void playInputSound();
-            
+
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             const std::shared_ptr<eng::IAudio> &m_audio;
@@ -66,7 +66,7 @@ namespace cli
 
             float m_animationTime = 0.0f;
             float m_titlePulseTime = 0.0f;
-            
+
             // Audio pour navigation
             ecs::Entity m_selectionSoundEntity;
             std::string m_selectionSoundName;

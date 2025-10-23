@@ -1,10 +1,10 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Client/Scenes/Settings.hpp"
 #include "Client/Client.hpp"
 #include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
+#include "Client/Scenes/Settings.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -135,9 +135,7 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
         .build();
 
     m_selectionSoundEntity =
-        registry.createEntity()
-            .with<ecs::Audio>("settings_input", Path::Audio::AUDIO_INPUT, 8.F, false, false)
-            .build();
+        registry.createEntity().with<ecs::Audio>("settings_input", Path::Audio::AUDIO_INPUT, 8.F, false, false).build();
     m_selectionSoundName = "settings_input" + std::to_string(m_selectionSoundEntity);
 
     m_selectedIndex = 0;
@@ -303,10 +301,7 @@ void cli::Settings::loadFromConfig()
     applyVideoQuality();
 }
 
-void cli::Settings::applyVideoQuality()
-{
-    unsigned int frameLimit;
-}
+void cli::Settings::applyVideoQuality() { unsigned int frameLimit; }
 
 void cli::Settings::applySkinChange()
 {

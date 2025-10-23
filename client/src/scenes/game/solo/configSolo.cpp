@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include "Client/Scenes/game/solo/ConfigSolo.hpp"
 #include "Client/Common.hpp"
+#include "Client/Scenes/game/solo/ConfigSolo.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -90,13 +90,11 @@ cli::ConfigSolo::ConfigSolo(const std::shared_ptr<eng::IRenderer> &renderer, con
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
-    
+
     m_selectionSoundEntity =
-        registry.createEntity()
-            .with<ecs::Audio>("config_input", Path::Audio::AUDIO_INPUT, 8.F, false, false)
-            .build();
+        registry.createEntity().with<ecs::Audio>("config_input", Path::Audio::AUDIO_INPUT, 8.F, false, false).build();
     m_selectionSoundName = "config_input" + std::to_string(m_selectionSoundEntity);
-    
+
     m_selectedIndex = 2;
 }
 

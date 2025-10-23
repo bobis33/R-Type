@@ -53,7 +53,7 @@ namespace eng
 
             void setState(const State newState) { m_state = newState; }
 
-            void render(const WindowSize &windowSize, Color clearColor) const;
+            void render(const WindowSize &windowSize, Color clearColor, bool showDebug) const;
             void stop() const { m_renderer->closeWindow(); }
 
         private:

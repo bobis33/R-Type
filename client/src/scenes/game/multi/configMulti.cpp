@@ -1,7 +1,7 @@
 #include <cmath>
 
-#include "Client/Scenes/game/multi/ConfigMulti.hpp"
 #include "Client/Common.hpp"
+#include "Client/Scenes/game/multi/ConfigMulti.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -91,11 +91,10 @@ cli::ConfigMulti::ConfigMulti(const std::shared_ptr<eng::IRenderer> &renderer,
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
-    
-    m_selectionSoundEntity =
-        registry.createEntity()
-            .with<ecs::Audio>("config_multi_input", Path::Audio::AUDIO_INPUT, 8.F, false, false)
-            .build();
+
+    m_selectionSoundEntity = registry.createEntity()
+                                 .with<ecs::Audio>("config_multi_input", Path::Audio::AUDIO_INPUT, 8.F, false, false)
+                                 .build();
     m_selectionSoundName = "config_multi_input" + std::to_string(m_selectionSoundEntity);
 
     m_selectedIndex = 2;

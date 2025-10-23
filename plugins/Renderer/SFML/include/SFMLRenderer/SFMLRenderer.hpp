@@ -62,8 +62,12 @@ namespace eng
             void setSpriteScale(const std::string &name, int x, int y) override;
             void drawSprite(const std::string &name) override;
 
+            void createCircleShape(CircleShape circleShape) override;
+            void setCircleShapePosition(const std::string &name, float x, float y) override;
+            void drawCircleShape(const std::string &name) override;
+
             void drawPoint(float x, float y, Color color) override;
-            void renderGui() override;
+            void renderGui(const WindowSize &windowSize) override;
 
         private:
             std::unordered_map<std::string, sf::Texture> textures;
@@ -72,6 +76,7 @@ namespace eng
             std::unordered_map<std::string, sf::Font> fonts;
             std::unordered_map<std::string, sf::Text> texts;
             std::unordered_map<std::string, sf::Sprite> sprites;
+            std::unordered_map<std::string, sf::CircleShape> circleShapes;
             sf::Clock deltaClock;
 
             bool showDebugOverlay = false;
