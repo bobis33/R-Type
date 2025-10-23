@@ -73,8 +73,6 @@ cli::ConfigMulti::ConfigMulti(const std::shared_ptr<eng::IRenderer> &renderer,
             }
         });
 
-    registry.createEntity().with<ecs::Audio>("id_audio", cli::Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
-
     m_titleEntity =
         registry.createEntity()
             .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
@@ -93,6 +91,12 @@ cli::ConfigMulti::ConfigMulti(const std::shared_ptr<eng::IRenderer> &renderer,
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
+    
+    m_selectionSoundEntity =
+        registry.createEntity()
+            .with<ecs::Audio>("config_multi_input", Path::Audio::AUDIO_INPUT, 8.F, false, false)
+            .build();
+    m_selectionSoundName = "config_multi_input" + std::to_string(m_selectionSoundEntity);
 
     m_selectedIndex = 2;
 }
@@ -158,9 +162,15 @@ void cli::ConfigMulti::event(const eng::Event &event)
     {
         case eng::EventType::KeyPressed:
             if (event.key == eng::Key::Up)
+            {
                 m_selectedIndex = (m_selectedIndex == 2) ? 0 : m_selectedIndex + 1;
+                playInputSound();
+            }
             else if (event.key == eng::Key::Down)
+            {
                 m_selectedIndex = (m_selectedIndex == 0) ? 2 : m_selectedIndex - 1;
+                playInputSound();
+            }
             else if (event.key == eng::Key::Enter)
             {
                 const std::string &selectedOption =
@@ -177,4 +187,13 @@ void cli::ConfigMulti::event(const eng::Event &event)
         default:
             break;
     }
+}
+
+void cli::ConfigMulti::playInputSound()
+{
+    if (m_selectionSoundName.empty())
+        return;
+
+    m_audio->stopAudio(m_selectionSoundName);
+    m_audio->playAudio(m_selectionSoundName);
 }

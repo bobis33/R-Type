@@ -39,16 +39,28 @@ namespace cli
                 {
                     float globalVolume = static_cast<float>(m_appConfig.audioVolume) / 100.0f;
                     float effectiveVolume = audio.volume * globalVolume;
-                    m_audio->setVolume(audio.id + std::to_string(entity), effectiveVolume);
-                    m_audio->setLoop(audio.id + std::to_string(entity), audio.loop);
-                    if (audio.play && m_audio->isPlaying(audio.id + std::to_string(entity)) != eng::Status::Playing)
+                    std::string audioName = audio.id + std::to_string(entity);
+                    m_audio->setVolume(audioName, effectiveVolume);
+                    m_audio->setLoop(audioName, audio.loop);
+
+                    const auto status = m_audio->isPlaying(audioName);
+                    if (audio.play)
                     {
-                        m_audio->playAudio(audio.id + std::to_string(entity));
+                        if (status != eng::Status::Playing)
+                        {
+                            m_audio->playAudio(audioName);
+                            if (!audio.loop)
+                            {
+                                audio.play = false;
+                            }
+                        }
                     }
-                    else if (!audio.play &&
-                             m_audio->isPlaying(audio.id + std::to_string(entity)) != eng::Status::Stopped)
+                    else if (audio.loop)
                     {
-                        m_audio->stopAudio(audio.id + std::to_string(entity));
+                        if (status != eng::Status::Stopped)
+                        {
+                            m_audio->stopAudio(audioName);
+                        }
                     }
                 }
             }

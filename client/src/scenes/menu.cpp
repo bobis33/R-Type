@@ -79,7 +79,19 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
             }
         });
 
-    registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
+    m_menuBgmEntity =
+        registry.createEntity()
+            .with<ecs::Audio>("menu_bgm", Path::Audio::AUDIO_TITLE, 1.F, false, false)
+            .build();
+    m_menuBgmName = "menu_bgm" + std::to_string(m_menuBgmEntity);
+
+    m_selectionSoundEntity =
+        registry.createEntity()
+            .with<ecs::Audio>("menu_input", Path::Audio::AUDIO_INPUT, 5.F, false, false)
+            .build();
+    m_selectionSoundName = "menu_input" + std::to_string(m_selectionSoundEntity);
+
+    startMenuMusicOnce();
 
     m_titleEntity =
         registry.createEntity()
@@ -180,11 +192,10 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
 void cli::Menu::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
+    startMenuMusicOnce();
 
     auto &transforms = reg.getAll<ecs::Transform>();
     auto &colors = reg.getAll<ecs::Color>();
-    auto &audios = reg.getAll<ecs::Audio>();
-
     m_animationTime += dt;
     m_titlePulseTime += dt;
 
@@ -201,13 +212,6 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
         titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 2.0f;
     }
 
-    for (auto &val : audios | std::views::values)
-    {
-        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
-        {
-            m_audio->stopAudio(val.id);
-        }
-    }
     for (const auto &entity : reg.getAll<ecs::Pixel>() | std::views::keys)
     {
         if (auto *transform = reg.getComponent<ecs::Transform>(entity))
@@ -281,8 +285,13 @@ void cli::Menu::event(const eng::Event &event)
     switch (event.type)
     {
         case eng::EventType::KeyPressed:
+        {
+            const int previousIndex = m_selectedIndex;
+            bool handledNavigation = false;
+
             if (event.key == eng::Key::Up)
             {
+                handledNavigation = true;
                 if (m_selectedIndex == 2)
                 {
                     m_selectedIndex = 0;
@@ -294,6 +303,7 @@ void cli::Menu::event(const eng::Event &event)
             }
             else if (event.key == eng::Key::Down)
             {
+                handledNavigation = true;
                 if (m_selectedIndex == 0)
                 {
                     m_selectedIndex = 2;
@@ -305,6 +315,7 @@ void cli::Menu::event(const eng::Event &event)
             }
             else if (event.key == eng::Key::Enter)
             {
+                stopMenuMusic();
                 const std::string &selectedOption =
                     m_menuOptions[static_cast<int>(m_menuOptions.size()) - 1 - m_selectedIndex];
                 if (onOptionSelected)
@@ -312,7 +323,13 @@ void cli::Menu::event(const eng::Event &event)
                     onOptionSelected(selectedOption);
                 }
             }
+
+            if (handledNavigation && m_selectedIndex != previousIndex)
+            {
+                playSelectionSound();
+            }
             break;
+        }
 
         case eng::EventType::KeyReleased:
             if (event.key == eng::Key::Up)
@@ -340,4 +357,38 @@ void cli::Menu::event(const eng::Event &event)
         default:
             break;
     }
+}
+
+void cli::Menu::playSelectionSound()
+{
+    if (m_selectionSoundName.empty())
+        return;
+
+    m_audio->stopAudio(m_selectionSoundName);
+    m_audio->playAudio(m_selectionSoundName);
+}
+
+void cli::Menu::stopMenuMusic()
+{
+    if (m_menuBgmName.empty())
+        return;
+
+    auto &reg = getRegistry();
+    if (auto *audioComp = reg.getComponent<ecs::Audio>(m_menuBgmEntity))
+    {
+        audioComp->play = false;
+    }
+
+    m_audio->stopAudio(m_menuBgmName);
+    m_hasStartedMenuMusic = false;
+}
+
+void cli::Menu::startMenuMusicOnce()
+{
+    if (m_hasStartedMenuMusic || m_menuBgmName.empty())
+        return;
+
+    m_audio->stopAudio(m_menuBgmName);
+    m_audio->playAudio(m_menuBgmName);
+    m_hasStartedMenuMusic = true;
 }
