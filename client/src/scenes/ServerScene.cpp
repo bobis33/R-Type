@@ -195,7 +195,6 @@ namespace cli
 
         m_eventComponentId = 5;
         m_eventBus.registerComponent(m_eventComponentId, "ServerConnect");
-        m_eventBus.subscribe(m_eventComponentId, utl::EventType::REQUEST_CONNECT);
     }
 
     void cli::ServerScene::update(const float dt, const eng::WindowSize & /*size*/)
