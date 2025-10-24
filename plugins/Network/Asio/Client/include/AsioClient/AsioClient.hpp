@@ -9,6 +9,7 @@
 #include "Interfaces/INetworkClient.hpp"
 #include "Interfaces/Protocol/HandlerPacket.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
+#include "Utils/Event.hpp"
 #include "Utils/EventBus.hpp"
 
 #include <asio.hpp>
@@ -225,7 +226,7 @@ namespace eng
             std::function<void(std::uint32_t, std::uint32_t)> m_onGameStart;
 
             utl::EventBus &m_eventBus;
-            std::uint32_t m_componentId = 1;
+            std::uint32_t m_componentId = utl::NETWORK_CLIENT;
 
             ///
             /// @brief Initialize packet handlers

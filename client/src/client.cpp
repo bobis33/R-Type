@@ -1,8 +1,8 @@
 #include "Client/Client.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Menu.hpp"
-#include "Client/Scenes/Settings.hpp"
 #include "Client/Scenes/ServerScene.hpp"
+#include "Client/Scenes/Settings.hpp"
 #include "Client/Scenes/game/multi/ConfigMulti.hpp"
 #include "Client/Scenes/game/solo/ConfigSolo.hpp"
 #include "Client/Scenes/game/solo/GameSolo.hpp"
@@ -78,6 +78,7 @@ void cli::Client::run()
     {
         handleEvents(event);
         m_engine->render(m_engine->getRenderer()->getWindowSize(), DARK, m_showDebug);
+        m_engine->getNetwork()->update();
     }
 }
 
@@ -152,16 +153,12 @@ void cli::Client::setupScenes()
             m_engine->getSceneManager()->switchToScene(settingsId);
         }
     };
-    
-    serverScene->onConnect = [this, configMultiId](const std::string &playerName, const std::string &serverIP, const std::string &serverPort)
-    {
-        m_engine->getSceneManager()->switchToScene(configMultiId);
-    };
-    serverScene->onBackToMenu = [this, menuId]()
-    {
-        m_engine->getSceneManager()->switchToScene(menuId);
-    };
-    
+
+    serverScene->onConnect =
+        [this, configMultiId](const std::string &playerName, const std::string &serverIP, const std::string &serverPort)
+    { m_engine->getSceneManager()->switchToScene(configMultiId); };
+    serverScene->onBackToMenu = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
+
     configMulti->onOptionSelected = [this, menuId](const std::string &option)
     {
         if (option == "Create room")

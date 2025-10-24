@@ -16,6 +16,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -179,7 +180,6 @@ namespace utl
                 try
                 {
                     rnp::Serializer serializer;
-
                     if constexpr (std::is_same_v<T, rnp::PacketWorldState>)
                     {
                         serializer.serializeWorldState(data);

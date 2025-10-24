@@ -30,7 +30,9 @@ namespace cli
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
-            std::function<void(const std::string &playerName, const std::string &serverIP, const std::string &serverPort)> onConnect;
+            std::function<void(const std::string &playerName, const std::string &serverIP,
+                               const std::string &serverPort)>
+                onConnect;
             std::function<void()> onBackToMenu;
 
         private:
@@ -39,7 +41,11 @@ namespace cli
             size_t m_selectedIndex = 0;
             float m_animationTime = 0.0f;
             bool m_isEditing = false;
-            const std::vector<std::string> m_serverOptions = {"Player Name", "Server IP", "Server Port", "Connect", "Back"};
+            const std::vector<std::string> m_serverOptions = {"Player Name", "Server IP", "Server Port", "Connect",
+                                                              "Back"};
+
+            void connectServer(const std::string &playerName, const std::string &serverIP,
+                               const std::string &serverPort);
 
             std::string m_playerName = "Player";
             std::string m_serverIP = "0.0.0.0";
