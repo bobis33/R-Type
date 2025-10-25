@@ -14,7 +14,10 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE r-type_modules_client)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        r-type_modules_client
+        r-type_game_client_shared
+)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON

@@ -35,9 +35,12 @@ namespace eng
             std::unique_ptr<IScene> &getCurrentScene() { return m_scenes.at(m_currentSceneId); }
             void switchToScene(const id sceneId) { m_currentSceneId = sceneId; }
             void addScene(std::unique_ptr<IScene> scene) { m_scenes[scene->getId()] = std::move(scene); }
+            id generateNextId() { return m_nextId++; }
 
         private:
             std::unordered_map<id, std::unique_ptr<IScene>> m_scenes;
             id m_currentSceneId = 1;
+            id m_nextId = 1;
+
     }; // class SceneManager
 } // namespace eng

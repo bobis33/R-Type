@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Client/Systems/Weapon.hpp"
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
@@ -24,7 +23,8 @@ namespace cli
     class Menu final : public eng::AScene
     {
         public:
-            Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
+            Menu(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                 const std::shared_ptr<eng::IAudio> &audio);
             ~Menu() override = default;
 
             Menu(const Menu &other) = delete;
@@ -59,6 +59,5 @@ namespace cli
 
             void playSelectionSound();
             void stopMenuMusic();
-            void startMenuMusicOnce();
     }; // class Menu
 } // namespace cli

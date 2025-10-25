@@ -1,21 +1,12 @@
 #include "Client/Client.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Menu.hpp"
-#include "Client/Scenes/ServerScene.hpp"
 #include "Client/Scenes/Settings.hpp"
-#include "Client/Scenes/game/multi/ConfigMulti.hpp"
-#include "Client/Scenes/game/multi/room/CreateRoomScene.hpp"
-#include "Client/Scenes/game/multi/room/JoinRoomScene.hpp"
-#include "Client/Scenes/game/solo/ConfigSolo.hpp"
-#include "Client/Scenes/game/solo/GameSolo.hpp"
 #include "Client/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
 
 static constexpr eng::Color DARK = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
-
-static std::vector<cli::RoomInfo> g_availableRooms; // TODO: Replace with server-side room management
-static int g_nextRoomId = 1;                        // TODO: Replace with server-side room ID generation
 
 cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
 {
@@ -28,10 +19,10 @@ cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
     appConfig.host = cfg.host;
     appConfig.port = cfg.port;
 
-    appConfig.audioVolume = Config::Audio::DEFAULT_AUDIO_VOLUME;
-    appConfig.videoQuality = Config::Game::DEFAULT_VIDEO_QUALITY;
-    appConfig.controlScheme = Config::Game::DEFAULT_CONTROL_SCHEME;
-    appConfig.skinIndex = Config::Game::DEFAULT_SKIN_INDEX;
+    appConfig.audioVolume = utl::Config::Audio::DEFAULT_AUDIO_VOLUME;
+    appConfig.videoQuality = utl::Config::Game::DEFAULT_VIDEO_QUALITY;
+    appConfig.controlScheme = utl::Config::Game::DEFAULT_CONTROL_SCHEME;
+    appConfig.skinIndex = utl::Config::Game::DEFAULT_SKIN_INDEX;
 
     return appConfig;
 }
@@ -51,27 +42,26 @@ cli::Client::Client(const ArgsConfig &cfg)
         [this, cfg]()
         {
             return m_pluginLoader->loadPlugin<eng::IAudio>(
-                !cfg.audio_lib_path.empty() ? cfg.audio_lib_path : Path::Plugin::PLUGIN_AUDIO_SFML.string());
+                !cfg.audio_lib_path.empty() ? cfg.audio_lib_path : utl::Path::Plugin::PLUGIN_AUDIO_SFML.string());
         },
         [this, cfg]()
         {
             return m_pluginLoader->loadPlugin<eng::INetworkClient>(
                 !cfg.network_lib_path.empty() ? cfg.network_lib_path
-                                              : Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string());
+                                              : utl::Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string());
         },
         [this, cfg]()
         {
-            return m_pluginLoader->loadPlugin<eng::IRenderer>(
-                !cfg.renderer_lib_path.empty() ? cfg.renderer_lib_path : Path::Plugin::PLUGIN_RENDERER_SFML.string());
+            return m_pluginLoader->loadPlugin<eng::IRenderer>(!cfg.renderer_lib_path.empty()
+                                                                  ? cfg.renderer_lib_path
+                                                                  : utl::Path::Plugin::PLUGIN_RENDERER_SFML.string());
         });
     m_gameSolo = m_pluginLoader->loadPlugin<gme::IGameClient>(
-        !cfg.game_solo_lib_path.empty() ? cfg.game_solo_lib_path : Path::Plugin::PLUGIN_GAME_SOLO.string());
+        !cfg.game_solo_lib_path.empty() ? cfg.game_solo_lib_path : utl::Path::Plugin::PLUGIN_GAME_SOLO.string());
     m_gameMulti = m_pluginLoader->loadPlugin<gme::IGameClient>(
-        !cfg.game_multi_lib_path.empty() ? cfg.game_multi_lib_path : Path::Plugin::PLUGIN_GAME_MULTI.string());
+        !cfg.game_multi_lib_path.empty() ? cfg.game_multi_lib_path : utl::Path::Plugin::PLUGIN_GAME_MULTI.string());
     m_engine->getRenderer()->createWindow("R-Type Client", m_config.height, m_config.width, m_config.frameLimit,
                                           m_config.fullscreen);
-    m_gameSolo->init(m_engine);
-    m_gameMulti->init(m_engine);
 }
 
 void cli::Client::run()
@@ -84,6 +74,8 @@ void cli::Client::run()
         handleEvents(event);
         m_engine->render(m_engine->getRenderer()->getWindowSize(), DARK, m_showDebug);
         m_engine->getNetwork()->update();
+        m_gameSolo->update(m_engine->getClock()->getDeltaSeconds(), m_engine->getRenderer()->getWindowSize().width,
+                           m_engine->getRenderer()->getWindowSize().height);
     }
 }
 
@@ -95,67 +87,26 @@ void cli::Client::stop() const
 
 void cli::Client::setupScenes()
 {
-    auto menu = std::make_unique<Menu>(m_engine->getRenderer(), m_engine->getAudio());
+    auto menuId = m_engine->getSceneManager()->generateNextId();
+    auto menu = std::make_unique<Menu>(menuId, m_engine->getRenderer(), m_engine->getAudio());
     menu->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     menu->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto serverScene = std::make_unique<ServerScene>(m_engine->getRenderer(), m_engine->getAudio());
-    serverScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    serverScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto configMulti = std::make_unique<ConfigMulti>(m_engine->getRenderer(), m_engine->getAudio());
-    configMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    configMulti->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto createRoomScene = std::make_unique<CreateRoomScene>(m_engine->getRenderer(), m_engine->getAudio());
-    createRoomScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    createRoomScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    createRoomScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    createRoomScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto joinRoomScene = std::make_unique<JoinRoomScene>(m_engine->getRenderer(), m_engine->getAudio());
-    joinRoomScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    joinRoomScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    joinRoomScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    joinRoomScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    JoinRoomScene *joinRoomScenePtr = joinRoomScene.get();
-    auto configSolo = std::make_unique<ConfigSolo>(m_engine->getRenderer(), m_engine->getAudio());
-    configSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    configSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    configSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    configSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    auto gameSolo = std::make_unique<GameSolo>(m_engine->getRenderer(), m_engine->getAudio(), m_config, m_showDebug);
-    gameSolo->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    gameSolo->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<BeamSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer(), m_showDebug));
-    gameSolo->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<PlayerDirectionSystem>(m_config));
-    gameSolo->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<ScrollingSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
-    auto settings = std::make_unique<Settings>(m_engine->getRenderer(), m_engine->getAudio(), m_config);
+    menu->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+
+    m_gameSolo->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
+    m_gameMulti->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
+
+    auto settingsId = m_engine->getSceneManager()->generateNextId();
+    auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_engine->getAudio(), m_config);
     settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     settings->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    const auto menuId = menu->getId();
-    const auto serverSceneId = serverScene->getId();
-    const auto configMultiId = configMulti->getId();
-    const auto createRoomSceneId = createRoomScene->getId();
-    const auto joinRoomSceneId = joinRoomScene->getId();
-    const auto configSoloId = configSolo->getId();
-    const auto gameSoloId = gameSolo->getId();
-    const auto settingsId = settings->getId();
+    settings->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    const auto configSoloId = m_gameSolo->getMainSceneId();
+    const auto serverSceneId = m_gameMulti->getMainSceneId();
     menu->onOptionSelected = [this, configSoloId, serverSceneId, settingsId](const std::string &option)
     {
         if (option == "Solo")
@@ -171,83 +122,9 @@ void cli::Client::setupScenes()
             m_engine->getSceneManager()->switchToScene(settingsId);
         }
     };
-
-    serverScene->onConnect =
-        [this, configMultiId](const std::string &playerName, const std::string &serverIP, const std::string &serverPort)
-    { m_engine->getSceneManager()->switchToScene(configMultiId); };
-    serverScene->onBackToMenu = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
-
-    configMulti->onOptionSelected =
-        [this, menuId, createRoomSceneId, joinRoomSceneId, joinRoomScenePtr](const std::string &option)
-    {
-        if (option == "Create room")
-        {
-            m_engine->getSceneManager()->switchToScene(createRoomSceneId);
-        }
-        else if (option == "Join room")
-        {
-            joinRoomScenePtr->setRooms(g_availableRooms);
-            m_engine->getSceneManager()->switchToScene(joinRoomSceneId);
-        }
-        else if (option == "Go back to menu")
-        {
-            m_engine->getSceneManager()->switchToScene(menuId);
-        }
-    };
-
-    createRoomScene->onCreate = [this, configMultiId](const std::string &roomName, int maxPlayers)
-    {
-        RoomInfo newRoom;
-        newRoom.name = roomName;
-        newRoom.currentPlayers = 0;
-        newRoom.maxPlayers = maxPlayers;
-        newRoom.roomId = g_nextRoomId++;
-        g_availableRooms.push_back(newRoom);
-
-        m_engine->getSceneManager()->switchToScene(configMultiId);
-    };
-    createRoomScene->onBackToMulti = [this, configMultiId]()
-    { m_engine->getSceneManager()->switchToScene(configMultiId); };
-
-    joinRoomScene->onJoin = [this](int roomId)
-    {
-        for (auto &room : g_availableRooms)
-        {
-            if (room.roomId == roomId && room.currentPlayers < room.maxPlayers)
-            {
-                room.currentPlayers++;
-                break;
-            }
-        }
-    };
-    joinRoomScene->onBackToMulti = [this, configMultiId]()
-    { m_engine->getSceneManager()->switchToScene(configMultiId); };
-    joinRoomScene->onRefreshRequest = [joinRoomScenePtr]() { joinRoomScenePtr->setRooms(g_availableRooms); };
-
-    configSolo->onOptionSelected = [this, gameSoloId, menuId](const std::string &option)
-    {
-        if (option == "Level easy")
-        {
-            m_engine->getSceneManager()->switchToScene(gameSoloId);
-        }
-        else if (option == "Level medium")
-        {
-            m_engine->getSceneManager()->switchToScene(gameSoloId);
-        }
-        else if (option == "Go back to menu")
-        {
-            m_engine->getSceneManager()->switchToScene(menuId);
-        }
-    };
     settings->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
 
     m_engine->getSceneManager()->addScene(std::move(menu));
-    m_engine->getSceneManager()->addScene(std::move(serverScene));
-    m_engine->getSceneManager()->addScene(std::move(configMulti));
-    m_engine->getSceneManager()->addScene(std::move(createRoomScene));
-    m_engine->getSceneManager()->addScene(std::move(joinRoomScene));
-    m_engine->getSceneManager()->addScene(std::move(configSolo));
-    m_engine->getSceneManager()->addScene(std::move(gameSolo));
     m_engine->getSceneManager()->addScene(std::move(settings));
     m_engine->getSceneManager()->switchToScene(menuId);
 }

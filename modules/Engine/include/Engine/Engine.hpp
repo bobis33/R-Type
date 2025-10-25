@@ -30,7 +30,7 @@ namespace eng
     /// @brief Class for the game engine
     /// @namespace eng
     ///
-    class Engine
+    class PLUGIN_EXPORT Engine
     {
 
         public:

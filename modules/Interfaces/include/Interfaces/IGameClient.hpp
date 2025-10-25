@@ -20,8 +20,10 @@ namespace gme
     class IGameClient : public utl::IPlugin
     {
         public:
-            virtual void init(const std::unique_ptr<eng::Engine> &engine) = 0;
+            virtual void init(eng::Engine &engine, int &audioVolume, int skinIndex, bool &showDebug,
+                              unsigned int menuSceneId) = 0;
             virtual void update(float deltaTime, unsigned int width, unsigned int height) = 0;
+            virtual unsigned int getMainSceneId() const = 0;
 
         private:
     }; // class IGameClient

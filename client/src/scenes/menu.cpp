@@ -2,10 +2,10 @@
 #include <ranges>
 #include <utility>
 
-#include "Client/Common.hpp"
 #include "Client/Scenes/Menu.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "Utils/Common.hpp"
 
 static constexpr eng::Color CYAN_ELECTRIC = {.r = 0U, .g = 191U, .b = 255U, .a = 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {.r = 160U, .g = 160U, .b = 160U, .a = 255U};
@@ -15,8 +15,9 @@ static constexpr eng::Color SHOOTING_STAR = {.r = 255U, .g = 255U, .b = 200U, .a
 static constexpr eng::Color CYAN_ELECTRIC_PARTICLES = {.r = 0U, .g = 191U, .b = 255U, .a = 100U};
 static constexpr eng::Color CYAN_ELECTRIC_FOREGROUND = {.r = 0U, .g = 191U, .b = 255U, .a = 180U};
 
-cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                const std::shared_ptr<eng::IAudio> &audio)
+    : AScene(assignedId), m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
 
@@ -80,18 +81,17 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
         });
 
     m_menuBgmEntity =
-        registry.createEntity().with<ecs::Audio>("menu_bgm", Path::Audio::AUDIO_TITLE, 1.F, false, false).build();
+        registry.createEntity().with<ecs::Audio>("menu_bgm", utl::Path::Audio::AUDIO_TITLE, 1.F, false, false).build();
     m_menuBgmName = "menu_bgm" + std::to_string(m_menuBgmEntity);
 
-    m_selectionSoundEntity =
-        registry.createEntity().with<ecs::Audio>("menu_input", Path::Audio::AUDIO_INPUT, 5.F, false, false).build();
+    m_selectionSoundEntity = registry.createEntity()
+                                 .with<ecs::Audio>("menu_input", utl::Path::Audio::AUDIO_INPUT, 5.F, false, false)
+                                 .build();
     m_selectionSoundName = "menu_input" + std::to_string(m_selectionSoundEntity);
-
-    startMenuMusicOnce();
 
     m_titleEntity =
         registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
             .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
             .with<ecs::Text>("id", std::string("RTYPE"), 72U)
@@ -100,7 +100,7 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
         registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
             .with<ecs::Color>("color_menu", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b,
                               GRAY_BLUE_SUBTLE.a)
@@ -174,7 +174,7 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
     }
     m_contributorsEntity =
         registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_contributors", static_cast<float>(renderer->getWindowSize().width * 0.9F),
                                   static_cast<float>(renderer->getWindowSize().height * 0.9F))
             .with<ecs::Color>("color_contributors", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b,
@@ -188,7 +188,6 @@ cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shar
 void cli::Menu::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
-    startMenuMusicOnce();
 
     auto &transforms = reg.getAll<ecs::Transform>();
     auto &colors = reg.getAll<ecs::Color>();
@@ -377,14 +376,4 @@ void cli::Menu::stopMenuMusic()
 
     m_audio->stopAudio(m_menuBgmName);
     m_hasStartedMenuMusic = false;
-}
-
-void cli::Menu::startMenuMusicOnce()
-{
-    if (m_hasStartedMenuMusic || m_menuBgmName.empty())
-        return;
-
-    m_audio->stopAudio(m_menuBgmName);
-    m_audio->playAudio(m_menuBgmName);
-    m_hasStartedMenuMusic = true;
 }
