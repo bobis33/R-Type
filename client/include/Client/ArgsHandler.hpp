@@ -8,7 +8,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "Client/Common.hpp"
+#include "Utils/Common.hpp"
 
 namespace cli
 {
@@ -18,17 +18,17 @@ namespace cli
     struct ArgsConfig
     {
             bool exit = false;
-            unsigned int width = Config::Window::DEFAULT_WINDOW_WIDTH;
-            unsigned int height = Config::Window::DEFAULT_WINDOW_HEIGHT;
-            unsigned int frameLimit = Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
-            bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
-            std::string host = Config::Network::DEFAULT_NETWORK_HOST;
-            unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
-            std::string audio_lib_path = Path::Plugin::PLUGIN_AUDIO_SFML.string();
-            std::string network_lib_path = Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string();
-            std::string renderer_lib_path = Path::Plugin::PLUGIN_RENDERER_SFML.string();
-            std::string game_solo_lib_path = Path::Plugin::PLUGIN_GAME_SOLO.string();
-            std::string game_multi_lib_path = Path::Plugin::PLUGIN_GAME_MULTI.string();
+            unsigned int width = utl::Config::Window::DEFAULT_WINDOW_WIDTH;
+            unsigned int height = utl::Config::Window::DEFAULT_WINDOW_HEIGHT;
+            unsigned int frameLimit = utl::Config::Window::DEFAULT_WINDOW_FRAME_LIMIT;
+            bool fullscreen = utl::Config::Window::DEFAULT_WINDOW_FULLSCREEN;
+            std::string host = utl::Config::Network::DEFAULT_NETWORK_HOST;
+            unsigned int port = utl::Config::Network::DEFAULT_NETWORK_PORT;
+            std::string audio_lib_path = utl::Path::Plugin::PLUGIN_AUDIO_SFML.string();
+            std::string network_lib_path = utl::Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string();
+            std::string renderer_lib_path = utl::Path::Plugin::PLUGIN_RENDERER_SFML.string();
+            std::string game_solo_lib_path = utl::Path::Plugin::PLUGIN_GAME_SOLO.string();
+            std::string game_multi_lib_path = utl::Path::Plugin::PLUGIN_GAME_MULTI.string();
 
             static ArgsConfig fromFile(const std::string &path);
     }; // struct Config

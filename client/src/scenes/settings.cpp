@@ -2,11 +2,10 @@
 #include <cmath>
 
 #include "Client/Client.hpp"
-#include "Client/Common.hpp"
-#include "Client/GameConfig.hpp"
 #include "Client/Scenes/Settings.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "Utils/Common.hpp"
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
@@ -14,9 +13,9 @@ static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
-cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
-                        const AppConfig &config)
-    : m_renderer(renderer), m_audio(audio), m_appConfig(config)
+cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                        const std::shared_ptr<eng::IAudio> &audio, const AppConfig &config)
+    : AScene(assignedId), m_renderer(renderer), m_audio(audio), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
 
@@ -81,7 +80,7 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
 
     m_titleEntity =
         registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
             .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
             .with<ecs::Text>("title", std::string("SETTINGS"), 72U)
@@ -90,7 +89,7 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
     for (size_t i = 0; i < m_settingsOptions.size(); ++i)
     {
         registry.createEntity()
-            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_setting_" + std::to_string(i), 100.F, 200.F + i * 50.F, 0.F)
             .with<ecs::Color>("color_setting_" + std::to_string(i), GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
                               GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
@@ -98,21 +97,21 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
             .build();
     }
     m_volumeValueEntity = registry.createEntity()
-                              .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+                              .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                               .with<ecs::Transform>("transform_volume_value", 580.F, 200.F, 0.F)
                               .with<ecs::Color>("color_volume_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
                                                 TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
                               .with<ecs::Text>("volume_value", std::string("50"), 24U)
                               .build();
     m_qualityValueEntity = registry.createEntity()
-                               .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+                               .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                .with<ecs::Transform>("transform_quality_value", 580.F, 250.F, 0.F)
                                .with<ecs::Color>("color_quality_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
                                                  TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
                                .with<ecs::Text>("quality_value", std::string("Medium"), 24U)
                                .build();
     m_controlValueEntity = registry.createEntity()
-                               .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+                               .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                .with<ecs::Transform>("transform_control_value", 580.F, 300.F, 0.F)
                                .with<ecs::Color>("color_control_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
                                                  TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
@@ -127,15 +126,16 @@ cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const s
                              .with<ecs::Texture>("skin_sprite", "assets/sprites/r-typesheet42.gif")
                              .build();
     registry.createEntity()
-        .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+        .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
         .with<ecs::Transform>("transform_instruction", 80.F, 480.F, 0.F)
         .with<ecs::Color>("color_instruction", INFO_TEXT_COLOR.r, INFO_TEXT_COLOR.g, INFO_TEXT_COLOR.b,
                           INFO_TEXT_COLOR.a)
         .with<ecs::Text>("instruction", std::string("UP/DOWN navigate, LEFT/RIGHT change, ESC back"), 16U)
         .build();
 
-    m_selectionSoundEntity =
-        registry.createEntity().with<ecs::Audio>("settings_input", Path::Audio::AUDIO_INPUT, 8.F, false, false).build();
+    m_selectionSoundEntity = registry.createEntity()
+                                 .with<ecs::Audio>("settings_input", utl::Path::Audio::AUDIO_INPUT, 8.F, false, false)
+                                 .build();
     m_selectionSoundName = "settings_input" + std::to_string(m_selectionSoundEntity);
 
     m_selectedIndex = 0;
@@ -303,10 +303,7 @@ void cli::Settings::loadFromConfig()
 
 void cli::Settings::applyVideoQuality() { unsigned int frameLimit; }
 
-void cli::Settings::applySkinChange()
-{
-    float posY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
-}
+void cli::Settings::applySkinChange() {}
 
 void cli::Settings::playInputSound()
 {
