@@ -1,7 +1,7 @@
 ///
 /// @file ServerScene.hpp
 /// @brief This file contains the server configuration scene
-/// @namespace cli
+/// @namespace gme
 ///
 
 #pragma once
@@ -9,12 +9,12 @@
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
-namespace cli
+namespace gme
 {
     ///
     /// @class ServerScene
     /// @brief Server configuration scene
-    /// @namespace cli
+    /// @namespace gme
     ///
     class ServerScene final : public eng::AScene
     {
@@ -60,4 +60,4 @@ namespace cli
             std::string &getCurrentEditField();
             void updateValueDisplay();
     }; // class ServerScene
-} // namespace cli
+} // namespace gme

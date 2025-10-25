@@ -88,8 +88,6 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
         registry.createEntity().with<ecs::Audio>("menu_input", Path::Audio::AUDIO_INPUT, 5.F, false, false).build();
     m_selectionSoundName = "menu_input" + std::to_string(m_selectionSoundEntity);
 
-    startMenuMusicOnce();
-
     m_titleEntity =
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
@@ -189,7 +187,6 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
 void cli::Menu::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
-    startMenuMusicOnce();
 
     auto &transforms = reg.getAll<ecs::Transform>();
     auto &colors = reg.getAll<ecs::Color>();
@@ -378,14 +375,4 @@ void cli::Menu::stopMenuMusic()
 
     m_audio->stopAudio(m_menuBgmName);
     m_hasStartedMenuMusic = false;
-}
-
-void cli::Menu::startMenuMusicOnce()
-{
-    if (m_hasStartedMenuMusic || m_menuBgmName.empty())
-        return;
-
-    m_audio->stopAudio(m_menuBgmName);
-    m_audio->playAudio(m_menuBgmName);
-    m_hasStartedMenuMusic = true;
 }

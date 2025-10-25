@@ -59,6 +59,5 @@ namespace cli
 
             void playSelectionSound();
             void stopMenuMusic();
-            void startMenuMusicOnce();
     }; // class Menu
 } // namespace cli

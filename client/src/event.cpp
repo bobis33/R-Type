@@ -37,7 +37,7 @@ void cli::Client::handleEvents(eng::Event &event)
 
 void cli::Client::updateKeyboardInput(ecs::Registry &registry)
 {
-    auto keyboardEntities = registry.getAll<ecs::KeyboardInput>();
+    const auto keyboardEntities = registry.getAll<ecs::KeyboardInput>();
     ecs::Entity keyboardEntity;
 
     if (keyboardEntities.empty())
@@ -48,8 +48,7 @@ void cli::Client::updateKeyboardInput(ecs::Registry &registry)
     {
         keyboardEntity = keyboardEntities.begin()->first;
     }
-    auto *keyboardInput = registry.getComponent<ecs::KeyboardInput>(keyboardEntity);
-    if (keyboardInput)
+    if (auto *keyboardInput = registry.getComponent<ecs::KeyboardInput>(keyboardEntity); keyboardInput != nullptr)
     {
         keyboardInput->space_pressed = m_keysPressed[eng::Key::Space];
         keyboardInput->up_pressed = m_keysPressed[eng::Key::Up];

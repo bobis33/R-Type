@@ -1,9 +1,7 @@
 #include "Client/Client.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Menu.hpp"
-#include "Client/Scenes/ServerScene.hpp"
 #include "Client/Scenes/Settings.hpp"
-#include "Client/Scenes/game/multi/ConfigMulti.hpp"
 #include "Client/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
@@ -102,20 +100,6 @@ void cli::Client::setupScenes()
     m_gameSolo->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
     m_gameMulti->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
 
-    auto serverSceneId = m_engine->getSceneManager()->generateNextId();
-    auto serverScene = std::make_unique<ServerScene>(serverSceneId, m_engine->getRenderer(), m_engine->getAudio());
-    serverScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    serverScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
-    auto configMultiId = m_engine->getSceneManager()->generateNextId();
-    auto configMulti = std::make_unique<ConfigMulti>(configMultiId, m_engine->getRenderer(), m_engine->getAudio());
-    configMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    configMulti->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto settingsId = m_engine->getSceneManager()->generateNextId();
     auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_engine->getAudio(), m_config);
     settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
@@ -124,6 +108,7 @@ void cli::Client::setupScenes()
     settings->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
     const auto configSoloId = m_gameSolo->getMainSceneId();
+    const auto serverSceneId = m_gameMulti->getMainSceneId();
     menu->onOptionSelected = [this, configSoloId, serverSceneId, settingsId](const std::string &option)
     {
         if (option == "Solo")
@@ -139,34 +124,9 @@ void cli::Client::setupScenes()
             m_engine->getSceneManager()->switchToScene(settingsId);
         }
     };
-
-    serverScene->onConnect =
-        [this, configMultiId](const std::string &playerName, const std::string &serverIP, const std::string &serverPort)
-    { m_engine->getSceneManager()->switchToScene(configMultiId); };
-    serverScene->onBackToMenu = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
-
-    configMulti->onOptionSelected =
-        [this, menuId, createRoomSceneId, joinRoomSceneId, joinRoomScenePtr](const std::string &option)
-    {
-        if (option == "Create room")
-        {
-            m_engine->getSceneManager()->switchToScene(createRoomSceneId);
-        }
-        else if (option == "Join room")
-        {
-            joinRoomScenePtr->setRooms(g_availableRooms);
-            m_engine->getSceneManager()->switchToScene(joinRoomSceneId);
-        }
-        else if (option == "Go back to menu")
-        {
-            m_engine->getSceneManager()->switchToScene(menuId);
-        }
-    };
     settings->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
 
     m_engine->getSceneManager()->addScene(std::move(menu));
-    m_engine->getSceneManager()->addScene(std::move(serverScene));
-    m_engine->getSceneManager()->addScene(std::move(configMulti));
     m_engine->getSceneManager()->addScene(std::move(settings));
     m_engine->getSceneManager()->switchToScene(menuId);
 }

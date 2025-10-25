@@ -1,20 +1,19 @@
-#include <Interfaces/Protocol/Serializer.hpp>
-#include <Utils/Event.hpp>
 #include <array>
 #include <cmath>
-#include <cstdint>
 
-#include "Client/Common.hpp"
-#include "Client/Scenes/ServerScene.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "Interfaces/Protocol/Serializer.hpp"
+#include "RTypeClientMulti/Common.hpp"
+#include "RTypeClientMulti/Scenes/ServerScene.hpp"
+#include "Utils/Event.hpp"
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
 static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
-namespace cli
+namespace gme
 {
     static char keyToChar(eng::Key key, bool shift = false)
     {
@@ -111,9 +110,8 @@ namespace cli
         auto &registry = AScene::getRegistry();
 
         registry.onComponentAdded(
-            [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+            [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
             {
-                const auto *audioComp = registry.getComponent<ecs::Audio>(e);
                 const auto *colorComp = registry.getComponent<ecs::Color>(e);
                 const auto *fontComp = registry.getComponent<ecs::Font>(e);
                 const auto *textComp = registry.getComponent<ecs::Text>(e);
@@ -134,16 +132,7 @@ namespace cli
                              .name = textComp->id});
                     }
                 }
-                else if (type == typeid(ecs::Audio))
-                {
-                    if (audioComp)
-                    {
-                        audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                           audioComp->id + std::to_string(e));
-                    }
-                }
             });
-        registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
         m_titleEntity =
             registry.createEntity()
                 .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
@@ -198,19 +187,13 @@ namespace cli
         m_eventBus.registerComponent(m_eventComponentId, "ServerConnect");
     }
 
-    void cli::ServerScene::update(const float dt, const eng::WindowSize & /*size*/)
+    void gme::ServerScene::update(const float dt, const eng::WindowSize & /*size*/)
     {
         auto &reg = getRegistry();
         auto &colors = reg.getAll<ecs::Color>();
         auto &texts = reg.getAll<ecs::Text>();
-        auto &audios = reg.getAll<ecs::Audio>();
 
         m_animationTime += dt;
-        for (auto &audio : audios)
-        {
-            if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
-                m_audio->stopAudio(audio.second.id);
-        }
 
         for (auto &[entity, text] : texts)
         {
@@ -239,7 +222,7 @@ namespace cli
         }
     }
 
-    void cli::ServerScene::event(const eng::Event &event)
+    void gme::ServerScene::event(const eng::Event &event)
     {
         switch (event.type)
         {
@@ -306,7 +289,7 @@ namespace cli
         }
     }
 
-    std::string &cli::ServerScene::getCurrentEditField()
+    std::string &gme::ServerScene::getCurrentEditField()
     {
         if (m_selectedIndex == 0)
             return m_playerName;
@@ -316,7 +299,7 @@ namespace cli
             return m_serverPort;
     }
 
-    void cli::ServerScene::updateValueDisplay()
+    void gme::ServerScene::updateValueDisplay()
     {
         auto &reg = getRegistry();
 
@@ -330,7 +313,7 @@ namespace cli
             serverPortText->content = m_serverPort;
     }
 
-    void cli::ServerScene::connectServer(const std::string &playerName, const std::string &serverIP,
+    void gme::ServerScene::connectServer(const std::string &playerName, const std::string &serverIP,
                                          const std::string &serverPort)
     {
         rnp::Serializer serializer;
@@ -341,4 +324,4 @@ namespace cli
 
         m_eventBus.publish(utl::EventType::REQUEST_CONNECT, data, m_eventComponentId, utl::NETWORK_CLIENT);
     }
-} // namespace cli
+} // namespace gme

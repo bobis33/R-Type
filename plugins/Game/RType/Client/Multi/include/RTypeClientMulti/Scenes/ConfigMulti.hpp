@@ -1,7 +1,7 @@
 ///
 /// @file ConfigMulti.hpp
 /// @brief This file contains the multiplayer configuration scene
-/// @namespace eng
+/// @namespace gme
 ///
 
 #pragma once
@@ -11,12 +11,12 @@
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
-namespace cli
+namespace gme
 {
     ///
     /// @class ConfigMulti
     /// @brief ConfigMulti scene
-    /// @namespace cli
+    /// @namespace gme
     ///
     class ConfigMulti final : public eng::AScene
     {
@@ -52,4 +52,4 @@ namespace cli
             ecs::Entity m_selectionSoundEntity;
             std::string m_selectionSoundName;
     }; // class ConfigMulti
-} // namespace cli
+} // namespace gme

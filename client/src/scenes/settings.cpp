@@ -3,7 +3,6 @@
 
 #include "Client/Client.hpp"
 #include "Client/Common.hpp"
-#include "Client/GameConfig.hpp"
 #include "Client/Scenes/Settings.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
@@ -16,7 +15,7 @@ static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
 cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                         const std::shared_ptr<eng::IAudio> &audio, const AppConfig &config)
-    : eng::AScene(assignedId), m_renderer(renderer), m_audio(audio), m_appConfig(config)
+    : AScene(assignedId), m_renderer(renderer), m_audio(audio), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
 
@@ -303,10 +302,7 @@ void cli::Settings::loadFromConfig()
 
 void cli::Settings::applyVideoQuality() { unsigned int frameLimit; }
 
-void cli::Settings::applySkinChange()
-{
-    float posY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
-}
+void cli::Settings::applySkinChange() {}
 
 void cli::Settings::playInputSound()
 {

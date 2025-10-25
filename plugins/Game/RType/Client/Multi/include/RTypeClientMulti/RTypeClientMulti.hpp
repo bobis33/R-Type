@@ -37,14 +37,19 @@ namespace gme
                 m_engine = &engine;
                 m_audioVolume = audioVolume;
                 m_skinIndex = skinIndex;
+                m_showDebug = showDebug;
+                setupScenes(showDebug, menuSceneId);
             }
             void update(float deltaTime, unsigned int width, unsigned int height) override;
             [[nodiscard]] unsigned int getMainSceneId() const override { return m_mainSceneId; }
 
         private:
+            void setupScenes(bool &showDebug, eng::id menuSceneId);
+
             eng::Engine *m_engine = nullptr;
             int m_audioVolume{};
             int m_skinIndex{};
+            bool m_showDebug = false;
             eng::id m_mainSceneId = 1;
 
     }; // class RTypeClientMulti

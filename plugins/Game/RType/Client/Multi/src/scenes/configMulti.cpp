@@ -1,14 +1,14 @@
 #include <cmath>
 
-#include "Client/Common.hpp"
-#include "Client/Scenes/game/multi/ConfigMulti.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "RTypeClientMulti/Common.hpp"
+#include "RTypeClientMulti/Scenes/ConfigMulti.hpp"
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
 
-cli::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                               const std::shared_ptr<eng::IAudio> &audio)
     : eng::AScene(assignedId), m_audio(audio)
 {
@@ -75,7 +75,7 @@ cli::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
 
     m_titleEntity =
         registry.createEntity()
-            .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", gme::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
             .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
             .with<ecs::Text>("title", std::string("MULTIPLAYER"), 72U)
@@ -84,7 +84,7 @@ cli::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
         registry.createEntity()
-            .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", gme::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu_" + std::to_string(i), 100.F, 200.F + i * 60.F, 0.F)
             .with<ecs::Color>("color_menu_" + std::to_string(i), GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
                               GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
@@ -100,7 +100,7 @@ cli::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
     m_selectedIndex = 2;
 }
 
-void cli::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
+void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
 {
     auto &reg = getRegistry();
 
@@ -155,7 +155,7 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
     }
 }
 
-void cli::ConfigMulti::event(const eng::Event &event)
+void gme::ConfigMulti::event(const eng::Event &event)
 {
     switch (event.type)
     {
@@ -188,7 +188,7 @@ void cli::ConfigMulti::event(const eng::Event &event)
     }
 }
 
-void cli::ConfigMulti::playInputSound()
+void gme::ConfigMulti::playInputSound()
 {
     if (m_selectionSoundName.empty())
         return;
