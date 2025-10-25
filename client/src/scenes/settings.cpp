@@ -14,9 +14,9 @@ static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
 
-cli::Settings::Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
-                        const AppConfig &config)
-    : m_renderer(renderer), m_audio(audio), m_appConfig(config)
+cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                        const std::shared_ptr<eng::IAudio> &audio, const AppConfig &config)
+    : eng::AScene(assignedId), m_renderer(renderer), m_audio(audio), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
 

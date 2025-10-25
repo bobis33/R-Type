@@ -1,16 +1,17 @@
 #include <cmath>
 
-#include "Client/Common.hpp"
-#include "Client/Scenes/game/multi/ConfigMulti.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "RTypeClientSolo/Common.hpp"
+#include "RTypeClientSolo/Scenes/ConfigSolo.hpp"
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
+static constexpr eng::Color COLOR_MENU = {255U, 255U, 255U, 255U};
 
-cli::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                              const std::shared_ptr<eng::IAudio> &audio)
-    : eng::AScene(assignedId), m_audio(audio)
+gme::ConfigSolo::ConfigSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                            const std::shared_ptr<eng::IAudio> &audio)
+    : AScene(assignedId), m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
 
@@ -75,32 +76,30 @@ cli::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
 
     m_titleEntity =
         registry.createEntity()
-            .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
             .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
-            .with<ecs::Text>("title", std::string("MULTIPLAYER"), 72U)
+            .with<ecs::Text>("id", std::string("SOLO"), 80U)
             .build();
 
     for (size_t i = 0; i < m_menuOptions.size(); ++i)
     {
         registry.createEntity()
-            .with<ecs::Font>("main_font", cli::Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_menu_" + std::to_string(i), 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu_" + std::to_string(i), GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                              GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
+            .with<ecs::Color>("color_menu", COLOR_MENU.r, COLOR_MENU.g, COLOR_MENU.b, COLOR_MENU.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
 
-    m_selectionSoundEntity = registry.createEntity()
-                                 .with<ecs::Audio>("config_multi_input", Path::Audio::AUDIO_INPUT, 8.F, false, false)
-                                 .build();
-    m_selectionSoundName = "config_multi_input" + std::to_string(m_selectionSoundEntity);
+    m_selectionSoundEntity =
+        registry.createEntity().with<ecs::Audio>("config_input", Path::Audio::AUDIO_INPUT, 8.F, false, false).build();
+    m_selectionSoundName = "config_input" + std::to_string(m_selectionSoundEntity);
 
     m_selectedIndex = 2;
 }
 
-void cli::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
+void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
 {
     auto &reg = getRegistry();
 
@@ -111,6 +110,17 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
     m_animationTime += dt;
     m_titlePulseTime += dt;
 
+    if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
+    {
+        float pulse = (std::sin(m_titlePulseTime * 1.2f) + 1.0f) * 0.5f;
+        titleColor->r = static_cast<uint8_t>(CYAN_ELECTRIC.r * (0.8f + pulse * 0.2f));
+        titleColor->g = static_cast<uint8_t>(CYAN_ELECTRIC.g * (0.8f + pulse * 0.2f));
+        titleColor->b = static_cast<uint8_t>(CYAN_ELECTRIC.b * (0.9f + pulse * 0.1f));
+    }
+    if (auto *titleTransform = reg.getComponent<ecs::Transform>(m_titleEntity))
+    {
+        titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 2.0f;
+    }
     for (auto &audio : audios)
     {
         if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
@@ -118,11 +128,10 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
             m_audio->stopAudio(audio.second.id);
         }
     }
-
     int i = 0;
     for (auto &[entity, text] : texts)
     {
-        if (text.content == "Create room" || text.content == "Join room" || text.content == "Go back to menu")
+        if (text.content == "Level easy" || text.content == "Level medium" || text.content == "Go back to menu")
         {
             auto &color = colors.at(entity);
 
@@ -139,6 +148,7 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
                 color.g = GRAY_BLUE_SUBTLE.g;
                 color.b = GRAY_BLUE_SUBTLE.b;
             }
+
             i++;
         }
     }
@@ -155,19 +165,33 @@ void cli::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
     }
 }
 
-void cli::ConfigMulti::event(const eng::Event &event)
+void gme::ConfigSolo::event(const eng::Event &event)
 {
     switch (event.type)
     {
         case eng::EventType::KeyPressed:
             if (event.key == eng::Key::Up)
             {
-                m_selectedIndex = (m_selectedIndex == 2) ? 0 : m_selectedIndex + 1;
+                if (m_selectedIndex == 2)
+                {
+                    m_selectedIndex = 0;
+                }
+                else
+                {
+                    m_selectedIndex++;
+                }
                 playInputSound();
             }
             else if (event.key == eng::Key::Down)
             {
-                m_selectedIndex = (m_selectedIndex == 0) ? 2 : m_selectedIndex - 1;
+                if (m_selectedIndex == 0)
+                {
+                    m_selectedIndex = 2;
+                }
+                else
+                {
+                    m_selectedIndex--;
+                }
                 playInputSound();
             }
             else if (event.key == eng::Key::Enter)
@@ -175,12 +199,33 @@ void cli::ConfigMulti::event(const eng::Event &event)
                 const std::string &selectedOption =
                     m_menuOptions[static_cast<int>(m_menuOptions.size()) - 1 - m_selectedIndex];
                 if (onOptionSelected)
+                {
                     onOptionSelected(selectedOption);
+                }
             }
             break;
 
         case eng::EventType::KeyReleased:
-            m_keysPressed[event.key] = false;
+            if (event.key == eng::Key::Up)
+            {
+                m_keysPressed[eng::Key::Up] = false;
+            }
+            if (event.key == eng::Key::Down)
+            {
+                m_keysPressed[eng::Key::Down] = false;
+            }
+            if (event.key == eng::Key::Left)
+            {
+                m_keysPressed[eng::Key::Left] = false;
+            }
+            if (event.key == eng::Key::Right)
+            {
+                m_keysPressed[eng::Key::Right] = false;
+            }
+            if (event.key == eng::Key::Space)
+            {
+                m_keysPressed[eng::Key::Space] = false;
+            }
             break;
 
         default:
@@ -188,7 +233,7 @@ void cli::ConfigMulti::event(const eng::Event &event)
     }
 }
 
-void cli::ConfigMulti::playInputSound()
+void gme::ConfigSolo::playInputSound()
 {
     if (m_selectionSoundName.empty())
         return;

@@ -32,10 +32,24 @@ namespace gme
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_CLIENT; }
 
             void update(float deltaTime, unsigned int width, unsigned int height) override;
-            void init(const std::unique_ptr<eng::Engine> &engine) override { m_engine = engine.get(); }
+            void init(eng::Engine &engine, int &audioVolume, const int skinIndex, bool &showDebug,
+                      const eng::id menuSceneId) override
+            {
+                m_engine = &engine;
+                m_audioVolume = audioVolume;
+                m_skinIndex = skinIndex;
+                setupScenes(showDebug, menuSceneId);
+            }
+
+            [[nodiscard]] unsigned int getMainSceneId() const override { return m_mainSceneId; }
 
         private:
             eng::Engine *m_engine = nullptr;
+            int m_audioVolume;
+            int m_skinIndex;
+            eng::id m_mainSceneId;
+
+            void setupScenes(bool &showDebug, eng::id menuSceneId);
     }; // class RTypeClientSolo
 
 } // namespace gme

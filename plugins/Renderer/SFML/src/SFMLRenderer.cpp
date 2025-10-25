@@ -204,14 +204,14 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
         default:
             if (static_cast<int>(sc) == 49)
                 return eng::Key::Dot;
-            if (static_cast<int>(sc) == 38 ||   // macOS
-                static_cast<int>(sc) == 83 ||   // Windows
-                static_cast<int>(sc) == 119)    // Linux
+            if (static_cast<int>(sc) == 38 || // macOS
+                static_cast<int>(sc) == 83 || // Windows
+                static_cast<int>(sc) == 119)  // Linux
             {
                 return eng::Key::Delete;
             }
             return eng::Key::Unknown;
-        }
+    }
 }
 
 bool eng::SFMLRenderer::pollEvent(Event &event)

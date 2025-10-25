@@ -104,8 +104,9 @@ namespace cli
         }
     }
 
-    ServerScene::ServerScene(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-        : m_audio(audio)
+    ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                             const std::shared_ptr<eng::IAudio> &audio)
+        : AScene(assignedId), m_audio(audio)
     {
         auto &registry = AScene::getRegistry();
 

@@ -19,7 +19,8 @@ namespace cli
     class ServerScene final : public eng::AScene
     {
         public:
-            ServerScene(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
+            ServerScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                        const std::shared_ptr<eng::IAudio> &audio);
             ~ServerScene() override = default;
 
             ServerScene(const ServerScene &other) = delete;

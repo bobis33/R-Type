@@ -15,8 +15,9 @@ static constexpr eng::Color SHOOTING_STAR = {.r = 255U, .g = 255U, .b = 200U, .a
 static constexpr eng::Color CYAN_ELECTRIC_PARTICLES = {.r = 0U, .g = 191U, .b = 255U, .a = 100U};
 static constexpr eng::Color CYAN_ELECTRIC_FOREGROUND = {.r = 0U, .g = 191U, .b = 255U, .a = 180U};
 
-cli::Menu::Menu(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio)
-    : m_audio(audio)
+cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                const std::shared_ptr<eng::IAudio> &audio)
+    : AScene(assignedId), m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
 

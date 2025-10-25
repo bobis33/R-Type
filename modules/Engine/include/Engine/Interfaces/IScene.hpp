@@ -51,7 +51,7 @@ namespace eng
     class AScene : public IScene
     {
         public:
-            AScene() : m_id(s_nextId++) {}
+            explicit AScene(const id assignedId) : m_id(assignedId) {}
             ~AScene() override = default;
 
             AScene(const AScene &other) = delete;
@@ -78,7 +78,6 @@ namespace eng
             std::string m_name = "default_name";
             id m_id = 1;
             ecs::Registry m_registry;
-            inline static id s_nextId = 1;
             std::vector<std::unique_ptr<ISystem>> m_systems;
 
         protected:

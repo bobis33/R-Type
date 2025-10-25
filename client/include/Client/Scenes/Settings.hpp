@@ -23,8 +23,8 @@ namespace cli
     class Settings final : public eng::AScene
     {
         public:
-            Settings(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
-                     const AppConfig &config);
+            Settings(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                     const std::shared_ptr<eng::IAudio> &audio, const AppConfig &config);
             ~Settings() override = default;
 
             Settings(const Settings &other) = delete;

@@ -1,12 +1,12 @@
 ///
 /// @file HitboxUtils.hpp
 /// @brief Utility functions for hitbox calculations
-/// @namespace cli
+/// @namespace gme
 ///
 
 #pragma once
 
-namespace cli
+namespace gme
 {
     namespace Utils
     {
@@ -53,4 +53,4 @@ namespace cli
             return {centerX - x, centerY - y};
         }
     } // namespace Utils
-} // namespace cli
+} // namespace gme
