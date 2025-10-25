@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "Utils/Interfaces/IPlugin.hpp"
 
@@ -41,6 +42,8 @@ namespace eng
 
             // Packet handling
             virtual void update() = 0;
+
+            virtual void sendToServer(const std::vector<std::uint8_t> &data, bool reliable = false) = 0;
 
             // Connection status
             [[nodiscard]] virtual bool isConnected() const = 0;

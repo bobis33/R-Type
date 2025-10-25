@@ -90,6 +90,8 @@ You can find the same documentation as PDF [here](https://github.com/bobis33/R-T
 More specific documentation for each part of the project can be found in their respective directories:
   - [Client documentation](https://github.com/bobis33/R-Type/blob/main/client/README.md)
   - [Server documentation](https://github.com/bobis33/R-Type/blob/main/server/README.md)
+  - [Plugins documentation](https://github.com/bobis33/R-Type/blob/main/plugins/README.md)
+  - [Modules documentation](https://github.com/bobis33/R-Type/blob/main/modules/README.md)
 
 ## Technology Stack Analysis
 For a detailed comparative study of the technologies used in this project and the reasoning behind our architectural choices, see:

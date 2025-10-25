@@ -35,6 +35,8 @@ namespace cli
             std::function<void(const std::string &option)> onOptionSelected;
 
         private:
+            void playInputSound();
+
             std::unordered_map<eng::Key, bool> m_keysPressed;
             ecs::Entity m_fpsEntity;
             ecs::Entity m_titleEntity;
@@ -44,5 +46,9 @@ namespace cli
             int m_selectedIndex = 0;
             float m_animationTime = 0.0f;
             float m_titlePulseTime = 0.0f;
+
+            // Audio pour navigation
+            ecs::Entity m_selectionSoundEntity;
+            std::string m_selectionSoundName;
     }; // class ConfigMulti
 } // namespace cli

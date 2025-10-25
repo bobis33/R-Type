@@ -1,8 +1,15 @@
 #include "Client/Systems/PlayerController.hpp"
 #include "Client/Common.hpp"
+#include "Client/Utils/HitboxUtils.hpp"
 
 ecs::Entity cli::PlayerController::createPlayer(ecs::Registry &registry, float x, float y)
 {
+    auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
+        GameConfig::Player::SPRITE_WIDTH, 
+        GameConfig::Player::SPRITE_HEIGHT, 
+        GameConfig::Player::SCALE
+    );
+    
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", x, y, 0.F)
                          .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
@@ -12,7 +19,7 @@ ecs::Entity cli::PlayerController::createPlayer(ecs::Registry &registry, float x
                          .with<ecs::Texture>("player_texture", Path::Texture::TEXTURE_PLAYER)
                          .with<ecs::Player>("player", true)
                          .with<ecs::BeamCharge>("beam_charge", 0.0f, GameConfig::Beam::MAX_CHARGE)
-                         .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS)
+                         .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
                          .build();
     return m_playerEntity;
 }
@@ -70,7 +77,6 @@ void cli::PlayerController::update(ecs::Registry &registry, float dt)
     bool down = m_keysPressed[eng::Key::Down];
     bool left = m_keysPressed[eng::Key::Left];
     bool right = m_keysPressed[eng::Key::Right];
-
     if (up && right)
     {
         playerVelocity->x = diagonal_speed;
@@ -107,9 +113,11 @@ void cli::PlayerController::update(ecs::Registry &registry, float dt)
     playerTransform->y += playerVelocity->y * dt;
     playerTransform->x = std::max(playerTransform->x, 0.F);
     playerTransform->y = std::max(playerTransform->y, 0.F);
-    playerTransform->x = std::min(playerTransform->x, static_cast<float>(Config::Window::WINDOW_WIDTH) -
-                                                          GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE);
-    playerTransform->y =
-        std::min(playerTransform->y, static_cast<float>(Config::Window::WINDOW_HEIGHT) -
-                                         GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE);
+
+    auto windowSize = m_renderer->getWindowSize();
+    float maxX = static_cast<float>(windowSize.width) - GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE;
+    float maxY = static_cast<float>(windowSize.height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE;
+
+    playerTransform->x = std::min(playerTransform->x, maxX);
+    playerTransform->y = std::min(playerTransform->y, maxY);
 }

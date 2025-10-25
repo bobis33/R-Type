@@ -6,10 +6,20 @@
 
 #pragma once
 
+#include "ECS/Registry.hpp"
 #include "Interfaces/IGameServer.hpp"
+#include "Utils/EventBus.hpp"
 
 namespace gme
 {
+
+    enum class LevelState : uint8_t
+    {
+        WAITING_FOR_PLAYERS = 0,
+        IN_PROGRESS = 1,
+        COMPLETED = 2,
+        LOOSE = 3,
+    };
 
     ///
     /// @class RTypeServer
@@ -20,7 +30,7 @@ namespace gme
     {
 
         public:
-            RTypeServer() = default;
+            RTypeServer();
             ~RTypeServer() override = default;
 
             RTypeServer(const RTypeServer &) = delete;
@@ -31,12 +41,18 @@ namespace gme
             [[nodiscard]] const std::string getName() const override { return "RType_Server"; }
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_SERVER; }
 
-            [[nodiscard]] State getState() const override { return State::PLAYING; }
+            [[nodiscard]] State getState() const override { return m_gameState; }
 
-            void start() override {}
-            void stop() override {}
-            void update(const float deltaTime) override {}
+            void start() override;
+            void stop() override;
+            void update(float deltaTime) override;
 
         private:
+            utl::EventBus &m_eventBus;
+            ecs::Registry m_registry;
+
+            State m_gameState = State::PLAYING;
+            LevelState m_levelState = LevelState::WAITING_FOR_PLAYERS;
+
     }; // class RTypeServer
 } // namespace gme

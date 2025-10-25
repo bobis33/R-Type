@@ -6,6 +6,8 @@
 
 #include "SFMLRenderer/SFMLRenderer.hpp"
 
+#include "Utils/Logger.hpp"
+
 eng::SFMLRenderer::~SFMLRenderer() { ImGui::SFML::Shutdown(); }
 
 void eng::SFMLRenderer::createWindow(const std::string &title, unsigned int height, unsigned int width,
@@ -101,6 +103,8 @@ static eng::Key scancodeToKey(const sf::Keyboard::Scancode sc)
     using S = sf::Keyboard::Scancode;
     switch (sc)
     {
+        case S::LControl:
+            return eng::Key::LControl;
         case S::Escape:
             return eng::Key::Escape;
         case S::Enter:
@@ -230,7 +234,7 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
                 showDebugOverlay = !showDebugOverlay;
             }
             event.type = EventType::KeyPressed;
-            std::cout << "Key pressed: " << std::to_string(static_cast<int>(key->scancode)) << '\n';
+            utl::Logger::log("Key pressed: " + std::to_string(static_cast<int>(key->scancode)), utl::LogLevel::INFO);
             event.key = scancodeToKey(key->scancode);
             return true;
         }
@@ -238,7 +242,7 @@ bool eng::SFMLRenderer::pollEvent(Event &event)
         if (const auto *const key = e.getIf<sf::Event::KeyReleased>())
         {
             event.type = EventType::KeyReleased;
-            std::cout << "Key released: " << std::to_string(static_cast<int>(key->scancode)) << '\n';
+            utl::Logger::log("Key pressed: " + std::to_string(static_cast<int>(key->scancode)), utl::LogLevel::INFO);
             event.key = scancodeToKey(key->scancode);
             return true;
         }
@@ -363,22 +367,53 @@ eng::WindowSize eng::SFMLRenderer::getWindowSize()
     return {.width = size.x, .height = size.y};
 }
 
-void eng::SFMLRenderer::renderGui()
+void eng::SFMLRenderer::createCircleShape(eng::CircleShape circleShape)
+{
+    sf::CircleShape sfCircle(circleShape.radius);
+    sfCircle.setFillColor(
+        sf::Color(circleShape.color.r, circleShape.color.g, circleShape.color.b, circleShape.color.a));
+    sfCircle.setPosition({circleShape.x, circleShape.y});
+    sfCircle.setOutlineThickness(circleShape.outline_thickness);
+    sfCircle.setOutlineColor(sf::Color(circleShape.outline_color.r, circleShape.outline_color.g,
+                                       circleShape.outline_color.b, circleShape.outline_color.a));
+    circleShapes.emplace(circleShape.name, std::move(sfCircle));
+}
+
+void eng::SFMLRenderer::setCircleShapePosition(const std::string &name, float x, float y)
+{
+    if (const auto it = circleShapes.find(name); it != circleShapes.end())
+    {
+        it->second.setPosition({x, y});
+    }
+    else
+    {
+        throw std::runtime_error("CircleShape not found: " + name);
+    }
+}
+void eng::SFMLRenderer::drawCircleShape(const std::string &name)
+{
+    if (const auto it = circleShapes.find(name); it != circleShapes.end())
+    {
+        window.draw(it->second);
+    }
+    else
+    {
+        throw std::runtime_error("CircleShape not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::renderGui(const WindowSize &windowSize)
 {
     ImGui::SFML::Update(window, deltaClock.restart());
-    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(windowSize.width - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
     ImGui::SetNextWindowBgAlpha(0.35f);
 
-    if (showDebugOverlay)
-    {
-        constexpr ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-                                                  ImGuiWindowFlags_NoSavedSettings |
-                                                  ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-        ImGui::Begin("FPS Overlay", nullptr, window_flags);
-        const float fps = ImGui::GetIO().Framerate;
-        ImGui::Text("FPS: %.1f (%.3f ms/frame)", fps, 1000.0f / fps);
-        ImGui::End();
-    }
-
+    constexpr ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
+                                              ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+                                              ImGuiWindowFlags_NoNav;
+    ImGui::Begin("FPS Overlay", nullptr, window_flags);
+    const float fps = ImGui::GetIO().Framerate;
+    ImGui::Text("FPS: %.1f (%.3f ms/frame)", fps, 1000.0f / fps);
+    ImGui::End();
     ImGui::SFML::Render(window);
 }

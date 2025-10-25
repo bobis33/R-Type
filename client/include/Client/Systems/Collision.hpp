@@ -6,9 +6,13 @@
 
 #pragma once
 
+#include <array>
 #include <cmath>
+#include <cstddef>
+#include <string>
 #include <vector>
 
+#include "Client/Common.hpp"
 #include "Client/GameConfig.hpp"
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
@@ -20,7 +24,11 @@ namespace cli
     class CollisionSystem final : public eng::ISystem
     {
         public:
-            explicit CollisionSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
+            explicit CollisionSystem(const std::shared_ptr<eng::IRenderer> &renderer, bool &showDebug)
+                : m_renderer(renderer), m_showDebug(showDebug)
+            {
+                m_enemyDeathAudioEntities.fill(ecs::INVALID_ENTITY);
+            }
             ~CollisionSystem() override = default;
 
             CollisionSystem(const CollisionSystem &) = delete;
@@ -33,9 +41,10 @@ namespace cli
 
             void update(ecs::Registry &registry, float dt) override
             {
+                const bool hasPlayer = !registry.getAll<ecs::Player>().empty();
+
                 std::optional<float> ceilingBottomY;
                 std::optional<float> floorTopY;
-
                 for (auto &[entity, tag] : registry.getAll<ecs::Ceiling>())
                 {
                     const auto *t = registry.getComponent<ecs::Transform>(entity);
@@ -95,6 +104,7 @@ namespace cli
                                     score.value += 100;
                                     break;
                                 }
+                                playEnemyDeathSound(registry);
                             }
                             break;
                         }
@@ -118,15 +128,16 @@ namespace cli
                         auto *vel = registry.getComponent<ecs::Velocity>(playerEntity);
                         if (!t || !hb)
                             continue;
-                        if (ceilingBottomY.has_value() && (t->y - hb->radius < ceilingBottomY.value()))
+                        float hitboxY = t->y + hb->offsetY;
+                        if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
-                            t->y = ceilingBottomY.value() + hb->radius;
+                            t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::max(0.0f, vel->y);
                         }
-                        if (floorTopY.has_value() && (t->y + hb->radius > floorTopY.value()))
+                        if (floorTopY.has_value() && (hitboxY + hb->radius > floorTopY.value()))
                         {
-                            t->y = floorTopY.value() - hb->radius;
+                            t->y = floorTopY.value() - hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::min(0.0f, vel->y);
                         }
@@ -138,30 +149,47 @@ namespace cli
                         auto *vel = registry.getComponent<ecs::Velocity>(enemyEntity);
                         if (!t || !hb)
                             continue;
-                        if (ceilingBottomY.has_value() && (t->y - hb->radius < ceilingBottomY.value()))
+                        float hitboxY = t->y + hb->offsetY;
+                        if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
-                            t->y = ceilingBottomY.value() + hb->radius;
+                            t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::max(0.0f, vel->y);
                         }
-                        if (floorTopY.has_value() && (t->y + hb->radius > floorTopY.value()))
+                        if (floorTopY.has_value() && (hitboxY + hb->radius > floorTopY.value()))
                         {
-                            t->y = floorTopY.value() - hb->radius;
+                            t->y = floorTopY.value() - hb->radius - hb->offsetY;
                             if (vel)
                                 vel->y = std::min(0.0f, vel->y);
                         }
                     }
                 }
+                if (m_wasPlayerPresent && !hasPlayer)
+                {
+                    playPlayerDeathSound(registry);
+                }
+                m_wasPlayerPresent = hasPlayer;
             }
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
+            std::array<ecs::Entity, 4> m_enemyDeathAudioEntities{};
+            ecs::Entity m_playerDeathAudioEntity = ecs::INVALID_ENTITY;
+            std::size_t m_nextEnemyDeathChannel = 0;
+            bool m_wasPlayerPresent = false;
+            bool &m_showDebug;
 
             bool checkCircularCollision(const ecs::Transform &transform1, const ecs::Hitbox &hitbox1,
                                         const ecs::Transform &transform2, const ecs::Hitbox &hitbox2)
             {
-                float dx = transform1.x - transform2.x;
-                float dy = transform1.y - transform2.y;
+                // Prendre en compte les offsets des hitbox
+                float x1 = transform1.x + hitbox1.offsetX;
+                float y1 = transform1.y + hitbox1.offsetY;
+                float x2 = transform2.x + hitbox2.offsetX;
+                float y2 = transform2.y + hitbox2.offsetY;
+                
+                float dx = x1 - x2;
+                float dy = y1 - y2;
                 float distance = std::sqrt(dx * dx + dy * dy);
                 float combinedRadius = hitbox1.radius + hitbox2.radius;
 
@@ -206,6 +234,8 @@ namespace cli
                     registry.removeComponent<ecs::Animation>(entity);
                 if (registry.hasComponent<ecs::Hitbox>(entity))
                     registry.removeComponent<ecs::Hitbox>(entity);
+                if (registry.hasComponent<ecs::Projectile>(entity))
+                    registry.removeComponent<ecs::Projectile>(entity);
             }
 
             void createExplosion(ecs::Registry &registry, float x, float y)
@@ -222,6 +252,64 @@ namespace cli
                                           GameConfig::Explosion::SPRITE_WIDTH, GameConfig::Explosion::SPRITE_HEIGHT,
                                           GameConfig::Explosion::FRAMES_PER_ROW, GameConfig::Explosion::LIFETIME, 0.0f)
                     .build();
+            }
+
+            void ensureEnemyDeathChannel(ecs::Registry &registry, std::size_t channelIndex)
+            {
+                if (channelIndex >= m_enemyDeathAudioEntities.size())
+                    return;
+
+                ecs::Entity &entity = m_enemyDeathAudioEntities[channelIndex];
+                if (entity != ecs::INVALID_ENTITY && registry.hasComponent<ecs::Audio>(entity))
+                {
+                    return;
+                }
+
+                entity = registry.createEntity()
+                             .with<ecs::Audio>("enemy_death_" + std::to_string(channelIndex),
+                                               Path::Audio::AUDIO_DEATH_ENEMIES, 1.5F, false, false)
+                             .build();
+            }
+
+            void playEnemyDeathSound(ecs::Registry &registry)
+            {
+                ensureEnemyDeathChannel(registry, m_nextEnemyDeathChannel);
+                ecs::Entity entity = m_enemyDeathAudioEntities[m_nextEnemyDeathChannel];
+                m_nextEnemyDeathChannel = (m_nextEnemyDeathChannel + 1) % m_enemyDeathAudioEntities.size();
+
+                if (entity == ecs::INVALID_ENTITY)
+                    return;
+
+                if (auto *audio = registry.getComponent<ecs::Audio>(entity))
+                {
+                    audio->play = true;
+                }
+            }
+
+            void ensurePlayerDeathAudio(ecs::Registry &registry)
+            {
+                if (m_playerDeathAudioEntity != ecs::INVALID_ENTITY &&
+                    registry.hasComponent<ecs::Audio>(m_playerDeathAudioEntity))
+                {
+                    return;
+                }
+
+                m_playerDeathAudioEntity =
+                    registry.createEntity()
+                        .with<ecs::Audio>("player_death", Path::Audio::AUDIO_DEATH_ALLIES, 1.5F, false, false)
+                        .build();
+            }
+
+            void playPlayerDeathSound(ecs::Registry &registry)
+            {
+                ensurePlayerDeathAudio(registry);
+                if (m_playerDeathAudioEntity == ecs::INVALID_ENTITY)
+                    return;
+
+                if (auto *audio = registry.getComponent<ecs::Audio>(m_playerDeathAudioEntity))
+                {
+                    audio->play = true;
+                }
             }
     }; // class CollisionSystem
 

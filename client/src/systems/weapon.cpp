@@ -1,11 +1,6 @@
-///
-/// @file WeaponSystem.cpp
-/// @brief Implementation of WeaponSystem
-/// @namespace cli
-///
-
 #include "Client/Systems/Weapon.hpp"
 #include "Client/Common.hpp"
+#include "Client/GameConfig.hpp"
 #include "Client/ProjectileManager.hpp"
 
 namespace cli
@@ -20,19 +15,14 @@ namespace cli
         {
             m_fireCooldown -= dt;
         }
-
-        // Get player entity and position
         auto playerEntities = registry.getAll<ecs::Player>();
         if (playerEntities.empty())
             return;
-
         auto &[playerEntity, player] = *playerEntities.begin();
         auto *transform = registry.getComponent<ecs::Transform>(playerEntity);
         auto *beamCharge = registry.getComponent<ecs::BeamCharge>(playerEntity);
         if (!transform || !beamCharge)
             return;
-
-        // Get keyboard input
         auto keyboardEntities = registry.getAll<ecs::KeyboardInput>();
         bool spacePressed = false;
         if (!keyboardEntities.empty())
@@ -40,24 +30,17 @@ namespace cli
             auto &[keyboardEntity, keyboardInput] = *keyboardEntities.begin();
             spacePressed = keyboardInput.space_pressed;
         }
-
         float projectileX = transform->x + GameConfig::Player::SPRITE_WIDTH;
         float projectileY = transform->y + GameConfig::Player::SPRITE_HEIGHT / 2.0f;
-
         if (spacePressed)
         {
-            // Commencer le chargement si ce n'était pas déjà le cas
             if (!m_isCharging)
             {
                 m_isCharging = true;
             }
-
-            // Charger la barre de Beam
             beamCharge->current_charge += CHARGE_RATE * dt;
             if (beamCharge->current_charge > beamCharge->max_charge)
                 beamCharge->current_charge = beamCharge->max_charge;
-
-            // Afficher l'animation de chargement si on charge
             if (beamCharge->current_charge < beamCharge->max_charge)
             {
                 showLoadingAnimation(registry, playerEntity, transform);
@@ -66,36 +49,27 @@ namespace cli
             {
                 hideLoadingAnimation(registry, playerEntity);
             }
-
-            // PENDANT LE CHARGEMENT : NE RIEN TIRER DU TOUT
-            return; // Sortir de la fonction sans rien tirer
+            return;
         }
         else
         {
-            // Si on était en train de charger et qu'on relâche espace
             if (m_isCharging)
             {
                 m_isCharging = false;
-
-                // Cacher l'animation de chargement
                 hideLoadingAnimation(registry, playerEntity);
-
-                // Quand on relâche espace, vérifier si on peut tirer
                 if (m_fireCooldown <= 0.0f)
                 {
-                    // Si on a au moins 50% de charge, tirer un supercharged
-                    float chargeThreshold = beamCharge->max_charge * 0.5f; // 50% minimum
+                    float chargeThreshold = beamCharge->max_charge * 0.5f;
                     if (beamCharge->current_charge >= chargeThreshold)
                     {
                         if (tryFireSupercharged(registry, projectileX, projectileY))
                         {
-                            beamCharge->current_charge = 0.0f; // Consommer toute la charge
+                            beamCharge->current_charge = 0.0f;
                             m_fireCooldown = Supercharged::FIRE_COOLDOWN;
                         }
                     }
                     else
                     {
-                        // Si pas assez de charge, tirer un basic
                         tryFireBasic(registry, projectileX, projectileY);
                     }
                 }
@@ -126,6 +100,14 @@ namespace cli
         using namespace GameConfig::Projectile;
 
         ProjectileManager::createSuperchargedProjectile(registry, x, y, Supercharged::SPEED, 0.0f);
+        ensureSuperShotAudio(registry);
+        if (m_superShotAudioEntity != ecs::INVALID_ENTITY)
+        {
+            if (auto *audio = registry.getComponent<ecs::Audio>(m_superShotAudioEntity))
+            {
+                audio->play = true;
+            }
+        }
         return true;
     }
 
@@ -134,21 +116,18 @@ namespace cli
     {
         using namespace GameConfig::LoadingAnimation;
 
-        // Chercher s'il y a déjà une animation de chargement
         auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
         for (auto &[entity, animation] : loadingEntities)
         {
             auto *loadingTransform = registry.getComponent<ecs::Transform>(entity);
             if (loadingTransform)
             {
-                // Mettre à jour la position
                 loadingTransform->x = playerTransform->x + OFFSET_X;
                 loadingTransform->y = playerTransform->y + OFFSET_Y;
-                return; // Animation déjà présente
+                return;
             }
         }
 
-        // Créer une nouvelle animation de chargement
         auto loadingEntity =
             registry.createEntity()
                 .with<ecs::Transform>("loading_transform", playerTransform->x + OFFSET_X, playerTransform->y + OFFSET_Y,
@@ -164,7 +143,6 @@ namespace cli
 
     void WeaponSystem::hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity)
     {
-        // Supprimer toutes les animations de chargement
         auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
         std::vector<ecs::Entity> toRemove;
 
@@ -186,5 +164,18 @@ namespace cli
             if (registry.hasComponent<ecs::LoadingAnimation>(entity))
                 registry.removeComponent<ecs::LoadingAnimation>(entity);
         }
+    }
+
+    void WeaponSystem::ensureSuperShotAudio(ecs::Registry &registry)
+    {
+        if (m_superShotAudioEntity != ecs::INVALID_ENTITY && registry.hasComponent<ecs::Audio>(m_superShotAudioEntity))
+        {
+            return;
+        }
+
+        m_superShotAudioEntity =
+            registry.createEntity()
+                .with<ecs::Audio>("player_super_shot", Path::Audio::AUDIO_SUPERCHARGED_SHOT, 2.0F, false, false)
+                .build();
     }
 } // namespace cli

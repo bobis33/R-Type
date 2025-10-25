@@ -54,7 +54,7 @@ namespace cli
             void handleEvents(eng::Event &event);
             void updateKeyboardInput(ecs::Registry &registry);
             static AppConfig setupConfig(const ArgsConfig &cfg);
-            void setupScenes() const;
+            void setupScenes();
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<eng::Engine> m_engine;
@@ -63,6 +63,7 @@ namespace cli
             std::unordered_map<eng::Key, bool> m_keysPressed;
 
             AppConfig m_config;
+            bool m_showDebug = false;
     }; // class Client
 
 } // namespace cli

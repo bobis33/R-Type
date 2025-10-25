@@ -35,7 +35,6 @@ namespace cli
                     if (!transform || !rect || !texture)
                         continue;
 
-                    // Mettre à jour l'animation
                     animation.current_time += dt;
                     if (animation.current_time >= animation.frame_duration)
                     {
@@ -52,7 +51,6 @@ namespace cli
                         rect->pos_y = static_cast<float>(frame_y);
                     }
 
-                    // Dessiner l'animation
                     m_renderer->setSpriteTexture(texture->id + std::to_string(entity), texture->path);
                     m_renderer->setSpritePosition(texture->id + std::to_string(entity), transform->x, transform->y);
                     m_renderer->setSpriteFrame(texture->id + std::to_string(entity), static_cast<int>(rect->pos_x),

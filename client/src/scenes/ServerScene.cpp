@@ -1,8 +1,13 @@
+#include <Interfaces/Protocol/Serializer.hpp>
+#include <Utils/Event.hpp>
+#include <array>
+#include <cmath>
+#include <cstdint>
+
+#include "Client/Common.hpp"
 #include "Client/Scenes/ServerScene.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <Client/Common.hpp>
-#include <cmath>
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
@@ -187,6 +192,9 @@ namespace cli
                                                         TEXT_VALUE_COLOR.g, TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
                                       .with<ecs::Text>("server_port_value", m_serverPort, 24U)
                                       .build();
+
+        m_eventComponentId = 5;
+        m_eventBus.registerComponent(m_eventComponentId, "ServerConnect");
     }
 
     void cli::ServerScene::update(const float dt, const eng::WindowSize & /*size*/)
@@ -251,7 +259,10 @@ namespace cli
                 else if (event.key == eng::Key::Enter)
                 {
                     if (m_selectedIndex == 3 && onConnect)
+                    {
+                        connectServer(m_playerName, m_serverIP, m_serverPort);
                         onConnect(m_playerName, m_serverIP, m_serverPort);
+                    }
                     else if (m_selectedIndex == 4 && onBackToMenu)
                         onBackToMenu();
                 }
@@ -318,4 +329,15 @@ namespace cli
             serverPortText->content = m_serverPort;
     }
 
+    void cli::ServerScene::connectServer(const std::string &playerName, const std::string &serverIP,
+                                         const std::string &serverPort)
+    {
+        rnp::Serializer serializer;
+        serializer.writeString(playerName, 32);
+        serializer.writeString(serverIP, 15);
+        serializer.writeString(serverPort, 5);
+        auto data = serializer.getData();
+
+        m_eventBus.publish(utl::EventType::REQUEST_CONNECT, data, m_eventComponentId, utl::NETWORK_CLIENT);
+    }
 } // namespace cli

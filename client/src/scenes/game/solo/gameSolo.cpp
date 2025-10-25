@@ -8,11 +8,10 @@
 #include "Client/Systems/Starfield.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <algorithm>
 
 cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
-                        const AppConfig &appConfig)
-    : m_audio(audio), m_appConfig(appConfig)
+                        const AppConfig &appConfig, bool &showDebug)
+    : m_audio(audio), m_renderer(renderer), m_appConfig(appConfig), m_showDebug(showDebug)
 {
     auto &registry = AScene::getRegistry();
 
@@ -27,7 +26,21 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
             const auto *textComp = registry.getComponent<ecs::Text>(e);
             const auto *textureComp = registry.getComponent<ecs::Texture>(e);
             const auto *transform = registry.getComponent<ecs::Transform>(e);
+            const auto *hitBox = registry.getComponent<ecs::Hitbox>(e);
 
+            // if hitBox, createCircleShape from renderer
+            if (hitBox && transform)
+            {
+                float hitboxX = transform->x + hitBox->offsetX;
+                float hitboxY = transform->y + hitBox->offsetY;
+                renderer->createCircleShape({.name = "hitbox_" + std::to_string(e),
+                                             .radius = hitBox->radius,
+                                             .color = {.r = 255, .g = 0, .b = 0, .a = 100},
+                                             .x = hitboxX,
+                                             .y = hitboxY,
+                                             .outline_thickness = 1.0f,
+                                             .outline_color = {.r = 255, .g = 0, .b = 0, .a = 200}});
+            }
             if (type == typeid(ecs::Text))
             {
                 if (textComp && transform && fontComp)
@@ -75,7 +88,6 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
             }
         });
 
-    registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
     registry.createEntity().with<ecs::Score>("score", 0).build();
 
     m_hudSystem = std::make_unique<HUDSystem>(renderer);
@@ -86,14 +98,20 @@ cli::GameSolo::GameSolo(const std::shared_ptr<eng::IRenderer> &renderer, const s
     m_playerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
     m_hudSystem->createScoreHUD(registry, 10.0f, 10.0f);
     m_starfieldSystem->createStarfield(registry, Config::Window::WINDOW_WIDTH, Config::Window::WINDOW_HEIGHT);
+    auto beginSoundEntity =
+        registry.createEntity().with<ecs::Audio>("game_begin", Path::Audio::AUDIO_BEGIN, 1.0F, false, false).build();
+    if (auto *audioComp = registry.getComponent<ecs::Audio>(beginSoundEntity))
+    {
+        audioComp->play = true;
+    }
 }
 
 void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
-    auto &audios = reg.getAll<ecs::Audio>();
+    const auto &audios = reg.getAll<ecs::Audio>();
 
-    for (auto &audio : audios)
+    for (const auto &audio : audios)
     {
         if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
         {
@@ -101,6 +119,12 @@ void cli::GameSolo::update(const float dt, const eng::WindowSize &size)
         }
     }
 
+    static bool starfieldCreated = false;
+    if (!starfieldCreated)
+    {
+        m_starfieldSystem->createStarfield(reg, static_cast<int>(size.width), static_cast<int>(size.height));
+        starfieldCreated = true;
+    }
     m_starfieldSystem->update(reg, dt);
     m_hudSystem->update(reg, dt);
     m_playerController->update(reg, dt);
@@ -118,11 +142,11 @@ bool cli::GameSolo::isUpPressed() const
     switch (m_appConfig.controlScheme)
     {
         case 0:
-            return m_keysPressed.count(eng::Key::Z) && m_keysPressed.at(eng::Key::Z);
+            return m_keysPressed.contains(eng::Key::Z) && m_keysPressed.at(eng::Key::Z);
         case 1:
-            return m_keysPressed.count(eng::Key::W) && m_keysPressed.at(eng::Key::W);
+            return m_keysPressed.contains(eng::Key::W) && m_keysPressed.at(eng::Key::W);
         default:
-            return m_keysPressed.count(eng::Key::Up) && m_keysPressed.at(eng::Key::Up);
+            return m_keysPressed.contains(eng::Key::Up) && m_keysPressed.at(eng::Key::Up);
     }
 }
 
@@ -131,11 +155,11 @@ bool cli::GameSolo::isDownPressed() const
     switch (m_appConfig.controlScheme)
     {
         case 0:
-            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+            return m_keysPressed.contains(eng::Key::S) && m_keysPressed.at(eng::Key::S);
         case 1:
-            return m_keysPressed.count(eng::Key::S) && m_keysPressed.at(eng::Key::S);
+            return m_keysPressed.contains(eng::Key::S) && m_keysPressed.at(eng::Key::S);
         default:
-            return m_keysPressed.count(eng::Key::Down) && m_keysPressed.at(eng::Key::Down);
+            return m_keysPressed.contains(eng::Key::Down) && m_keysPressed.at(eng::Key::Down);
     }
 }
 
@@ -144,11 +168,11 @@ bool cli::GameSolo::isLeftPressed() const
     switch (m_appConfig.controlScheme)
     {
         case 0:
-            return m_keysPressed.count(eng::Key::Q) && m_keysPressed.at(eng::Key::Q);
+            return m_keysPressed.contains(eng::Key::Q) && m_keysPressed.at(eng::Key::Q);
         case 1:
-            return m_keysPressed.count(eng::Key::A) && m_keysPressed.at(eng::Key::A);
+            return m_keysPressed.contains(eng::Key::A) && m_keysPressed.at(eng::Key::A);
         default:
-            return m_keysPressed.count(eng::Key::Left) && m_keysPressed.at(eng::Key::Left);
+            return m_keysPressed.contains(eng::Key::Left) && m_keysPressed.at(eng::Key::Left);
     }
 }
 
@@ -157,17 +181,17 @@ bool cli::GameSolo::isRightPressed() const
     switch (m_appConfig.controlScheme)
     {
         case 0:
-            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+            return m_keysPressed.contains(eng::Key::D) && m_keysPressed.at(eng::Key::D);
         case 1:
-            return m_keysPressed.count(eng::Key::D) && m_keysPressed.at(eng::Key::D);
+            return m_keysPressed.contains(eng::Key::D) && m_keysPressed.at(eng::Key::D);
         default:
-            return m_keysPressed.count(eng::Key::Right) && m_keysPressed.at(eng::Key::Right);
+            return m_keysPressed.contains(eng::Key::Right) && m_keysPressed.at(eng::Key::Right);
     }
 }
 
 bool cli::GameSolo::isShootPressed() const
 {
-    return m_keysPressed.count(eng::Key::Space) && m_keysPressed.at(eng::Key::Space);
+    return m_keysPressed.contains(eng::Key::Space) && m_keysPressed.at(eng::Key::Space);
 }
 
 void cli::GameSolo::updatePlayerSkin()
@@ -175,9 +199,9 @@ void cli::GameSolo::updatePlayerSkin()
     auto &registry = getRegistry();
     auto *playerRect = registry.getComponent<ecs::Rect>(m_playerEntity);
 
-    if (playerRect)
+    if (playerRect != nullptr)
     {
-        float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        const float skinPosY = static_cast<float>(m_appConfig.skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }
 }

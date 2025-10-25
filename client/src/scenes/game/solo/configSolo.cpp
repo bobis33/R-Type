@@ -1,8 +1,9 @@
-#include "Client/Scenes/game/solo/ConfigSolo.hpp"
+#include <cmath>
+
 #include "Client/Common.hpp"
+#include "Client/Scenes/game/solo/ConfigSolo.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <cmath>
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
@@ -72,8 +73,6 @@ cli::ConfigSolo::ConfigSolo(const std::shared_ptr<eng::IRenderer> &renderer, con
             }
         });
 
-    registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
-
     m_titleEntity =
         registry.createEntity()
             .with<ecs::Font>("main_font", Path::Font::FONTS_RTYPE)
@@ -91,6 +90,11 @@ cli::ConfigSolo::ConfigSolo(const std::shared_ptr<eng::IRenderer> &renderer, con
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
+
+    m_selectionSoundEntity =
+        registry.createEntity().with<ecs::Audio>("config_input", Path::Audio::AUDIO_INPUT, 8.F, false, false).build();
+    m_selectionSoundName = "config_input" + std::to_string(m_selectionSoundEntity);
+
     m_selectedIndex = 2;
 }
 
@@ -175,6 +179,7 @@ void cli::ConfigSolo::event(const eng::Event &event)
                 {
                     m_selectedIndex++;
                 }
+                playInputSound();
             }
             else if (event.key == eng::Key::Down)
             {
@@ -186,6 +191,7 @@ void cli::ConfigSolo::event(const eng::Event &event)
                 {
                     m_selectedIndex--;
                 }
+                playInputSound();
             }
             else if (event.key == eng::Key::Enter)
             {
@@ -224,4 +230,13 @@ void cli::ConfigSolo::event(const eng::Event &event)
         default:
             break;
     }
+}
+
+void cli::ConfigSolo::playInputSound()
+{
+    if (m_selectionSoundName.empty())
+        return;
+
+    m_audio->stopAudio(m_selectionSoundName);
+    m_audio->playAudio(m_selectionSoundName);
 }

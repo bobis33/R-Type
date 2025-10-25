@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <Utils/EventBus.hpp>
+#include <cstdint>
 #include <string>
 
 #include "ECS/Interfaces/ISystems.hpp"
@@ -78,6 +80,10 @@ namespace eng
             ecs::Registry m_registry;
             inline static id s_nextId = 1;
             std::vector<std::unique_ptr<ISystem>> m_systems;
+
+        protected:
+            utl::EventBus &m_eventBus = utl::EventBus::getInstance();
+            std::uint32_t m_eventComponentId = 0;
     }; // class AScene
 
 } // namespace eng

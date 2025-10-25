@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Client/GameConfig.hpp"
+#include "Client/Utils/HitboxUtils.hpp"
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
@@ -58,6 +59,14 @@ namespace cli
                     GameConfig::Screen::MIN_Y +
                     (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y)));
 
+                // Calculer les offsets de la hitbox pour la centrer sur le sprite
+                auto [offsetX, offsetY] = Utils::calculateHitboxOffsetsRelative(
+                    x, y, 
+                    GameConfig::Enemy::Easy::SPRITE_WIDTH, 
+                    GameConfig::Enemy::Easy::SPRITE_HEIGHT, 
+                    GameConfig::Enemy::Easy::SCALE
+                );
+
                 registry.createEntity()
                     .with<ecs::Transform>("enemy_transform", x, y, 0.0f)
                     .with<ecs::Velocity>("enemy_velocity", -GameConfig::Enemy::Easy::SPEED, 0.0f)
@@ -73,7 +82,7 @@ namespace cli
                     .with<ecs::Enemy>("enemy", GameConfig::Enemy::Easy::HEALTH, GameConfig::Enemy::Easy::HEALTH,
                                       GameConfig::Enemy::Easy::DAMAGE, GameConfig::Enemy::Easy::SPEED, 0.0f,
                                       GameConfig::Enemy::Easy::SHOOT_COOLDOWN)
-                    .with<ecs::Hitbox>("enemy_hitbox", GameConfig::Hitbox::ENEMY_RADIUS)
+                    .with<ecs::Hitbox>("enemy_hitbox", GameConfig::Hitbox::ENEMY_RADIUS, offsetX, offsetY)
                     .build();
             }
 
@@ -87,6 +96,12 @@ namespace cli
                     float y = static_cast<float>(
                         GameConfig::Screen::MIN_Y +
                         (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y)));
+                auto [offsetX, offsetY] = Utils::calculateHitboxOffsetsRelative(
+                    x, y, 
+                    GameConfig::Enemy::Easy::SPRITE_WIDTH, 
+                    GameConfig::Enemy::Easy::SPRITE_HEIGHT, 
+                    GameConfig::Enemy::Easy::SCALE
+                );
 
                     registry.createEntity()
                         .with<ecs::Transform>("enemy_wave_transform", x, y, 0.0f)
@@ -106,7 +121,7 @@ namespace cli
                         .with<ecs::Enemy>("enemy_wave", GameConfig::Enemy::Easy::HEALTH,
                                           GameConfig::Enemy::Easy::HEALTH, GameConfig::Enemy::Easy::DAMAGE,
                                           GameConfig::Enemy::Easy::SPEED, 0.0f, GameConfig::Enemy::Easy::SHOOT_COOLDOWN)
-                        .with<ecs::Hitbox>("enemy_wave_hitbox", GameConfig::Hitbox::ENEMY_RADIUS)
+                        .with<ecs::Hitbox>("enemy_wave_hitbox", GameConfig::Hitbox::ENEMY_RADIUS, offsetX, offsetY)
                         .build();
                 }
             }
