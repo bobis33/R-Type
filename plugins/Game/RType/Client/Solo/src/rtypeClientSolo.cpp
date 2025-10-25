@@ -30,9 +30,7 @@ void gme::RTypeClientSolo::setupScenes(bool &showDebug, eng::id menuSceneId)
     gameSolo->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), showDebug));
-    // unsigned int /**menuId = menu->getId();**/
     m_mainSceneId = configSoloId;
-    std::cout << "RTypeClientSolo: Main scene ID is " << m_mainSceneId << '\n';
 
     configSolo->onOptionSelected = [this, gameSoloId, menuSceneId](const std::string &option)
     {

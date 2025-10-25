@@ -1,14 +1,15 @@
-#include "Client/Scenes/game/multi/room/CreateRoomScene.hpp"
-#include "Client/Common.hpp"
+#include <cmath>
+
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <cmath>
+#include "RTypeClientMulti/Common.hpp"
+#include "RTypeClientMulti/Scenes/CreateRoom.hpp"
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
 static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 
-namespace cli
+namespace gme
 {
     static char keyToChar(eng::Key key, bool shift = false)
     {
@@ -96,9 +97,9 @@ namespace cli
         }
     }
 
-    CreateRoomScene::CreateRoomScene(const std::shared_ptr<eng::IRenderer> &renderer,
+    CreateRoomScene::CreateRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                                      const std::shared_ptr<eng::IAudio> &audio)
-        : m_audio(audio)
+        : eng::AScene(assignedId), m_audio(audio)
     {
         auto &registry = AScene::getRegistry();
 
@@ -135,8 +136,6 @@ namespace cli
                     }
                 }
             });
-
-        registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
 
         m_titleEntity =
             registry.createEntity()
@@ -302,4 +301,4 @@ namespace cli
         if (auto *maxPlayersText = reg.getComponent<ecs::Text>(m_maxPlayersValueEntity))
             maxPlayersText->content = std::to_string(m_maxPlayers);
     }
-} // namespace cli
+} // namespace gme

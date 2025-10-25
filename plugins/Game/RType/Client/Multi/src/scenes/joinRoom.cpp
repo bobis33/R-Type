@@ -1,19 +1,20 @@
-#include "Client/Scenes/game/multi/room/JoinRoomScene.hpp"
-#include "Client/Common.hpp"
+#include <cmath>
+
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include <cmath>
+#include "RTypeClientMulti/Common.hpp"
+#include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 
 static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
 static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
 static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
 static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 
-namespace cli
+namespace gme
 {
-    JoinRoomScene::JoinRoomScene(const std::shared_ptr<eng::IRenderer> &renderer,
+    JoinRoomScene::JoinRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                                  const std::shared_ptr<eng::IAudio> &audio)
-        : m_audio(audio)
+        : eng::AScene(assignedId), m_audio(audio)
     {
         auto &registry = AScene::getRegistry();
 
@@ -50,8 +51,6 @@ namespace cli
                     }
                 }
             });
-
-        registry.createEntity().with<ecs::Audio>("id_audio", Path::Audio::AUDIO_TITLE, 5.F, true, true).build();
 
         m_titleEntity =
             registry.createEntity()
@@ -272,4 +271,4 @@ namespace cli
 
         m_roomEntities.clear();
     }
-} // namespace cli
+} // namespace gme

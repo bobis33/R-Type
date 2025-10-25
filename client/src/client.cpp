@@ -8,9 +8,6 @@
 
 static constexpr eng::Color DARK = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
 
-static std::vector<cli::RoomInfo> g_availableRooms; // TODO: Replace with server-side room management
-static int g_nextRoomId = 1;                        // TODO: Replace with server-side room ID generation
-
 cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
 {
     AppConfig appConfig;

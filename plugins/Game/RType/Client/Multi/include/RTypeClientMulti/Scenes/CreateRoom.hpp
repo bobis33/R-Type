@@ -1,7 +1,7 @@
 ///
-/// @file CreateRoomScene.hpp
+/// @file CreateRoom.hpp
 /// @brief This file contains the create room scene
-/// @namespace cli
+/// @namespace gme
 ///
 
 #pragma once
@@ -9,17 +9,18 @@
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 
-namespace cli
+namespace gme
 {
     ///
     /// @class CreateRoomScene
     /// @brief Create room scene
-    /// @namespace cli
+    /// @namespace gme
     ///
     class CreateRoomScene final : public eng::AScene
     {
         public:
-            CreateRoomScene(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
+            CreateRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                            const std::shared_ptr<eng::IAudio> &audio);
             ~CreateRoomScene() override = default;
 
             CreateRoomScene(const CreateRoomScene &other) = delete;
@@ -49,4 +50,4 @@ namespace cli
 
             void updateValueDisplay();
     }; // class CreateRoomScene
-} // namespace cli
+} // namespace gme

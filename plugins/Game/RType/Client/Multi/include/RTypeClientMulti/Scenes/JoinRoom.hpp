@@ -1,16 +1,17 @@
 ///
-/// @file JoinRoomScene.hpp
+/// @file JoinRoom.hpp
 /// @brief This file contains the join room scene
-/// @namespace cli
+/// @namespace gme
 ///
 
 #pragma once
 
-#include "Engine/Interfaces/IScene.hpp"
-#include "Interfaces/IAudio.hpp"
 #include <vector>
 
-namespace cli
+#include "Engine/Interfaces/IScene.hpp"
+#include "Interfaces/IAudio.hpp"
+
+namespace gme
 {
     ///
     /// @struct RoomInfo
@@ -27,12 +28,13 @@ namespace cli
     ///
     /// @class JoinRoomScene
     /// @brief Join room scene
-    /// @namespace cli
+    /// @namespace gme
     ///
     class JoinRoomScene final : public eng::AScene
     {
         public:
-            JoinRoomScene(const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio);
+            JoinRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                          const std::shared_ptr<eng::IAudio> &audio);
             ~JoinRoomScene() override = default;
 
             JoinRoomScene(const JoinRoomScene &other) = delete;
@@ -66,4 +68,4 @@ namespace cli
             void updateRoomDisplay();
             void clearRoomEntities();
     }; // class JoinRoomScene
-} // namespace cli
+} // namespace gme
