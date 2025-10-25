@@ -63,6 +63,13 @@ namespace utl
         CRITICAL = 3
     };
 
+    struct EventConnect
+    {
+            std::string playerName;
+            std::string serverIP;
+            std::string serverPort;
+    };
+
     ///
     /// @brief Event structure for inter-component communication
     ///

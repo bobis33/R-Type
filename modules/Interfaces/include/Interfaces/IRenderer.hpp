@@ -51,6 +51,8 @@ namespace eng
         Down,
         Left,
         Right,
+        Delete,
+        Dot,
         A,
         B,
         C,

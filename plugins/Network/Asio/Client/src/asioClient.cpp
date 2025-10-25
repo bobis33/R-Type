@@ -142,12 +142,13 @@ namespace eng
 
     void AsioClient::update()
     {
-        if (!m_running.load())
+        // Process EventBus events
+        processBusEvent();
+
+        if (m_connectionState.load() != ConnectionState::CONNECTED)
         {
             return;
         }
-        // Process EventBus events
-        processBusEvent();
 
         // Process send queue
         processSendQueue();
@@ -633,9 +634,11 @@ namespace eng
 
     void AsioClient::processBusEvent()
     {
-
         for (const auto events = m_eventBus.consumeForTarget(m_componentId); const auto &e : events)
         {
+            utl::Logger::log("AsioClient: Processing EventBus event type " +
+                                 std::to_string(static_cast<std::uint32_t>(e.type)),
+                             utl::LogLevel::INFO);
             switch (e.type)
             {
                 case utl::EventType::SEND_PLAYER_INPUT:
@@ -645,9 +648,17 @@ namespace eng
                 }
                 case utl::EventType::REQUEST_CONNECT:
                 {
+                    rnp::Serializer serializer(e.data);
+                    std::string playerName = serializer.readString(32);
+                    std::string serverIP = serializer.readString(15);
+                    unsigned short serverPortStr = std::stoi(serializer.readString(5).c_str());
+                    utl::Logger::log("AsioClient: Received REQUEST_CONNECT event - Player: " + playerName +
+                                         ", Server: " + serverIP + ":" + std::to_string(serverPortStr),
+                                     utl::LogLevel::INFO);
                     if (m_connectionState == ConnectionState::DISCONNECTED)
                     {
-                        connect("127.0.0.1", 4242);
+                        setPlayerName(playerName);
+                        connect(serverIP, serverPortStr);
                     }
                     break;
                 }

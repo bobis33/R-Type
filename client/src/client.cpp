@@ -1,6 +1,7 @@
 #include "Client/Client.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Menu.hpp"
+#include "Client/Scenes/ServerScene.hpp"
 #include "Client/Scenes/Settings.hpp"
 #include "Client/Scenes/game/multi/ConfigMulti.hpp"
 #include "Client/Scenes/game/solo/ConfigSolo.hpp"
@@ -77,6 +78,7 @@ void cli::Client::run()
     {
         handleEvents(event);
         m_engine->render(m_engine->getRenderer()->getWindowSize(), DARK, m_showDebug);
+        m_engine->getNetwork()->update();
     }
 }
 
@@ -93,6 +95,11 @@ void cli::Client::setupScenes()
     menu->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
+    auto serverScene = std::make_unique<ServerScene>(m_engine->getRenderer(), m_engine->getAudio());
+    serverScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
+    serverScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    serverScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
+    serverScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     auto configMulti = std::make_unique<ConfigMulti>(m_engine->getRenderer(), m_engine->getAudio());
     configMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
     configMulti->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
@@ -126,11 +133,12 @@ void cli::Client::setupScenes()
     settings->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
     const auto menuId = menu->getId();
+    const auto serverSceneId = serverScene->getId();
     const auto configMultiId = configMulti->getId();
     const auto configSoloId = configSolo->getId();
     const auto gameSoloId = gameSolo->getId();
     const auto settingsId = settings->getId();
-    menu->onOptionSelected = [this, configSoloId, configMultiId, settingsId](const std::string &option)
+    menu->onOptionSelected = [this, configSoloId, serverSceneId, settingsId](const std::string &option)
     {
         if (option == "Solo")
         {
@@ -138,13 +146,19 @@ void cli::Client::setupScenes()
         }
         else if (option == "Multi")
         {
-            m_engine->getSceneManager()->switchToScene(configMultiId);
+            m_engine->getSceneManager()->switchToScene(serverSceneId);
         }
         else if (option == "Settings")
         {
             m_engine->getSceneManager()->switchToScene(settingsId);
         }
     };
+
+    serverScene->onConnect =
+        [this, configMultiId](const std::string &playerName, const std::string &serverIP, const std::string &serverPort)
+    { m_engine->getSceneManager()->switchToScene(configMultiId); };
+    serverScene->onBackToMenu = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
+
     configMulti->onOptionSelected = [this, menuId](const std::string &option)
     {
         if (option == "Create room")
@@ -178,6 +192,7 @@ void cli::Client::setupScenes()
     settings->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
 
     m_engine->getSceneManager()->addScene(std::move(menu));
+    m_engine->getSceneManager()->addScene(std::move(serverScene));
     m_engine->getSceneManager()->addScene(std::move(configMulti));
     m_engine->getSceneManager()->addScene(std::move(configSolo));
     m_engine->getSceneManager()->addScene(std::move(gameSolo));
