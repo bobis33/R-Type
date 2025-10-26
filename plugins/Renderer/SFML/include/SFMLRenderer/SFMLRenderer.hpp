@@ -11,6 +11,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "Interfaces/IRenderer.hpp"
+#include "SFMLRenderer/Profiler.hpp"
 
 namespace eng
 {
@@ -71,6 +72,8 @@ namespace eng
             void renderGui(const WindowSize &windowSize) override;
 
         private:
+            void updateFrame(Profiler &profiler, const WindowSize &windowSize);
+
             std::unordered_map<std::string, sf::Texture> textures;
 
             sf::RenderWindow window;
@@ -81,6 +84,7 @@ namespace eng
             sf::Clock deltaClock;
 
             bool showDebugOverlay = false;
+            Profiler m_profiler;
 
     }; // class SFMLRenderer
 

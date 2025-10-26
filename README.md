@@ -3,7 +3,7 @@
 </p>
 
 # R-Type
-[![CI - Gitleaks](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml)
+[![CI - GitLeaks](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml)
 [![CI - R-Type](https://github.com/bobis33/R-Type/actions/workflows/ci.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/ci.yml)
 [![CD - Doxygen documentation](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/deploy-doxygen.yml)
 [![CD - Mirror](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/mirror.yml)
@@ -95,7 +95,7 @@ More specific documentation for each part of the project can be found in their r
 
 ## Technology Stack Analysis
 For a detailed comparative study of the technologies used in this project and the reasoning behind our architectural choices, see:
-[Comparativ study](https://github.com/bobis33/R-Type/blob/main/documentation/comparative_study.md)
+[Comparative study](https://github.com/bobis33/R-Type/blob/main/documentation/comparative_study.md)
 
 ## External Libraries
 All dependencies are included as submodules in the [third-party](https://github.com/bobis33/R-Type/tree/main/third-party) directory.
