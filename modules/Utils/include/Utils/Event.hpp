@@ -50,6 +50,17 @@ namespace utl
         SERVER_START = 0x3000,
         SERVER_STOP = 0x3001,
         SERVER_STATUS_UPDATE = 0x3002,
+
+        // Lobby Management events (0x4000 - 0x4FFF)
+        LOBBY_LIST_REQUEST = 0x4000,
+        LOBBY_LIST_RESPONSE = 0x4001,
+        LOBBY_CREATE = 0x4010,
+        LOBBY_CREATE_RESPONSE = 0x4011,
+        LOBBY_JOIN = 0x4020,
+        LOBBY_JOIN_RESPONSE = 0x4021,
+        LOBBY_LEAVE = 0x4030,
+        LOBBY_UPDATE = 0x4040,
+        GAME_START = 0x4050,
     };
 
     ///
@@ -123,7 +134,8 @@ namespace utl
             std::uint64_t getAge() const
             {
                 auto now = std::chrono::steady_clock::now();
-                return std::chrono::duration_cast<std::chrono::milliseconds>(now - timestamp).count();
+                return static_cast<std::uint64_t>(
+                    std::chrono::duration_cast<std::chrono::milliseconds>(now - timestamp).count());
             }
 
             ///

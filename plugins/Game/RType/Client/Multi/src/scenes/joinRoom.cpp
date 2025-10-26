@@ -1,3 +1,7 @@
+#include <Interfaces/Protocol/Serializer.hpp>
+#include <Utils/Logger.hpp>
+#include <cmath>
+
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
@@ -76,6 +80,101 @@ namespace gme
                                                    utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
                                  .with<ecs::Text>("back_text", std::string("Back"), 32U)
                                  .build();
+
+        m_eventComponentId = 7;
+        m_eventBus.registerComponent(m_eventComponentId, "Join_Room_Scene");
+        setupEventSubscriptions();
+        refreshRoomList();
+    }
+
+    void JoinRoomScene::setupEventSubscriptions()
+    {
+        // Subscribe to lobby list response
+        m_eventBus.subscribe(m_eventComponentId, utl::EventType::LOBBY_LIST_RESPONSE);
+
+        // Subscribe to lobby join response
+        m_eventBus.subscribe(m_eventComponentId, utl::EventType::LOBBY_JOIN_RESPONSE);
+    }
+
+    void JoinRoomScene::handleLobbyListResponse(const utl::Event &event)
+    {
+        try
+        {
+            rnp::Serializer serializer(event.data);
+            rnp::PacketLobbyListResponse packet = serializer.deserializeLobbyListResponse();
+
+            utl::Logger::log("JoinRoomScene: Received lobby list with " + std::to_string(packet.lobbyCount) +
+                                 " lobbies",
+                             utl::LogLevel::INFO);
+
+            setRooms(packet.lobbies);
+
+            for (const auto &lobby : packet.lobbies)
+            {
+                size_t nameLen = 0;
+                for (size_t i = 0; i < lobby.lobbyName.size() && lobby.lobbyName[i] != '\0'; ++i)
+                {
+                    nameLen = i + 1;
+                }
+                std::string lobbyName(lobby.lobbyName.data(), nameLen);
+                utl::Logger::log("JoinRoomScene: Found lobby '" + lobbyName +
+                                     "' (ID: " + std::to_string(lobby.lobbyId) + ") with " +
+                                     std::to_string(static_cast<int>(lobby.currentPlayers)) + "/" +
+                                     std::to_string(static_cast<int>(lobby.maxPlayers)) + " players",
+                                 utl::LogLevel::INFO);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            utl::Logger::log("JoinRoomScene: Failed to handle lobby list response - " + std::string(e.what()),
+                             utl::LogLevel::WARNING);
+        }
+    }
+
+    void JoinRoomScene::handleLobbyJoinResponse(const utl::Event &event)
+    {
+        try
+        {
+            rnp::Serializer deserializer(event.data);
+            rnp::PacketLobbyJoinResponse packet = deserializer.deserializeLobbyJoinResponse();
+
+            if (packet.success == 1)
+            {
+                utl::Logger::log("JoinRoomScene: Successfully joined lobby " + std::to_string(packet.lobbyId),
+                                 utl::LogLevel::WARNING);
+                // Trigger callback to transition to game/lobby state
+                if (onJoin)
+                {
+                    onJoin(static_cast<int>(packet.lobbyId), &packet.lobbyInfo);
+                }
+            }
+            else
+            {
+                // Failed to join lobby
+                std::string errorMsg;
+                switch (static_cast<rnp::ErrorCode>(packet.errorCode))
+                {
+                    case rnp::ErrorCode::LOBBY_NOT_FOUND:
+                        errorMsg = "Lobby not found";
+                        break;
+                    case rnp::ErrorCode::LOBBY_FULL:
+                        errorMsg = "Lobby is full";
+                        break;
+                    case rnp::ErrorCode::ALREADY_IN_LOBBY:
+                        errorMsg = "Already in a lobby";
+                        break;
+                    default:
+                        errorMsg = "Failed to join lobby";
+                        break;
+                }
+                utl::Logger::log("JoinRoomScene: " + errorMsg, utl::LogLevel::WARNING);
+            }
+        }
+        catch (const std::exception &e)
+        {
+            utl::Logger::log("JoinRoomScene: Failed to handle lobby join response - " + std::string(e.what()),
+                             utl::LogLevel::WARNING);
+        }
     }
 
     void JoinRoomScene::update(const float dt, const eng::WindowSize & /*size*/)
@@ -152,6 +251,7 @@ namespace gme
                 }
             }
         }
+        processEventBus();
     }
 
     void JoinRoomScene::event(const eng::Event &event)
@@ -178,13 +278,19 @@ namespace gme
                 }
                 else if (event.key == eng::Key::Enter)
                 {
-                    if (m_selectedIndex < m_rooms.size() && onJoin)
+                    if (m_selectedIndex < m_rooms.size())
                     {
-                        onJoin(m_rooms[m_selectedIndex].roomId);
+                        // Publish lobby join request event
+                        rnp::PacketLobbyJoin joinPacket;
+                        joinPacket.lobbyId = m_rooms[m_selectedIndex].lobbyId;
+
+                        m_eventBus.publish(utl::EventType::LOBBY_JOIN, joinPacket, m_eventComponentId,
+                                           utl::NETWORK_CLIENT);
                     }
                     else if (m_selectedIndex == m_rooms.size() && onRefreshRequest)
                     {
                         onRefreshRequest();
+                        refreshRoomList();
                     }
                     else if (m_selectedIndex == m_rooms.size() + 1 && onBackToMulti)
                     {
@@ -199,7 +305,7 @@ namespace gme
         }
     }
 
-    void JoinRoomScene::setRooms(const std::vector<RoomInfo> &rooms)
+    void JoinRoomScene::setRooms(const std::vector<rnp::LobbyInfo> &rooms)
     {
         m_rooms = rooms;
         updateRoomDisplay();
@@ -207,6 +313,10 @@ namespace gme
 
     void JoinRoomScene::refreshRoomList()
     {
+        // Publish lobby list request event
+        m_eventBus.publish(utl::EventType::LOBBY_LIST_REQUEST, std::vector<std::uint8_t>(), m_eventComponentId,
+                           utl::NETWORK_CLIENT);
+
         if (onRefreshRequest)
             onRefreshRequest();
     }
@@ -214,6 +324,9 @@ namespace gme
     void JoinRoomScene::updateRoomDisplay()
     {
         auto &registry = getRegistry();
+
+        utl::Logger::log("JoinRoomScene: Updating room display with " + std::to_string(m_rooms.size()) + " rooms",
+                         utl::LogLevel::INFO);
 
         clearRoomEntities();
 
@@ -224,9 +337,20 @@ namespace gme
 
         for (size_t i = 0; i < m_rooms.size(); ++i)
         {
-            const RoomInfo &room = m_rooms[i];
-            std::string roomText =
-                room.name + " " + std::to_string(room.currentPlayers) + "/" + std::to_string(room.maxPlayers);
+            const rnp::LobbyInfo &lobby = m_rooms[i];
+
+            // Extract lobby name properly (null-terminated or max 32 chars)
+            size_t nameLen = 0;
+            for (size_t j = 0; j < lobby.lobbyName.size() && lobby.lobbyName[j] != '\0'; ++j)
+            {
+                nameLen = j + 1;
+            }
+            std::string lobbyName(lobby.lobbyName.data(), nameLen);
+
+            std::string roomText = lobbyName + " " + std::to_string(static_cast<int>(lobby.currentPlayers)) + "/" +
+                                   std::to_string(static_cast<int>(lobby.maxPlayers));
+
+            utl::Logger::log("JoinRoomScene: Creating entity for room: " + roomText, utl::LogLevel::INFO);
 
             ecs::Entity roomEntity =
                 registry.createEntity()
@@ -263,5 +387,25 @@ namespace gme
         }
 
         m_roomEntities.clear();
+    }
+
+    void JoinRoomScene::processEventBus()
+    {
+        std::vector<utl::Event> events = m_eventBus.consumeForTarget(m_eventComponentId);
+
+        for (const auto &event : events)
+        {
+            switch (event.type)
+            {
+                case utl::EventType::LOBBY_LIST_RESPONSE:
+                    handleLobbyListResponse(event);
+                    break;
+                case utl::EventType::LOBBY_JOIN_RESPONSE:
+                    handleLobbyJoinResponse(event);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 } // namespace gme

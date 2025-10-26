@@ -5,11 +5,14 @@
 ///
 
 #include "AsioClient/AsioClient.hpp"
+#include "Interfaces/Protocol/HandlerPacket.hpp"
+#include "Interfaces/Protocol/Protocol.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
 #include "Utils/Event.hpp"
 #include "Utils/Logger.hpp"
 
 #include <chrono>
+#include <cstdint>
 #include <random>
 
 namespace eng
@@ -32,6 +35,12 @@ namespace eng
         m_eventBus.subscribe(m_componentId, utl::EventType::REQUEST_CONNECT);
         m_eventBus.subscribe(m_componentId, utl::EventType::REQUEST_DISCONNECT);
         m_eventBus.subscribe(m_componentId, utl::EventType::SEND_ENTITY_EVENT);
+        m_eventBus.subscribe(m_componentId, utl::EventType::LOBBY_CREATE);
+        m_eventBus.subscribe(m_componentId, utl::EventType::LOBBY_JOIN);
+        m_eventBus.subscribe(m_componentId, utl::EventType::LOBBY_LEAVE);
+        m_eventBus.subscribe(m_componentId, utl::EventType::LOBBY_LIST_REQUEST);
+        // Note: LOBBY_UPDATE and GAME_START are published by this client (not consumed)
+        // so no subscription is needed here
     }
 
     AsioClient::~AsioClient()
@@ -147,6 +156,9 @@ namespace eng
 
         if (m_connectionState.load() != ConnectionState::CONNECTED)
         {
+            // utl::Logger::log("AsioClient: Update skipped - not connected (state: " +
+            //                      std::to_string(static_cast<int>(m_connectionState.load())) + ")",
+            //                  utl::LogLevel::WARNING);
             return;
         }
 
@@ -270,9 +282,13 @@ namespace eng
 
     void AsioClient::handleReceive(std::size_t bytesReceived)
     {
-        if (bytesReceived < sizeof(rnp::PacketHeader))
+        // PacketHeader serialized size: 1 (type) + 2 (length) + 4 (sessionId) = 7 bytes
+        constexpr std::size_t PACKET_HEADER_SIZE = 7;
+        if (bytesReceived < PACKET_HEADER_SIZE)
         {
-            utl::Logger::log("AsioClient: Received packet too small", utl::LogLevel::WARNING);
+            utl::Logger::log("AsioClient: Received packet too small (need " + std::to_string(PACKET_HEADER_SIZE) +
+                                 " bytes, got " + std::to_string(bytesReceived) + ")",
+                             utl::LogLevel::WARNING);
             return;
         }
 
@@ -288,7 +304,7 @@ namespace eng
 
         // Extract session ID from header for context
         std::vector<std::uint8_t> data(m_recvBuffer.begin(), m_recvBuffer.begin() + bytesReceived);
-        if (data.size() >= sizeof(rnp::PacketHeader))
+        if (data.size() >= PACKET_HEADER_SIZE)
         {
             rnp::Serializer headerSerializer(data);
             rnp::PacketHeader header = headerSerializer.deserializeHeader();
@@ -335,14 +351,21 @@ namespace eng
     {
         if (!m_socket || !m_socket->is_open())
         {
+            utl::Logger::log("AsioClient: Cannot send packet - socket not open", utl::LogLevel::WARNING);
             return;
         }
 
+        utl::Logger::log("AsioClient: Sending " + std::to_string(data.size()) + " bytes to " +
+                             m_serverEndpoint.address().to_string() + ":" + std::to_string(m_serverEndpoint.port()),
+                         utl::LogLevel::INFO);
+
         try
         {
-            m_socket->send_to(asio::buffer(data), m_serverEndpoint);
+            size_t bytesSent = m_socket->send_to(asio::buffer(data), m_serverEndpoint);
             m_stats.packetsSent++;
             m_stats.bytesTransferred += static_cast<std::uint32_t>(data.size());
+            utl::Logger::log("AsioClient: Successfully sent " + std::to_string(bytesSent) + " bytes",
+                             utl::LogLevel::INFO);
         }
         catch (const std::exception &e)
         {
@@ -478,7 +501,6 @@ namespace eng
         rnp::PacketHeader header{};
         header.type = static_cast<std::uint8_t>(rnp::PacketType::CONNECT);
         header.length = sizeof(rnp::PacketConnect);
-        header.flags = 0;
         header.sessionId = 0; // No session ID yet
 
         rnp::PacketConnect connect{};
@@ -509,7 +531,6 @@ namespace eng
         rnp::PacketHeader header{};
         header.type = static_cast<std::uint8_t>(rnp::PacketType::DISCONNECT);
         header.length = sizeof(rnp::PacketDisconnect);
-        header.flags = 0;
         header.sessionId = m_sessionId;
 
         rnp::PacketDisconnect disconnect{};
@@ -536,7 +557,6 @@ namespace eng
         rnp::PacketHeader header{};
         header.type = static_cast<std::uint8_t>(rnp::PacketType::PING);
         header.length = sizeof(rnp::PacketPingPong);
-        header.flags = 0;
         header.sessionId = m_sessionId;
 
         rnp::PacketPingPong ping{};
@@ -561,7 +581,6 @@ namespace eng
         rnp::PacketHeader header{};
         header.type = static_cast<std::uint8_t>(rnp::PacketType::PONG);
         header.length = sizeof(rnp::PacketPingPong);
-        header.flags = 0;
         header.sessionId = m_sessionId;
 
         rnp::PacketPingPong pong{};
@@ -579,6 +598,12 @@ namespace eng
     void AsioClient::processSendQueue()
     {
         std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        if (!m_sendQueue.empty())
+        {
+            utl::Logger::log("AsioClient: Processing send queue with " + std::to_string(m_sendQueue.size()) +
+                                 " packets",
+                             utl::LogLevel::INFO);
+        }
         while (!m_sendQueue.empty())
         {
             const QueuedPacket &packet = m_sendQueue.front();
@@ -676,6 +701,38 @@ namespace eng
                     sendToServer(e.data);
                     break;
                 }
+                case utl::EventType::LOBBY_LIST_REQUEST:
+                {
+                    requestLobbyList();
+                    break;
+                }
+                case utl::EventType::LOBBY_CREATE:
+                {
+                    rnp::Serializer serializer(e.data);
+                    rnp::PacketLobbyCreate lobbyCreate = serializer.deserializeLobbyCreate();
+                    std::string lobbyName(lobbyCreate.lobbyName.data(), lobbyCreate.nameLen);
+                    std::uint8_t maxPlayers = lobbyCreate.maxPlayers;
+                    std::uint8_t gameMode = lobbyCreate.gameMode;
+                    utl::Logger::log("AsioClient: Received LOBBY_CREATE event - Name: " + lobbyName +
+                                         ", Max Players: " + std::to_string(maxPlayers) +
+                                         ", Game Mode: " + std::to_string(gameMode),
+                                     utl::LogLevel::INFO);
+                    createLobby(lobbyCreate);
+                    break;
+                }
+                case utl::EventType::LOBBY_JOIN:
+                {
+                    rnp::Serializer serializer(e.data);
+                    std::uint32_t lobbyId = serializer.readUInt32();
+                    joinLobby(lobbyId);
+                    break;
+                }
+                case utl::EventType::LOBBY_LEAVE:
+                {
+                    utl::Logger::log("AsioClient: Received LOBBY_LEAVE event", utl::LogLevel::INFO);
+                    leaveLobby();
+                    break;
+                }
                 default:
                 {
                     utl::Logger::log("AsioClient: Unhandled event type: " + std::to_string(static_cast<int>(e.type)),
@@ -713,17 +770,17 @@ namespace eng
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_LIST_REQUEST);
         header.length = 0;
-        header.flags = 0;
         header.sessionId = m_sessionId;
 
         std::vector<std::uint8_t> packet;
         rnp::Serializer serializer(packet);
         serializer.serializeHeader(header);
 
-        sendToServer(packet, true);
+        std::cout << "Sending lobby list request packet of size " << serializer.getSize() << std::endl;
+        sendToServer(serializer.getData(), true);
     }
 
-    void AsioClient::createLobby(const std::string &name, std::uint8_t maxPlayers, std::uint8_t gameMode)
+    void AsioClient::createLobby(rnp::PacketLobbyCreate lobbyPacket)
     {
         if (m_connectionState.load() != ConnectionState::CONNECTED)
         {
@@ -737,31 +794,29 @@ namespace eng
             return;
         }
 
+        std::string name(lobbyPacket.lobbyName.data(), lobbyPacket.nameLen);
         utl::Logger::log("AsioClient: Creating lobby '" + name + "'", utl::LogLevel::INFO);
 
-        rnp::PacketLobbyCreate lobbyPacket;
-        lobbyPacket.nameLen = static_cast<std::uint8_t>(std::min(name.length(), static_cast<size_t>(31)));
-        std::strncpy(lobbyPacket.lobbyName.data(), name.c_str(), lobbyPacket.nameLen);
-        lobbyPacket.lobbyName[lobbyPacket.nameLen] = '\0';
-        lobbyPacket.maxPlayers = maxPlayers;
-        lobbyPacket.gameMode = gameMode;
+        utl::Logger::log("AsioClient: Lobby create packet - Name: " + name +
+                             ", Max Players: " + std::to_string(lobbyPacket.maxPlayers) +
+                             ", Game Mode: " + std::to_string(lobbyPacket.gameMode),
+                         utl::LogLevel::WARNING);
 
         std::vector<std::uint8_t> data;
         rnp::Serializer dataSerializer(data);
-        dataSerializer.serializeLobbyCreate(lobbyPacket);
 
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_CREATE);
-        header.length = static_cast<std::uint16_t>(data.size());
-        header.flags = 0;
+        header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketLobbyCreate));
         header.sessionId = m_sessionId;
+        utl::Logger::log("AsioClient: Lobby create header - Type: " + std::to_string(header.type) + ", Length: " +
+                             std::to_string(header.length) + ", Session ID: " + std::to_string(header.sessionId),
+                         utl::LogLevel::WARNING);
 
-        std::vector<std::uint8_t> packet;
-        rnp::Serializer packetSerializer(packet);
-        packetSerializer.serializeHeader(header);
-        packet.insert(packet.end(), data.begin(), data.end());
-
-        sendToServer(packet, true);
+        dataSerializer.serializeHeader(header);
+        dataSerializer.serializeLobbyCreate(lobbyPacket);
+        std::cout << "Sending lobby create packet of size " << dataSerializer.getSize() << std::endl;
+        sendToServer(dataSerializer.getData(), true);
     }
 
     void AsioClient::joinLobby(std::uint32_t lobbyId)
@@ -778,27 +833,22 @@ namespace eng
             return;
         }
 
-        utl::Logger::log("AsioClient: Joining lobby " + std::to_string(lobbyId), utl::LogLevel::INFO);
+        utl::Logger::log("AsioClient: Joining (lobby " + std::to_string(lobbyId), utl::LogLevel::INFO);
 
         rnp::PacketLobbyJoin joinPacket;
         joinPacket.lobbyId = lobbyId;
 
-        std::vector<std::uint8_t> data;
-        rnp::Serializer dataSerializer(data);
-        dataSerializer.serializeLobbyJoin(joinPacket);
-
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_JOIN);
-        header.length = static_cast<std::uint16_t>(data.size());
-        header.flags = 0;
+        header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketLobbyJoin));
         header.sessionId = m_sessionId;
 
         std::vector<std::uint8_t> packet;
         rnp::Serializer packetSerializer(packet);
         packetSerializer.serializeHeader(header);
-        packet.insert(packet.end(), data.begin(), data.end());
+        packetSerializer.serializeLobbyJoin(joinPacket);
 
-        sendToServer(packet, true);
+        sendToServer(packetSerializer.getData(), true);
     }
 
     void AsioClient::leaveLobby()
@@ -820,14 +870,13 @@ namespace eng
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_LEAVE);
         header.length = 0;
-        header.flags = 0;
         header.sessionId = m_sessionId;
 
         std::vector<std::uint8_t> packet;
         rnp::Serializer serializer(packet);
         serializer.serializeHeader(header);
 
-        sendToServer(packet, true);
+        sendToServer(serializer.getData(), true);
 
         m_currentLobbyId = 0;
     }
@@ -868,7 +917,8 @@ namespace eng
         {
             m_onLobbyListReceived(packet.lobbies);
         }
-
+        m_eventBus.publish(utl::EventType::LOBBY_LIST_RESPONSE, packet, m_componentId,
+                           7); // JoinRoomScene ID
         return rnp::HandlerResult::SUCCESS;
     }
 
@@ -889,7 +939,8 @@ namespace eng
         {
             m_onLobbyCreated(packet.lobbyId, packet.success != 0, static_cast<rnp::ErrorCode>(packet.errorCode));
         }
-
+        m_eventBus.publish(utl::EventType::LOBBY_CREATE_RESPONSE, packet, m_componentId,
+                           6); // CreateRoomScene ID
         return rnp::HandlerResult::SUCCESS;
     }
 
@@ -912,6 +963,7 @@ namespace eng
             m_onLobbyJoined(packet.lobbyId, packet.success != 0, static_cast<rnp::ErrorCode>(packet.errorCode),
                             lobbyInfo);
         }
+        m_eventBus.publish(utl::EventType::LOBBY_JOIN_RESPONSE, packet, m_componentId, 7); // JoinRoomScene ID
 
         return rnp::HandlerResult::SUCCESS;
     }
@@ -927,6 +979,9 @@ namespace eng
             m_onLobbyUpdated(packet.lobbyInfo);
         }
 
+        // Publish to event bus so scenes can receive the update
+        m_eventBus.publish(utl::EventType::LOBBY_UPDATE, packet, m_componentId, 8); // WaitingRoomScene ID
+
         return rnp::HandlerResult::SUCCESS;
     }
 
@@ -939,6 +994,9 @@ namespace eng
         {
             m_onGameStart(packet.lobbyId, context.sessionId);
         }
+
+        // Publish to event bus so scenes can receive the game start event
+        m_eventBus.publish(utl::EventType::GAME_START, packet, m_componentId, 8); // WaitingRoomScene ID
 
         return rnp::HandlerResult::SUCCESS;
     }

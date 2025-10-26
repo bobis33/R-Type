@@ -46,6 +46,16 @@ namespace srv
             }
     };
 
+    enum class LobbyStatus : std::uint8_t
+    {
+        SUCCESS = 0,
+        WAITING = 1,
+        IN_GAME = 2,
+        NOT_FOUND = 3,
+        FULL = 4,
+        ALREADY_IN_LOBBY = 5
+    };
+
     ///
     /// @brief Lobby structure
     ///
@@ -366,7 +376,7 @@ namespace srv
             /// @param sessionId Player session ID
             /// @return Success status
             ///
-            bool joinLobby(std::uint32_t lobbyId, std::uint32_t sessionId);
+            LobbyStatus joinLobby(std::uint32_t lobbyId, std::uint32_t sessionId);
 
             ///
             /// @brief Remove player from lobby
@@ -379,6 +389,21 @@ namespace srv
             /// @param lobbyId Target lobby ID
             ///
             void broadcastLobbyUpdate(std::uint32_t lobbyId);
+
+            ///
+            /// @brief Handle START_GAME_REQUEST packet
+            /// @param packet Start game request packet
+            /// @param context Packet context
+            /// @return Handler result
+            ///
+            rnp::HandlerResult handleStartGameRequest(const rnp::PacketStartGameRequest &packet,
+                                                      const rnp::PacketContext &context);
+
+            ///
+            /// @brief Broadcast game start to all players in lobby
+            /// @param lobbyId Target lobby ID
+            ///
+            void broadcastGameStart(std::uint32_t lobbyId);
 
             ///
             /// @brief Convert Lobby to LobbyInfo for network transmission

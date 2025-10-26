@@ -40,6 +40,7 @@ namespace rnp
         LOBBY_LEAVE = 0x0F,
         LOBBY_UPDATE = 0x10,
         GAME_START = 0x11,
+        START_GAME_REQUEST = 0x12,
     };
 
     ///
@@ -71,6 +72,7 @@ namespace rnp
     ///
     enum class ErrorCode : std::uint16_t
     {
+        NONE = 0,
         INVALID_PAYLOAD = 1,
         UNAUTHORIZED_SESSION = 2,
         RATE_LIMITED = 3,
@@ -119,13 +121,12 @@ namespace rnp
 
     ///
     /// @brief Packet header according to RNP specification (Big Endian)
-    /// Total size: 16 bytes
+    /// Total size: 7 bytes (1 + 2 + 4)
     ///
     struct PacketHeader
     {
             std::uint8_t type;
             std::uint16_t length;
-            std::uint16_t flags;
             std::uint32_t sessionId;
     };
 
@@ -285,6 +286,14 @@ namespace rnp
     /// @brief GAME_START packet payload
     ///
     struct PacketGameStart
+    {
+            std::uint32_t lobbyId;
+    };
+
+    ///
+    /// @brief START_GAME_REQUEST packet payload (client requests to start game)
+    ///
+    struct PacketStartGameRequest
     {
             std::uint32_t lobbyId;
     };

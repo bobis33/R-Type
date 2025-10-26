@@ -1,5 +1,10 @@
+#include <Interfaces/Protocol/Protocol.hpp>
+#include <Interfaces/Protocol/Serializer.hpp>
+#include <Utils/Event.hpp>
+#include <Utils/Logger.hpp>
 #include <cmath>
-#include <ranges>
+#include <cstdint>
+#include <vector>
 
 #include "ECS/Component.hpp"
 #include "RTypeClientMulti/Scenes/CreateRoom.hpp"
@@ -167,6 +172,9 @@ namespace gme
                                                         utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                       .with<ecs::Text>("max_players_value", std::to_string(m_maxPlayers), 24U)
                                       .build();
+        m_eventComponentId = 6;
+        m_eventBus.registerComponent(m_eventComponentId, "Room_Manager");
+        m_eventBus.subscribe(m_eventComponentId, utl::EventType::LOBBY_CREATE_RESPONSE);
     }
 
     void CreateRoomScene::update(const float dt, const eng::WindowSize & /*size*/)
@@ -178,7 +186,9 @@ namespace gme
 
         m_animationTime += dt;
 
-        for (auto &val : audios | std::views::values)
+        processEventBus();
+
+        for (auto &audio : audios)
         {
             if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
                 m_audio->stopAudio(val.id);
@@ -232,7 +242,10 @@ namespace gme
                 else if (event.key == eng::Key::Enter)
                 {
                     if (m_selectedIndex == 2 && onCreate)
+                    {
+                        createRoom();
                         onCreate(m_roomName, m_maxPlayers);
+                    }
                     else if (m_selectedIndex == 3 && onBackToMulti)
                         onBackToMulti();
                 }
@@ -296,5 +309,59 @@ namespace gme
 
         if (auto *maxPlayersText = reg.getComponent<ecs::Text>(m_maxPlayersValueEntity))
             maxPlayersText->content = std::to_string(m_maxPlayers);
+    }
+
+    void CreateRoomScene::createRoom()
+    {
+        utl::Logger::log("CreateRoomScene: Creating room '" + m_roomName + "' with " + std::to_string(m_maxPlayers) +
+                             " max players",
+                         utl::LogLevel::INFO);
+
+        rnp::PacketLobbyCreate packet{};
+        packet.maxPlayers = static_cast<std::uint8_t>(m_maxPlayers);
+        packet.gameMode = 0;
+        packet.nameLen = static_cast<uint8_t>(m_roomName.size());
+        for (size_t i = 0; i < m_roomName.size(); ++i)
+        {
+            packet.lobbyName[i] = m_roomName[i];
+        }
+
+        utl::Logger::log("CreateRoomScene: Publishing LOBBY_CREATE event to component " +
+                             std::to_string(utl::NETWORK_CLIENT),
+                         utl::LogLevel::INFO);
+        m_eventBus.publish(utl::EventType::LOBBY_CREATE, packet, m_eventComponentId, utl::NETWORK_CLIENT);
+        utl::Logger::log("CreateRoomScene: LOBBY_CREATE event published successfully", utl::LogLevel::INFO);
+    }
+
+    void CreateRoomScene::processEventBus()
+    {
+        auto events = m_eventBus.consumeForTarget(m_eventComponentId);
+
+        for (const auto &event : events)
+        {
+            if (event.type == utl::EventType::LOBBY_CREATE_RESPONSE)
+            {
+                rnp::Serializer serializer(event.data);
+                rnp::PacketLobbyCreateResponse packet = serializer.deserializeLobbyCreateResponse();
+                if (packet.success)
+                {
+                    utl::Logger::log("CreateRoomScene: Lobby created successfully with ID " +
+                                         std::to_string(packet.lobbyId),
+                                     utl::LogLevel::INFO);
+
+                    // Trigger callback to transition to lobby/game state
+                    if (onRoomCreated)
+                    {
+                        onRoomCreated(static_cast<int>(packet.lobbyId), nullptr);
+                    }
+                }
+                else
+                {
+                    utl::Logger::log("CreateRoomScene: Failed to create lobby, error code " +
+                                         std::to_string(packet.errorCode),
+                                     utl::LogLevel::WARNING);
+                }
+            }
+        }
     }
 } // namespace gme

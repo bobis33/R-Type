@@ -3,10 +3,9 @@
 #include "RTypeClientMulti/Scenes/CreateRoom.hpp"
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
-#include "RTypeShared/Systems/Systems.hpp"
-
-static std::vector<gme::RoomInfo> g_availableRooms; // TODO: Replace with server-side room management
-static int g_nextRoomId = 1;
+#include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
+#include "RTypeClientMulti/Systems/Systems.hpp"
+#include "Utils/Logger.hpp"
 
 void gme::RTypeClientMulti::update(float deltaTime, unsigned int width, unsigned int height) {}
 
@@ -43,6 +42,15 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     joinRoomScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     joinRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     JoinRoomScene *joinRoomScenePtr = joinRoomScene.get();
+    auto waitingRoomId = m_engine->getSceneManager()->generateNextId();
+    auto waitingRoomScene =
+        std::make_unique<WaitingRoomScene>(waitingRoomId, m_engine->getRenderer(), m_engine->getAudio());
+    waitingRoomScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
+    waitingRoomScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
+    waitingRoomScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
+    waitingRoomScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
+    waitingRoomScene->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    WaitingRoomScene *waitingRoomScenePtr = waitingRoomScene.get();
 
     serverScene->onConnect =
         [this, configMultiId](const std::string &playerName, const std::string &serverIP, const std::string &serverPort)
@@ -67,36 +75,56 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
 
     createRoomScene->onCreate = [this, configMultiId](const std::string &roomName, int maxPlayers)
     {
-        RoomInfo newRoom;
-        newRoom.name = roomName;
-        newRoom.currentPlayers = 0;
-        newRoom.maxPlayers = maxPlayers;
-        newRoom.roomId = g_nextRoomId++;
-        g_availableRooms.push_back(newRoom); // TODO: to change
-
-        m_engine->getSceneManager()->switchToScene(configMultiId);
+        // Room creation is handled through event bus
+        // Response will be processed in CreateRoomScene::processEventBus()
+        // We stay on the create room scene until we get a response
+    };
+    createRoomScene->onRoomCreated =
+        [this, waitingRoomId, waitingRoomScenePtr](int lobbyId, const rnp::LobbyInfo *lobbyInfo)
+    {
+        utl::Logger::log("RTypeClientMulti: Room created with ID " + std::to_string(lobbyId), utl::LogLevel::INFO);
+        // Transition to waiting room after successful room creation
+        waitingRoomScenePtr->setLobbyId(static_cast<std::uint32_t>(lobbyId));
+        if (lobbyInfo)
+        {
+            waitingRoomScenePtr->setLobbyInfo(*lobbyInfo);
+        }
+        m_engine->getSceneManager()->switchToScene(waitingRoomId);
     };
     createRoomScene->onBackToMulti = [this, configMultiId]()
     { m_engine->getSceneManager()->switchToScene(configMultiId); };
 
-    joinRoomScene->onJoin = [](const int roomId)
+    joinRoomScene->onJoin = [this, waitingRoomId, waitingRoomScenePtr](int roomId, const rnp::LobbyInfo *lobbyInfo)
     {
-        for (auto &room : g_availableRooms)
+        utl::Logger::log("RTypeClientMulti: Joined room with ID " + std::to_string(roomId), utl::LogLevel::INFO);
+        // Transition to waiting room after successful join
+        waitingRoomScenePtr->setLobbyId(static_cast<std::uint32_t>(roomId));
+        if (lobbyInfo)
         {
-            if (room.roomId == roomId && room.currentPlayers < room.maxPlayers)
-            {
-                room.currentPlayers++;
-                break;
-            }
+            waitingRoomScenePtr->setLobbyInfo(*lobbyInfo);
         }
+        m_engine->getSceneManager()->switchToScene(waitingRoomId);
     };
     joinRoomScene->onBackToMulti = [this, configMultiId]()
     { m_engine->getSceneManager()->switchToScene(configMultiId); };
     joinRoomScene->onRefreshRequest = [joinRoomScenePtr]()
-    { joinRoomScenePtr->setRooms(g_availableRooms); }; // TODO: to change
+    {
+        // Room list refresh is handled through event bus
+        // JoinRoomScene::refreshRoomList() publishes LOBBY_LIST_REQUEST
+        // Response is processed in JoinRoomScene::handleLobbyListResponse()
+    };
+
+    waitingRoomScene->onLeaveLobby = [this, configMultiId]()
+    { m_engine->getSceneManager()->switchToScene(configMultiId); };
+    waitingRoomScene->onGameStart = [this]()
+    {
+        utl::Logger::log("RTypeClientMulti: Game starting!", utl::LogLevel::INFO);
+        // TODO: Transition to game scene
+    };
 
     m_engine->getSceneManager()->addScene(std::move(serverScene));
     m_engine->getSceneManager()->addScene(std::move(configMulti));
     m_engine->getSceneManager()->addScene(std::move(createRoomScene));
     m_engine->getSceneManager()->addScene(std::move(joinRoomScene));
+    m_engine->getSceneManager()->addScene(std::move(waitingRoomScene));
 }

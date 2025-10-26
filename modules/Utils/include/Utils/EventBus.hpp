@@ -188,6 +188,34 @@ namespace utl
                     {
                         serializer.serializeEntityEvents(data);
                     }
+                    else if constexpr (std::is_same_v<T, rnp::PacketLobbyCreate>)
+                    {
+                        serializer.serializeLobbyCreate(data);
+                    }
+                    else if constexpr (std::is_same_v<T, rnp::PacketLobbyCreateResponse>)
+                    {
+                        serializer.serializeLobbyCreateResponse(data);
+                    }
+                    else if constexpr (std::is_same_v<T, rnp::PacketLobbyListResponse>)
+                    {
+                        serializer.serializeLobbyListResponse(data);
+                    }
+                    else if constexpr (std::is_same_v<T, rnp::PacketLobbyJoin>)
+                    {
+                        serializer.serializeLobbyJoin(data);
+                    }
+                    else if constexpr (std::is_same_v<T, rnp::PacketLobbyJoinResponse>)
+                    {
+                        serializer.serializeLobbyJoinResponse(data);
+                    }
+                    else if constexpr (std::is_same_v<T, rnp::PacketLobbyUpdate>)
+                    {
+                        serializer.serializeLobbyUpdate(data);
+                    }
+                    else if constexpr (std::is_same_v<T, rnp::PacketGameStart>)
+                    {
+                        serializer.serializeGameStart(data);
+                    }
                     else if constexpr (std::is_same_v<T, std::string>)
                     {
                         serializer.writeString(data);
