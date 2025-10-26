@@ -38,15 +38,6 @@ namespace utl
             inline constexpr auto DEFAULT_WINDOW_HEIGHT = 540;
             inline constexpr auto DEFAULT_WINDOW_FRAME_LIMIT = 240;
             inline constexpr auto DEFAULT_WINDOW_FULLSCREEN = false;
-            // Constantes utiles pour le jeu
-            inline constexpr auto WINDOW_WIDTH = DEFAULT_WINDOW_WIDTH;
-            inline constexpr auto WINDOW_HEIGHT = DEFAULT_WINDOW_HEIGHT;
-            inline constexpr auto WINDOW_CENTER_X = WINDOW_WIDTH / 2.0f;
-            inline constexpr auto WINDOW_CENTER_Y = WINDOW_HEIGHT / 2.0f;
-            inline constexpr auto WINDOW_LEFT = 0.0f;
-            inline constexpr auto WINDOW_RIGHT = static_cast<float>(WINDOW_WIDTH);
-            inline constexpr auto WINDOW_TOP = 0.0f;
-            inline constexpr auto WINDOW_BOTTOM = static_cast<float>(WINDOW_HEIGHT);
         } // namespace Window
         namespace Game
         {
@@ -61,12 +52,17 @@ namespace utl
             static constexpr eng::Color GRAY_BLUE_SUBTLE = {.r = 160U, .g = 160U, .b = 160U, .a = 255U};
             static constexpr eng::Color STAR_BG = {.r = 100U, .g = 100U, .b = 150U, .a = 80U};
             static constexpr eng::Color STAR_MID = {.r = 150U, .g = 150U, .b = 200U, .a = 120U};
-            static constexpr eng::Color SHOOTING_STAR = {.r = 255U, .g = 255U, .b = 200U, .a = 200U};
+            static constexpr eng::Color YELLOW = {.r = 255U, .g = 255U, .b = 200U, .a = 200U};
             static constexpr eng::Color CYAN_ELECTRIC_PARTICLES = {.r = 0U, .g = 191U, .b = 255U, .a = 100U};
             static constexpr eng::Color CYAN_ELECTRIC_FOREGROUND = {.r = 0U, .g = 191U, .b = 255U, .a = 180U};
             static constexpr eng::Color INFO_TEXT_COLOR = {.r = 180U, .g = 180U, .b = 180U, .a = 200U};
             static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
             static constexpr eng::Color TEXT_VALUE_COLOR = {.r = 200U, .g = 200U, .b = 255U, .a = 255U};
+            static constexpr eng::Color WHITE_TRANS = {.r = 255U, .g = 255U, .b = 255U, .a = 100U};
+            static constexpr eng::Color BLUE = {.r = 200U, .g = 200U, .b = 255U, .a = 150U};
+            static constexpr eng::Color BLUE_SECOND = {.r = 50U, .g = 100U, .b = 200U, .a = 60U};
+            static constexpr eng::Color PURPLE = {.r = 100U, .g = 50U, .b = 150U, .a = 80U};
+            static constexpr eng::Color GREEN = {.r = 200U, .g = 255U, .b = 200U, .a = 180U};
         } // namespace Color
     } // namespace Config
     namespace Path

@@ -32,10 +32,6 @@ namespace ecs
     {
             std::string path;
     };
-    struct Mob final : IComponent
-    {
-            // bool is_alive{};
-    };
     struct Player final : IComponent
     {
             bool is_cli{};

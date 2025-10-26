@@ -1,16 +1,15 @@
+#include <ranges>
+
 #include "RTypeClientSolo/Systems/Weapon.hpp"
 #include "RTypeShared/GameConfig.hpp"
 #include "RTypeClientSolo/Managers/ProjectileManager.hpp"
 #include "Utils/Common.hpp"
 
-namespace gme
+void gme::WeaponSystem::update(ecs::Registry &registry, const float dt)
 {
-    void WeaponSystem::update(ecs::Registry &registry, float dt)
-    {
         using namespace GameConfig::Projectile;
         using namespace GameConfig::Beam;
 
-        // Update cooldowns
         if (m_fireCooldown > 0.0f)
         {
             m_fireCooldown -= dt;
@@ -19,7 +18,7 @@ namespace gme
         if (playerEntities.empty())
             return;
         auto &[playerEntity, player] = *playerEntities.begin();
-        auto *transform = registry.getComponent<ecs::Transform>(playerEntity);
+        const auto *transform = registry.getComponent<ecs::Transform>(playerEntity);
         auto *beamCharge = registry.getComponent<ecs::BeamCharge>(playerEntity);
         if (!transform || !beamCharge)
             return;
@@ -59,8 +58,8 @@ namespace gme
                 hideLoadingAnimation(registry, playerEntity);
                 if (m_fireCooldown <= 0.0f)
                 {
-                    float chargeThreshold = beamCharge->max_charge * 0.5f;
-                    if (beamCharge->current_charge >= chargeThreshold)
+                    if (const float chargeThreshold = beamCharge->max_charge * 0.5F;
+                        beamCharge->current_charge >= chargeThreshold)
                     {
                         if (tryFireSupercharged(registry, projectileX, projectileY))
                         {
@@ -75,16 +74,10 @@ namespace gme
                 }
             }
         }
-    }
+}
 
-    void WeaponSystem::reset()
-    {
-        m_fireCooldown = 0.0f;
-        m_isCharging = false;
-    }
-
-    bool WeaponSystem::tryFireBasic(ecs::Registry &registry, float x, float y)
-    {
+bool gme::WeaponSystem::tryFireBasic(ecs::Registry &registry, float x, float y)
+{
         using namespace GameConfig::Projectile;
 
         if (m_fireCooldown > 0.0f)
@@ -95,8 +88,8 @@ namespace gme
         return true;
     }
 
-    bool WeaponSystem::tryFireSupercharged(ecs::Registry &registry, float x, float y)
-    {
+bool gme::WeaponSystem::tryFireSupercharged(ecs::Registry &registry, float x, float y)
+{
         using namespace GameConfig::Projectile;
 
         ProjectileManager::createSuperchargedProjectile(registry, x, y, Supercharged::SPEED, 0.0f);
@@ -111,16 +104,15 @@ namespace gme
         return true;
     }
 
-    void WeaponSystem::showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
+void gme::WeaponSystem::showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
                                             const ecs::Transform *playerTransform)
-    {
+{
         using namespace GameConfig::LoadingAnimation;
 
-        auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
-        for (auto &[entity, animation] : loadingEntities)
+        for (auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
+             const auto &entity : loadingEntities | std::views::keys)
         {
-            auto *loadingTransform = registry.getComponent<ecs::Transform>(entity);
-            if (loadingTransform)
+            if (auto *loadingTransform = registry.getComponent<ecs::Transform>(entity))
             {
                 loadingTransform->x = playerTransform->x + OFFSET_X;
                 loadingTransform->y = playerTransform->y + OFFSET_Y;
@@ -139,19 +131,19 @@ namespace gme
                 .with<ecs::LoadingAnimation>("loading_animation", 0, ANIMATION_FRAMES, ANIMATION_DURATION, 0.0f,
                                              SPRITE_WIDTH, SPRITE_HEIGHT, ANIMATION_FRAMES)
                 .build();
-    }
+}
 
-    void WeaponSystem::hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity)
-    {
+void gme::WeaponSystem::hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity)
+{
         auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
         std::vector<ecs::Entity> toRemove;
 
-        for (auto &[entity, animation] : loadingEntities)
+        for (const auto &entity : loadingEntities | std::views::keys)
         {
             toRemove.push_back(entity);
         }
 
-        for (auto entity : toRemove)
+        for (const auto entity : toRemove)
         {
             if (registry.hasComponent<ecs::Transform>(entity))
                 registry.removeComponent<ecs::Transform>(entity);
@@ -164,10 +156,10 @@ namespace gme
             if (registry.hasComponent<ecs::LoadingAnimation>(entity))
                 registry.removeComponent<ecs::LoadingAnimation>(entity);
         }
-    }
+}
 
-    void WeaponSystem::ensureSuperShotAudio(ecs::Registry &registry)
-    {
+void gme::WeaponSystem::ensureSuperShotAudio(ecs::Registry &registry)
+{
         if (m_superShotAudioEntity != ecs::INVALID_ENTITY && registry.hasComponent<ecs::Audio>(m_superShotAudioEntity))
         {
             return;
@@ -177,5 +169,4 @@ namespace gme
             registry.createEntity()
                 .with<ecs::Audio>("player_super_shot", utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 2.0F, false, false)
                 .build();
-    }
-} // namespace gme
+}

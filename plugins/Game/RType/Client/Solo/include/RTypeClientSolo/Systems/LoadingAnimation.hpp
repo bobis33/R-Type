@@ -1,6 +1,6 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @file LoadingAnimation.hpp
+/// @brief This file contains the loading animation system definitions
 /// @namespace gme
 ///
 
@@ -33,8 +33,9 @@ namespace gme
                     auto *rect = registry.getComponent<ecs::Rect>(entity);
                     const auto *texture = registry.getComponent<ecs::Texture>(entity);
 
-                    if (!transform || !rect || !texture)
+                    if (!transform || !rect || !texture) {
                         continue;
+}
 
                     animation.current_time += dt;
                     if (animation.current_time >= animation.frame_duration)
@@ -42,7 +43,6 @@ namespace gme
                         animation.current_time = 0.0f;
                         animation.current_frame = (animation.current_frame + 1) % animation.total_frames;
 
-                        // Mettre à jour le rectangle de texture
                         int frame_x = (animation.current_frame % animation.frames_per_row) *
                                       static_cast<int>(animation.frame_width);
                         int frame_y = (animation.current_frame / animation.frames_per_row) *

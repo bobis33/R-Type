@@ -24,7 +24,7 @@ namespace gme
             StageManager &operator=(StageManager &&) = delete;
 
             void update(ecs::Registry &registry, float dt, const eng::WindowSize &size);
-            void spawnStage(ecs::Registry &registry, int screenWidth);
+            static void spawnStage(ecs::Registry &registry, int screenWidth);
             bool isStageSpawned() const { return m_stageSpawned; }
 
         private:

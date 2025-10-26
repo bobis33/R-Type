@@ -1,6 +1,6 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @file Enemy.hpp
+/// @brief This file contains the enemy system definitions
 /// @namespace gme
 ///
 
@@ -30,40 +30,40 @@ namespace gme
             EnemySystem &operator=(EnemySystem &&) = delete;
 
             bool isEnable() override { return true; }
-            void setEnable(bool enable) override { (void)enable; }
+            void setEnable(const bool enable) override { (void)enable; }
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(ecs::Registry &registry, const float dt) override
             {
                 std::vector<ecs::Entity> enemiesToRemove;
 
-                for (auto &[entity, enemy] : registry.getAll<ecs::Enemy>())
+                for (const auto &entity : registry.getAll<ecs::Enemy>() | std::views::keys)
                 {
                     auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    auto *velocity = registry.getComponent<ecs::Velocity>(entity);
+                    const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
                     auto *rect = registry.getComponent<ecs::Rect>(entity);
-                    auto *texture = registry.getComponent<ecs::Texture>(entity);
-                    auto *scale = registry.getComponent<ecs::Scale>(entity);
+                    const auto *texture = registry.getComponent<ecs::Texture>(entity);
+                    const auto *scale = registry.getComponent<ecs::Scale>(entity);
                     auto *animation = registry.getComponent<ecs::Animation>(entity);
 
-                    if (!transform || !velocity || !rect || !texture || !scale)
+                    if ((transform == nullptr) || (velocity == nullptr) || (rect == nullptr) || (texture == nullptr) || (scale == nullptr)) {
                         continue;
+}
 
                     transform->x += velocity->x * dt;
                     transform->y += velocity->y * dt;
 
-                    if (animation)
+                    if (animation != nullptr)
                     {
                         animation->current_time += dt;
                         if (animation->current_time >= animation->frame_duration)
                         {
-                            animation->current_time = 0.0f;
+                            animation->current_time = 0.0F;
                             animation->current_frame = (animation->current_frame + 1) % animation->total_frames;
 
                             const int frame_x =
                                 animation->current_frame * static_cast<int>(GameConfig::Enemy::Easy::SPRITE_WIDTH);
-                            const int frame_y = 0;
                             rect->pos_x = static_cast<float>(frame_x);
-                            rect->pos_y = static_cast<float>(frame_y);
+                            rect->pos_y = static_cast<float>(0);
                         }
                     }
 
@@ -83,22 +83,30 @@ namespace gme
 
                 for (const ecs::Entity entity : enemiesToRemove)
                 {
-                    if (registry.hasComponent<ecs::Enemy>(entity))
+                    if (registry.hasComponent<ecs::Enemy>(entity)) {
                         registry.removeComponent<ecs::Enemy>(entity);
-                    if (registry.hasComponent<ecs::Transform>(entity))
+}
+                    if (registry.hasComponent<ecs::Transform>(entity)) {
                         registry.removeComponent<ecs::Transform>(entity);
-                    if (registry.hasComponent<ecs::Velocity>(entity))
+}
+                    if (registry.hasComponent<ecs::Velocity>(entity)) {
                         registry.removeComponent<ecs::Velocity>(entity);
-                    if (registry.hasComponent<ecs::Rect>(entity))
+}
+                    if (registry.hasComponent<ecs::Rect>(entity)) {
                         registry.removeComponent<ecs::Rect>(entity);
-                    if (registry.hasComponent<ecs::Texture>(entity))
+}
+                    if (registry.hasComponent<ecs::Texture>(entity)) {
                         registry.removeComponent<ecs::Texture>(entity);
-                    if (registry.hasComponent<ecs::Scale>(entity))
+}
+                    if (registry.hasComponent<ecs::Scale>(entity)) {
                         registry.removeComponent<ecs::Scale>(entity);
-                    if (registry.hasComponent<ecs::Animation>(entity))
+}
+                    if (registry.hasComponent<ecs::Animation>(entity)) {
                         registry.removeComponent<ecs::Animation>(entity);
-                    if (registry.hasComponent<ecs::Hitbox>(entity))
+}
+                    if (registry.hasComponent<ecs::Hitbox>(entity)) {
                         registry.removeComponent<ecs::Hitbox>(entity);
+}
                 }
             }
 

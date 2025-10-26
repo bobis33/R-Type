@@ -1,6 +1,6 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @file Beam.hpp
+/// @brief This file contains the beam system definitions
 /// @namespace gme
 ///
 
@@ -28,23 +28,21 @@ namespace gme
 
             void update(ecs::Registry &registry, float /* dt */) override
             {
-                // Chercher seulement le joueur avec BeamCharge
                 for (auto &[entity, beamCharge] : registry.getAll<ecs::BeamCharge>())
                 {
-                    const auto *player = registry.getComponent<ecs::Player>(entity);
-                    if (!player)
-                        continue; // Seulement pour le joueur
+                    if (const auto *player = registry.getComponent<ecs::Player>(entity); player == nullptr) {
+                        continue;
+}
 
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    if (!transform)
+                    if (transform == nullptr) {
                         continue;
+}
 
-                    // Position de la barre au-dessus du joueur
-                    float barX =
-                        transform->x + GameConfig::Player::SPRITE_WIDTH / 2.0f - GameConfig::Beam::BAR_WIDTH / 2.0f;
-                    float barY = transform->y - GameConfig::Beam::BAR_HEIGHT - 10.0f; // 10 pixels au-dessus
+                    const float barX =
+                        transform->x + (GameConfig::Player::SPRITE_WIDTH / 2.0f) - (GameConfig::Beam::BAR_WIDTH / 2.0f);
+                    const float barY = transform->y - GameConfig::Beam::BAR_HEIGHT - 10.0f;
 
-                    // Dessiner la barre de fond avec des points (plus petite et plus fine)
                     for (int x = 0; x < static_cast<int>(GameConfig::Beam::BAR_WIDTH); x += 3)
                     {
                         for (int y = 0; y < static_cast<int>(GameConfig::Beam::BAR_HEIGHT); y += 3)
@@ -53,17 +51,15 @@ namespace gme
                         }
                     }
 
-                    // Dessiner la barre de chargement
-                    float chargeRatio = beamCharge.current_charge / beamCharge.max_charge;
-                    float chargeWidth = GameConfig::Beam::BAR_WIDTH * chargeRatio;
+                    const float chargeRatio = beamCharge.current_charge / beamCharge.max_charge;
+                    const float chargeWidth = GameConfig::Beam::BAR_WIDTH * chargeRatio;
 
-                    // Dessiner le seuil de 50% (ligne verticale)
-                    float thresholdX = barX + GameConfig::Beam::BAR_WIDTH * 0.5f;
+                    const float thresholdX = barX + (GameConfig::Beam::BAR_WIDTH * 0.5f);
                     for (int y = 0; y < static_cast<int>(GameConfig::Beam::BAR_HEIGHT); y += 2)
                     {
                         m_renderer->drawPoint(
                             thresholdX, barY + y,
-                            {.r = 255, .g = 255, .b = 255, .a = 150}); // Ligne blanche semi-transparente
+                            {.r = 255, .g = 255, .b = 255, .a = 150});
                     }
 
                     if (chargeWidth > 0)
@@ -72,20 +68,19 @@ namespace gme
                         {
                             for (int y = 0; y < static_cast<int>(GameConfig::Beam::BAR_HEIGHT); y += 3)
                             {
-                                // Couleur qui change selon le niveau de charge
-                                eng::Color chargeColor;
+                                eng::Color chargeColor{};
                                 if (chargeRatio < 0.5f)
                                 {
                                     chargeColor = {
-                                        .r = 255, .g = 100, .b = 0, .a = 255}; // Orange (en dessous du seuil)
+                                        .r = 255, .g = 100, .b = 0, .a = 255};
                                 }
                                 else if (chargeRatio < 0.8f)
                                 {
-                                    chargeColor = {.r = 255, .g = 200, .b = 0, .a = 255}; // Jaune
+                                    chargeColor = {.r = 255, .g = 200, .b = 0, .a = 255};
                                 }
                                 else
                                 {
-                                    chargeColor = {.r = 0, .g = 255, .b = 0, .a = 255}; // Vert
+                                    chargeColor = {.r = 0, .g = 255, .b = 0, .a = 255};
                                 }
 
                                 m_renderer->drawPoint(barX + x, barY + y, chargeColor);
@@ -98,5 +93,4 @@ namespace gme
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class BeamSystem
-
 } // namespace gme

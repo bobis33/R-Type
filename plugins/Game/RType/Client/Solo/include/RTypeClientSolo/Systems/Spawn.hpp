@@ -1,6 +1,6 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @file Spawn.hpp
+/// @brief This file contains the spawn system definitions
 /// @namespace gme
 ///
 
@@ -28,7 +28,7 @@ namespace gme
             SpawnSystem &operator=(SpawnSystem &&) = delete;
 
             bool isEnable() override { return true; }
-            void setEnable(bool enable) override { (void)enable; }
+            void setEnable(const bool enable) override { (void)enable; }
 
             void update(ecs::Registry &registry, float dt) override
             {
@@ -50,17 +50,15 @@ namespace gme
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-            float m_enemySpawnTimer = 0.0f;
-            float m_waveTimer = 0.0f;
+            float m_enemySpawnTimer = 0.0F;
+            float m_waveTimer = 0.0F;
 
-            void spawnEnemy(ecs::Registry &registry)
+            static void spawnEnemy(ecs::Registry &registry)
             {
                 float x = GameConfig::Screen::SPAWN_X;
-                float y = static_cast<float>(
-                    GameConfig::Screen::MIN_Y +
-                    (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y)));
+                float y = GameConfig::Screen::MIN_Y +
+                          (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y));
 
-                // Calculer les offsets de la hitbox pour la centrer sur le sprite
                 auto [offsetX, offsetY] = Utils::calculateHitboxOffsetsRelative(
                     x, y, GameConfig::Enemy::Easy::SPRITE_WIDTH, GameConfig::Enemy::Easy::SPRITE_HEIGHT,
                     GameConfig::Enemy::Easy::SCALE);
@@ -84,16 +82,15 @@ namespace gme
                     .build();
             }
 
-            void spawnWave(ecs::Registry &registry)
+            static void spawnWave(ecs::Registry &registry)
             {
-                int waveSize = 5 + (std::rand() % 4);
+                const int waveSize = 5 + (std::rand() % 4);
 
                 for (int i = 0; i < waveSize; ++i)
                 {
                     float x = GameConfig::Screen::SPAWN_X + (i * 100.0f);
-                    float y = static_cast<float>(
-                        GameConfig::Screen::MIN_Y +
-                        (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y)));
+                    float y = GameConfig::Screen::MIN_Y +
+                              (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y));
                     auto [offsetX, offsetY] = Utils::calculateHitboxOffsetsRelative(
                         x, y, GameConfig::Enemy::Easy::SPRITE_WIDTH, GameConfig::Enemy::Easy::SPRITE_HEIGHT,
                         GameConfig::Enemy::Easy::SCALE);
@@ -121,5 +118,4 @@ namespace gme
                 }
             }
     }; // class SpawnSystem
-
 } // namespace gme

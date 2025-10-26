@@ -89,7 +89,7 @@ void cli::Client::setupScenes()
     auto menuId = m_engine->getSceneManager()->generateNextId();
     auto menu = std::make_unique<Menu>(menuId, m_engine->getRenderer(), m_engine->getAudio());
     menu->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume));
-    menu->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    menu->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), menu->getRegistry()));
     menu->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
@@ -100,7 +100,7 @@ void cli::Client::setupScenes()
     auto settingsId = m_engine->getSceneManager()->generateNextId();
     auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_engine->getAudio(), m_config);
     settings->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume));
-    settings->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    settings->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), settings->getRegistry()));
     settings->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));

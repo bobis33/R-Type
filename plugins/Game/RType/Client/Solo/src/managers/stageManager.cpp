@@ -1,9 +1,8 @@
 #include "RTypeClientSolo/Managers/StageManager.hpp"
 #include "ECS/Component.hpp"
-#include "ECS/Registry.hpp"
 #include "Utils/Common.hpp"
 
-void gme::StageManager::update(ecs::Registry &registry, float dt, const eng::WindowSize &size)
+void gme::StageManager::update(ecs::Registry &registry, const float dt, const eng::WindowSize &size)
 {
     m_stageTimer += dt;
     if (!m_stageSpawned && m_stageTimer >= STAGE_SPAWN_DELAY)
@@ -13,7 +12,7 @@ void gme::StageManager::update(ecs::Registry &registry, float dt, const eng::Win
     }
 }
 
-void gme::StageManager::spawnStage(ecs::Registry &registry, int screenWidth)
+void gme::StageManager::spawnStage(ecs::Registry &registry, const int screenWidth)
 {
     auto floor1 = registry.createEntity()
                       .with<ecs::Transform>("floor1_transform", 0.F, 0.F, 0.F)

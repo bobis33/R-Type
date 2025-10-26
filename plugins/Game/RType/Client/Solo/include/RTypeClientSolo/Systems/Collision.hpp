@@ -1,6 +1,6 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @file Collision.hpp
+/// @brief This file contains the collision system definitions
 /// @namespace gme
 ///
 
@@ -45,23 +45,25 @@ namespace gme
 
                 std::optional<float> ceilingBottomY;
                 std::optional<float> floorTopY;
-                for (auto &[entity, tag] : registry.getAll<ecs::Ceiling>())
+                for (const auto &entity : registry.getAll<ecs::Ceiling>() | std::views::keys)
                 {
                     const auto *t = registry.getComponent<ecs::Transform>(entity);
                     const auto *s = registry.getComponent<ecs::Scale>(entity);
                     const auto *scroll = registry.getComponent<ecs::Scrolling>(entity);
-                    if (!t || !scroll)
+                    if ((t == nullptr) || (scroll == nullptr)) {
                         continue;
+}
                     const float scaledHeight = (s ? s->y : 1.0f) * scroll->original_height;
                     ceilingBottomY = t->y + scaledHeight;
-                    break; // une seule bande suffit
+                    break;
                 }
-                for (auto &[entity, tag] : registry.getAll<ecs::Floor>())
+                for (const auto &entity : registry.getAll<ecs::Floor>() | std::views::keys)
                 {
                     const auto *t = registry.getComponent<ecs::Transform>(entity);
-                    if (!t)
+                    if (t == nullptr) {
                         continue;
-                    floorTopY = t->y; // haut de la bande sol
+}
+                    floorTopY = t->y;
                     break;
                 }
 
@@ -70,17 +72,19 @@ namespace gme
 
                 for (auto &[projectileEntity, projectile] : registry.getAll<ecs::Projectile>())
                 {
-                    auto *projectileTransform = registry.getComponent<ecs::Transform>(projectileEntity);
-                    auto *projectileHitbox = registry.getComponent<ecs::Hitbox>(projectileEntity);
-                    if (!projectileTransform || !projectileHitbox)
+                    const auto *projectileTransform = registry.getComponent<ecs::Transform>(projectileEntity);
+                    const auto *projectileHitbox = registry.getComponent<ecs::Hitbox>(projectileEntity);
+                    if ((projectileTransform == nullptr) || (projectileHitbox == nullptr)) {
                         continue;
+}
 
                     for (auto &[enemyEntity, enemy] : registry.getAll<ecs::Enemy>())
                     {
-                        auto *enemyTransform = registry.getComponent<ecs::Transform>(enemyEntity);
-                        auto *enemyHitbox = registry.getComponent<ecs::Hitbox>(enemyEntity);
-                        if (!enemyTransform || !enemyHitbox)
+                        const auto *enemyTransform = registry.getComponent<ecs::Transform>(enemyEntity);
+                        const auto *enemyHitbox = registry.getComponent<ecs::Hitbox>(enemyEntity);
+                        if ((enemyTransform == nullptr) || (enemyHitbox == nullptr)) {
                             continue;
+}
 
                         if (checkCircularCollision(*projectileTransform, *projectileHitbox, *enemyTransform,
                                                    *enemyHitbox))
@@ -88,7 +92,7 @@ namespace gme
                             enemy.health -= projectile.damage;
                             if (projectile.type == ecs::Projectile::SUPERCHARGED && projectile.pierce_remaining > 1)
                             {
-                                projectile.pierce_remaining -= 1; // continue sa course
+                                projectile.pierce_remaining -= 1;
                             }
                             else
                             {
@@ -99,7 +103,7 @@ namespace gme
                             {
                                 createExplosion(registry, enemyTransform->x, enemyTransform->y);
                                 enemiesToRemove.push_back(enemyEntity);
-                                for (auto &[scoreEntity, score] : registry.getAll<ecs::Score>())
+                                for (auto &score : registry.getAll<ecs::Score>() | std::views::values)
                                 {
                                     score.value += 100;
                                     break;
@@ -111,56 +115,62 @@ namespace gme
                     }
                 }
 
-                for (ecs::Entity entity : projectilesToRemove)
+                for (const ecs::Entity entity : projectilesToRemove)
                 {
                     removeProjectile(registry, entity);
                 }
-                for (ecs::Entity entity : enemiesToRemove)
+                for (const ecs::Entity entity : enemiesToRemove)
                 {
                     removeEnemy(registry, entity);
                 }
                 if (ceilingBottomY.has_value() || floorTopY.has_value())
                 {
-                    for (auto &[playerEntity, player] : registry.getAll<ecs::Player>())
+                    for (const auto &playerEntity : registry.getAll<ecs::Player>() | std::views::keys)
                     {
                         auto *t = registry.getComponent<ecs::Transform>(playerEntity);
                         auto *hb = registry.getComponent<ecs::Hitbox>(playerEntity);
                         auto *vel = registry.getComponent<ecs::Velocity>(playerEntity);
-                        if (!t || !hb)
+                        if (!t || !hb) {
                             continue;
+}
                         float hitboxY = t->y + hb->offsetY;
                         if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
                             t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
-                            if (vel)
+                            if (vel != nullptr) {
                                 vel->y = std::max(0.0f, vel->y);
+}
                         }
                         if (floorTopY.has_value() && (hitboxY + hb->radius > floorTopY.value()))
                         {
                             t->y = floorTopY.value() - hb->radius - hb->offsetY;
-                            if (vel)
+                            if (vel != nullptr) {
                                 vel->y = std::min(0.0f, vel->y);
+}
                         }
                     }
-                    for (auto &[enemyEntity, enemy] : registry.getAll<ecs::Enemy>())
+                    for (const auto &enemyEntity : registry.getAll<ecs::Enemy>() | std::views::keys)
                     {
                         auto *t = registry.getComponent<ecs::Transform>(enemyEntity);
                         auto *hb = registry.getComponent<ecs::Hitbox>(enemyEntity);
                         auto *vel = registry.getComponent<ecs::Velocity>(enemyEntity);
-                        if (!t || !hb)
+                        if ((t == nullptr) || (hb == nullptr)) {
                             continue;
-                        float hitboxY = t->y + hb->offsetY;
+}
+                        const float hitboxY = t->y + hb->offsetY;
                         if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
                             t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
-                            if (vel)
+                            if (vel != nullptr) {
                                 vel->y = std::max(0.0f, vel->y);
+}
                         }
                         if (floorTopY.has_value() && (hitboxY + hb->radius > floorTopY.value()))
                         {
                             t->y = floorTopY.value() - hb->radius - hb->offsetY;
-                            if (vel)
+                            if (vel != nullptr) {
                                 vel->y = std::min(0.0f, vel->y);
+}
                         }
                     }
                 }
@@ -179,10 +189,9 @@ namespace gme
             bool m_wasPlayerPresent = false;
             bool &m_showDebug;
 
-            bool checkCircularCollision(const ecs::Transform &transform1, const ecs::Hitbox &hitbox1,
+            static bool checkCircularCollision(const ecs::Transform &transform1, const ecs::Hitbox &hitbox1,
                                         const ecs::Transform &transform2, const ecs::Hitbox &hitbox2)
             {
-                // Prendre en compte les offsets des hitbox
                 float x1 = transform1.x + hitbox1.offsetX;
                 float y1 = transform1.y + hitbox1.offsetY;
                 float x2 = transform2.x + hitbox2.offsetX;
@@ -190,13 +199,13 @@ namespace gme
 
                 float dx = x1 - x2;
                 float dy = y1 - y2;
-                float distance = std::sqrt(dx * dx + dy * dy);
-                float combinedRadius = hitbox1.radius + hitbox2.radius;
+                const float distance = std::sqrt(dx * dx + dy * dy);
+                const float combinedRadius = hitbox1.radius + hitbox2.radius;
 
                 return distance < combinedRadius;
             }
 
-            void removeProjectile(ecs::Registry &registry, ecs::Entity entity)
+            static void removeProjectile(ecs::Registry &registry, ecs::Entity entity)
             {
                 if (registry.hasComponent<ecs::Projectile>(entity))
                     registry.removeComponent<ecs::Projectile>(entity);
@@ -216,10 +225,11 @@ namespace gme
                     registry.removeComponent<ecs::Hitbox>(entity);
             }
 
-            void removeEnemy(ecs::Registry &registry, ecs::Entity entity)
+            static void removeEnemy(ecs::Registry &registry, ecs::Entity entity)
             {
-                if (registry.hasComponent<ecs::Enemy>(entity))
+                if (registry.hasComponent<ecs::Enemy>(entity)) {
                     registry.removeComponent<ecs::Enemy>(entity);
+}
                 if (registry.hasComponent<ecs::Transform>(entity))
                     registry.removeComponent<ecs::Transform>(entity);
                 if (registry.hasComponent<ecs::Velocity>(entity))
@@ -238,7 +248,7 @@ namespace gme
                     registry.removeComponent<ecs::Projectile>(entity);
             }
 
-            void createExplosion(ecs::Registry &registry, float x, float y)
+            static void createExplosion(ecs::Registry &registry, float x, float y)
             {
                 registry.createEntity()
                     .with<ecs::Transform>("explosion_transform", x, y, 0.0f)
@@ -256,8 +266,9 @@ namespace gme
 
             void ensureEnemyDeathChannel(ecs::Registry &registry, std::size_t channelIndex)
             {
-                if (channelIndex >= m_enemyDeathAudioEntities.size())
+                if (channelIndex >= m_enemyDeathAudioEntities.size()) {
                     return;
+}
 
                 ecs::Entity &entity = m_enemyDeathAudioEntities[channelIndex];
                 if (entity != ecs::INVALID_ENTITY && registry.hasComponent<ecs::Audio>(entity))
@@ -274,11 +285,12 @@ namespace gme
             void playEnemyDeathSound(ecs::Registry &registry)
             {
                 ensureEnemyDeathChannel(registry, m_nextEnemyDeathChannel);
-                ecs::Entity entity = m_enemyDeathAudioEntities[m_nextEnemyDeathChannel];
+                const ecs::Entity entity = m_enemyDeathAudioEntities[m_nextEnemyDeathChannel];
                 m_nextEnemyDeathChannel = (m_nextEnemyDeathChannel + 1) % m_enemyDeathAudioEntities.size();
 
-                if (entity == ecs::INVALID_ENTITY)
+                if (entity == ecs::INVALID_ENTITY) {
                     return;
+}
 
                 if (auto *audio = registry.getComponent<ecs::Audio>(entity))
                 {
@@ -303,8 +315,9 @@ namespace gme
             void playPlayerDeathSound(ecs::Registry &registry)
             {
                 ensurePlayerDeathAudio(registry);
-                if (m_playerDeathAudioEntity == ecs::INVALID_ENTITY)
+                if (m_playerDeathAudioEntity == ecs::INVALID_ENTITY) {
                     return;
+}
 
                 if (auto *audio = registry.getComponent<ecs::Audio>(m_playerDeathAudioEntity))
                 {
@@ -312,5 +325,4 @@ namespace gme
                 }
             }
     }; // class CollisionSystem
-
 } // namespace gme

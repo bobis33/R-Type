@@ -1,10 +1,7 @@
-#include <cmath>
 #include <ranges>
-#include <utility>
 
 #include "Client/Scenes/Menu.hpp"
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "Utils/Common.hpp"
 
 cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
@@ -99,61 +96,6 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 32U)
             .build();
     }
-    const int screenWidth = renderer->getWindowSize().width;
-    const int screenHeight = renderer->getWindowSize().height;
-
-    for (int i = 0; i < 40; ++i)
-    {
-        registry.createEntity()
-            .with<ecs::Pixel>("star_background")
-            .with<ecs::Transform>("star_bg_transform", static_cast<float>(std::rand() % screenWidth),
-                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_bg_color", utl::Config::Color::STAR_BG.r, utl::Config::Color::STAR_BG.g, utl::Config::Color::STAR_BG.b, utl::Config::Color::STAR_BG.a)
-            .with<ecs::Velocity>("star_bg_vel", -10.0f, 0.0f)
-            .build();
-    }
-    for (int i = 0; i < 25; ++i)
-    {
-        registry.createEntity()
-            .with<ecs::Pixel>("star_middle")
-            .with<ecs::Transform>("star_mid_transform", static_cast<float>(std::rand() % screenWidth),
-                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_mid_color", utl::Config::Color::STAR_MID.r, utl::Config::Color::STAR_MID.g, utl::Config::Color::STAR_MID.b, utl::Config::Color::STAR_MID.a)
-            .with<ecs::Velocity>("star_mid_vel", -25.0f, 0.0f)
-            .build();
-    }
-    for (int i = 0; i < 15; ++i)
-    {
-        registry.createEntity()
-            .with<ecs::Pixel>("star_foreground")
-            .with<ecs::Transform>("star_fg_transform", static_cast<float>(std::rand() % screenWidth),
-                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_fg_color", utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.r, utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.g,
-                              utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.b, utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.a)
-            .with<ecs::Velocity>("star_fg_vel", -50.0f, 0.0f)
-            .build();
-    }
-    for (int i = 0; i < 8; ++i)
-    {
-        registry.createEntity()
-            .with<ecs::Pixel>("shooting_star")
-            .with<ecs::Transform>("shooting_transform", static_cast<float>(std::rand() % screenWidth),
-                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("shooting_color", utl::Config::Color::SHOOTING_STAR.r, utl::Config::Color::SHOOTING_STAR.g, utl::Config::Color::SHOOTING_STAR.b, utl::Config::Color::SHOOTING_STAR.a)
-            .with<ecs::Velocity>("shooting_vel", -80.0f, static_cast<float>((std::rand() % 20) - 10))
-            .build();
-    }
-    for (int i = 0; i < 12; ++i)
-    {
-        registry.createEntity()
-            .with<ecs::Pixel>("cyan_particle")
-            .with<ecs::Transform>("cyan_transform", static_cast<float>(std::rand() % screenWidth),
-                                  static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("cyan_color", utl::Config::Color::CYAN_ELECTRIC_PARTICLES.r, utl::Config::Color::CYAN_ELECTRIC_PARTICLES.g,
-                              utl::Config::Color::CYAN_ELECTRIC_PARTICLES.b, utl::Config::Color::CYAN_ELECTRIC_PARTICLES.a)
-            .with<ecs::Velocity>("cyan_vel", -35.0f, static_cast<float>((std::rand() % 10) - 5))
-            .build();
-    }
 
     std::string contributorsText = "Contributors ";
     for (size_t i = 0; i < m_contributors.size(); ++i)
@@ -167,8 +109,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
     m_contributorsEntity =
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_contributors", static_cast<float>(renderer->getWindowSize().width * 0.9F),
-                                  static_cast<float>(renderer->getWindowSize().height * 0.9F))
+            .with<ecs::Transform>("transform_contributors", renderer->getWindowSize().width * 0.9F,
+                                  renderer->getWindowSize().height * 0.9F)
             .with<ecs::Color>("color_contributors", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
                               utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("contributors_text", contributorsText, 24U)
@@ -199,32 +141,6 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
         titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 2.0f;
     }
 
-    for (const auto &entity : reg.getAll<ecs::Pixel>() | std::views::keys)
-    {
-        if (auto *transform = reg.getComponent<ecs::Transform>(entity))
-        {
-            if (const auto *velocity = reg.getComponent<ecs::Velocity>(entity))
-            {
-                transform->x += velocity->x * dt;
-                transform->y += velocity->y * dt;
-                if (transform->x < -10.0f)
-                {
-                    transform->x = static_cast<float>(size.width + (std::rand() % 100));
-                    transform->y = static_cast<float>(std::rand() % size.height);
-                }
-                else if (transform->x > size.width + 10.0f)
-                {
-                    transform->x = -10.0f;
-                }
-
-                if (transform->y < -10.0f || transform->y > size.height + 10.0f)
-                {
-                    transform->y = static_cast<float>(std::rand() % size.height);
-                }
-            }
-        }
-    }
-
     auto &texts = reg.getAll<ecs::Text>();
     size_t i = 0;
     for (auto &[entity, text] : texts)
@@ -233,7 +149,7 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
         {
             auto &color = colors.at(entity);
 
-            if (std::cmp_equal(i, m_selectedIndex))
+            if (i == m_selectedIndex)
             {
                 const float glowIntensity = std::sin(m_animationTime * 2.5f);
                 color.r = 0U;

@@ -1,7 +1,4 @@
-#include <iostream>
-
-#include "imgui-SFML.h"
-#include "imgui.h"
+#include <imgui-SFML.h>
 #include <SFML/Graphics.hpp>
 
 #include "SFMLRenderer/SFMLRenderer.hpp"
@@ -16,7 +13,10 @@ void eng::SFMLRenderer::createWindow(const std::string &title, unsigned int heig
     const sf::VideoMode mode = fullscreen ? sf::VideoMode::getDesktopMode() : sf::VideoMode({width, height});
     window.create(mode, title, fullscreen ? sf::State::Fullscreen : sf::State::Windowed);
     window.setFramerateLimit(frameLimit);
-    ImGui::SFML::Init(window);
+    if (ImGui::SFML::Init(window) == false)
+    {
+        throw std::runtime_error("Failed to initialize ImGui-SFML");
+    }
 }
 
 bool eng::SFMLRenderer::windowIsOpen() const { return window.isOpen(); }
@@ -410,20 +410,4 @@ void eng::SFMLRenderer::drawCircleShape(const std::string &name)
     {
         throw std::runtime_error("CircleShape not found: " + name);
     }
-}
-
-void eng::SFMLRenderer::renderGui(const WindowSize &windowSize)
-{
-    ImGui::SFML::Update(window, deltaClock.restart());
-    ImGui::SetNextWindowPos(ImVec2(windowSize.width - 10.0f, 10.0f), ImGuiCond_Always, ImVec2(1.0f, 0.0f));
-    ImGui::SetNextWindowBgAlpha(0.35f);
-
-    constexpr ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-                                              ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-                                              ImGuiWindowFlags_NoNav;
-    ImGui::Begin("FPS Overlay", nullptr, window_flags);
-    const float fps = ImGui::GetIO().Framerate;
-    ImGui::Text("FPS: %.1f (%.3f ms/frame)", fps, 1000.0f / fps);
-    ImGui::End();
-    ImGui::SFML::Render(window);
 }

@@ -1,6 +1,6 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @file Explosion.hpp
+/// @brief This file contains the explosion system definitions
 /// @namespace gme
 ///
 
@@ -41,8 +41,9 @@ namespace gme
                     auto *texture = registry.getComponent<ecs::Texture>(entity);
                     auto *scale = registry.getComponent<ecs::Scale>(entity);
 
-                    if (!transform || !rect || !texture || !scale)
+                    if ((transform == nullptr) || (rect == nullptr) || (texture == nullptr) || (scale == nullptr)) {
                         continue;
+}
 
                     explosion.current_time += dt;
                     if (explosion.current_time >= explosion.frame_duration)
@@ -61,8 +62,8 @@ namespace gme
 
                     m_renderer->createSprite(texture->id + std::to_string(entity), texture->path, transform->x,
                                              transform->y, scale->x, scale->y, static_cast<int>(rect->pos_x),
-                                             static_cast<int>(rect->pos_y), static_cast<int>(rect->size_x),
-                                             static_cast<int>(rect->size_y));
+                                             static_cast<int>(rect->pos_y), rect->size_x,
+                                             rect->size_y);
                     m_renderer->drawSprite(texture->id + std::to_string(entity));
 
                     explosion.current_lifetime += dt;
@@ -72,7 +73,7 @@ namespace gme
                     }
                 }
 
-                for (ecs::Entity entity : explosionsToRemove)
+                for (const ecs::Entity entity : explosionsToRemove)
                 {
                     removeExplosion(registry, entity);
                 }
@@ -81,7 +82,7 @@ namespace gme
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
 
-            void removeExplosion(ecs::Registry &registry, const ecs::Entity entity)
+            static void removeExplosion(ecs::Registry &registry, const ecs::Entity entity)
             {
                 if (registry.hasComponent<ecs::Explosion>(entity))
                     registry.removeComponent<ecs::Explosion>(entity);
@@ -94,6 +95,5 @@ namespace gme
                 if (registry.hasComponent<ecs::Scale>(entity))
                     registry.removeComponent<ecs::Scale>(entity);
             }
-    };
-
+    }; // class ExplosionSystem
 } // namespace gme

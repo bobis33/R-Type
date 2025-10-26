@@ -1,7 +1,7 @@
 #include <cmath>
+#include <ranges>
 
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "RTypeClientMulti/Scenes/ConfigMulti.hpp"
 #include "Utils/Common.hpp"
 
@@ -109,11 +109,11 @@ void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
     m_animationTime += dt;
     m_titlePulseTime += dt;
 
-    for (auto &audio : audios)
+    for (auto &val : audios | std::views::values)
     {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
+        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
         {
-            m_audio->stopAudio(audio.second.id);
+            m_audio->stopAudio(val.id);
         }
     }
 
@@ -186,7 +186,7 @@ void gme::ConfigMulti::event(const eng::Event &event)
     }
 }
 
-void gme::ConfigMulti::playInputSound()
+void gme::ConfigMulti::playInputSound() const
 {
     if (m_selectionSoundName.empty())
         return;

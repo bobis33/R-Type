@@ -37,14 +37,12 @@ namespace gme
                         animation.current_frame = (animation.current_frame + 1) % animation.total_frames;
                     }
 
-                    auto *rect = registry.getComponent<ecs::Rect>(entity);
-
-                    if (rect)
+                    if (auto *rect = registry.getComponent<ecs::Rect>(entity))
                     {
                         // Calculer la position du frame dans la spritesheet
-                        int frame_x = (animation.current_frame % animation.frames_per_row) * animation.frame_width;
-                        int frame_y = (animation.current_frame / animation.frames_per_row) * animation.frame_height;
-                        if (rect->pos_x != static_cast<float>(frame_x) || rect->pos_y != static_cast<float>(frame_y))
+                        const int frame_x = (animation.current_frame % animation.frames_per_row) * animation.frame_width;
+                        if (int frame_y = (animation.current_frame / animation.frames_per_row) * animation.frame_height;
+                            rect->pos_x != static_cast<float>(frame_x) || rect->pos_y != static_cast<float>(frame_y))
                         {
                             rect->pos_x = static_cast<float>(frame_x);
                             rect->pos_y = static_cast<float>(frame_y);
@@ -56,5 +54,4 @@ namespace gme
             }
 
     }; // class AnimationSystem
-
 } // namespace gme

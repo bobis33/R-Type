@@ -1,19 +1,18 @@
 #include "RTypeClientSolo/Managers/ProjectileManager.hpp"
-#include "ECS/Registry.hpp"
 #include "RTypeShared/GameConfig.hpp"
 #include "RTypeClientSolo/Utils/HitboxUtils.hpp"
 #include "Utils/Common.hpp"
 
 namespace gme
 {
-    ecs::Entity ProjectileManager::createBasicProjectile(ecs::Registry &registry, float x, float y, float velocityX,
-                                                         float velocityY)
+    ecs::Entity ProjectileManager::createBasicProjectile(ecs::Registry &registry, const float x, const float y, const float velocityX,
+                                                         const float velocityY)
     {
         return createProjectile(registry, ecs::Projectile::BASIC, x, y, velocityX, velocityY);
     }
 
-    ecs::Entity ProjectileManager::createSuperchargedProjectile(ecs::Registry &registry, float x, float y,
-                                                                float velocityX, float velocityY)
+    ecs::Entity ProjectileManager::createSuperchargedProjectile(ecs::Registry &registry, const float x, const float y,
+                                                                const float velocityX, const float velocityY)
     {
         return createProjectile(registry, ecs::Projectile::SUPERCHARGED, x, y, velocityX, velocityY);
     }

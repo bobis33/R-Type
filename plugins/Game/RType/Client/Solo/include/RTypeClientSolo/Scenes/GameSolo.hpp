@@ -14,18 +14,15 @@
 
 namespace gme
 {
-    class HUDSystem;
-    class StarfieldSystem;
     class PlayerController;
 } // namespace gme
 
 namespace gme
 {
-    struct AppConfig;
     ///
-    /// @class Game
+    /// @class GameSolo
     /// @brief GameSolo scene
-    /// @namespace cli
+    /// @namespace gme
     ///
     class GameSolo final : public eng::AScene
     {
@@ -44,22 +41,16 @@ namespace gme
             void updatePlayerSkin();
 
         private:
-            ecs::Entity m_playerEntity;
+            void handlePlayerInputs(ecs::Registry &registry, float dt);
+            static ecs::Entity createPlayer(ecs::Registry &registry);
+
             const std::shared_ptr<eng::IAudio> &m_audio;
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-            int m_skinIndex;
-            std::unique_ptr<HUDSystem> m_hudSystem;
-            std::unique_ptr<StarfieldSystem> m_starfieldSystem;
-            std::unique_ptr<PlayerController> m_playerController;
-            std::unique_ptr<StageManager> m_stageManager;
-            bool isUpPressed() const;
-            bool isDownPressed() const;
-            bool isLeftPressed() const;
-            bool isRightPressed() const;
-            bool isShootPressed() const;
             std::unordered_map<eng::Key, bool> m_keysPressed;
+            ecs::Entity m_playerEntity;
+            int m_skinIndex;
             int m_lastAppliedSkinIndex = -1;
-
             bool &m_showDebug;
+            std::unique_ptr<StageManager> m_stageManager;
     }; // class GameSolo
 } // namespace gme

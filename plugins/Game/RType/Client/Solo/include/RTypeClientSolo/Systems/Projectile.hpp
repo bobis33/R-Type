@@ -1,6 +1,6 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
+/// @file Projectile.hpp
+/// @brief This file contains the projectile system definitions
 /// @namespace gme
 ///
 
@@ -40,9 +40,8 @@ namespace gme
                         continue;
                     }
                     auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    auto *velocity = registry.getComponent<ecs::Velocity>(entity);
 
-                    if (transform && velocity)
+                    if (auto *velocity = registry.getComponent<ecs::Velocity>(entity); (transform != nullptr) && (velocity != nullptr))
                     {
                         transform->x += velocity->x * dt;
                         transform->y += velocity->y * dt;

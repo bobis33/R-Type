@@ -1,17 +1,13 @@
 #include <cmath>
+#include <ranges>
 
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "RTypeClientMulti/Scenes/CreateRoom.hpp"
 #include "Utils/Common.hpp"
 
-static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
-static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
-
 namespace gme
 {
-    static char keyToChar(eng::Key key, bool shift = false)
+    static char keyToChar(const eng::Key key, bool shift = false)
     {
         switch (key)
         {
@@ -141,7 +137,7 @@ namespace gme
             registry.createEntity()
                 .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                 .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-                .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+                .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
                 .with<ecs::Text>("title", std::string("CREATE ROOM"), 72U)
                 .build();
 
@@ -150,8 +146,8 @@ namespace gme
             registry.createEntity()
                 .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                 .with<ecs::Transform>("transform_option_" + std::to_string(i), 100.F, 200.F + i * 50.F, 0.F)
-                .with<ecs::Color>("color_option_" + std::to_string(i), GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                                  GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+                .with<ecs::Color>("color_option_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
+                                  utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
                 .with<ecs::Text>("option_" + m_options[i], m_options[i], 32U)
                 .build();
         }
@@ -159,16 +155,16 @@ namespace gme
         m_roomNameValueEntity = registry.createEntity()
                                     .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                     .with<ecs::Transform>("transform_room_name_value", 580.F, 200.F, 0.F)
-                                    .with<ecs::Color>("color_room_name_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
-                                                      TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                                    .with<ecs::Color>("color_room_name_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
+                                                      utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                     .with<ecs::Text>("room_name_value", m_roomName, 24U)
                                     .build();
 
         m_maxPlayersValueEntity = registry.createEntity()
                                       .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                       .with<ecs::Transform>("transform_max_players_value", 580.F, 250.F, 0.F)
-                                      .with<ecs::Color>("color_max_players_value", TEXT_VALUE_COLOR.r,
-                                                        TEXT_VALUE_COLOR.g, TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                                      .with<ecs::Color>("color_max_players_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
+                                                        utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                       .with<ecs::Text>("max_players_value", std::to_string(m_maxPlayers), 24U)
                                       .build();
     }
@@ -182,10 +178,10 @@ namespace gme
 
         m_animationTime += dt;
 
-        for (auto &audio : audios)
+        for (auto &val : audios | std::views::values)
         {
-            if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
-                m_audio->stopAudio(audio.second.id);
+            if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
+                m_audio->stopAudio(val.id);
         }
 
         for (auto &[entity, text] : texts)
@@ -205,9 +201,9 @@ namespace gme
                     }
                     else
                     {
-                        color.r = GRAY_BLUE_SUBTLE.r;
-                        color.g = GRAY_BLUE_SUBTLE.g;
-                        color.b = GRAY_BLUE_SUBTLE.b;
+                        color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                        color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                        color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
                     }
                     break;
                 }

@@ -1,6 +1,3 @@
-#include <algorithm>
-#include <cmath>
-
 #include "Client/Client.hpp"
 #include "Client/Scenes/Settings.hpp"
 #include "ECS/Component.hpp"
@@ -145,10 +142,10 @@ void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
 
     m_animationTime += dt;
     m_titlePulseTime += dt;
-    for (auto &audio : audios)
+    for (auto &val : audios | std::views::values)
     {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
-            m_audio->stopAudio(audio.second.id);
+        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
+            m_audio->stopAudio(val.id);
     }
     for (auto &[entity, text] : texts)
     {
@@ -204,7 +201,7 @@ void cli::Settings::updateSettingsDisplay()
     }
     if (auto *skinRect = registry.getComponent<ecs::Rect>(m_skinSpriteEntity))
     {
-        const std::vector<float> shipLines = {0.0f, 17.0f, 34.0f, 51.0f, 68.0f};
+        const std::vector shipLines = {0.0f, 17.0f, 34.0f, 51.0f, 68.0f};
 
         skinRect->pos_y = shipLines[static_cast<size_t>(m_skinIndex)];
         skinRect->pos_x = 0.0f;
@@ -234,18 +231,18 @@ void cli::Settings::event(const eng::Event &event)
             }
             else if (event.key == eng::Key::Enter)
             {
-                const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
-                if (selectedOption == "Back to Menu")
+                if (const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
+                    selectedOption == "Back to Menu")
                     onLeave();
             }
             else if (event.key == eng::Key::Left || event.key == eng::Key::Right)
             {
-                const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
 
-                if (selectedOption == "Audio Volume")
+                if (const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
+                    selectedOption == "Audio Volume")
                 {
-                    int newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 10 : -10);
-                    m_audioVolume = (std::max)(0, (std::min)(100, newVolume));
+                    const float newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 0.01F : -0.01F);
+                    m_audioVolume = (std::max)(0.0F, (std::min)(10.0F, newVolume));
                     const_cast<AppConfig &>(m_appConfig).audioVolume = m_audioVolume;
                 }
                 else if (selectedOption == "FPS")
@@ -273,7 +270,6 @@ void cli::Settings::event(const eng::Event &event)
                         m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
                     const_cast<AppConfig &>(m_appConfig).skinIndex = m_skinIndex;
 
-                    // Appliquer immédiatement le nouveau skin
                     applySkinChange();
                 }
                 updateSettingsDisplay();
@@ -295,7 +291,7 @@ void cli::Settings::loadFromConfig()
     applyVideoQuality();
 }
 
-void cli::Settings::applyVideoQuality() { unsigned int frameLimit; }
+void cli::Settings::applyVideoQuality() {  }
 
 void cli::Settings::applySkinChange() {}
 
