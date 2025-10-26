@@ -72,7 +72,12 @@ namespace rnp
             ///
             /// @brief Constructor
             ///
-            Serializer() : writePos_(0), readPos_(0) { buffer_.reserve(MAX_PAYLOAD + sizeof(PacketHeader)); }
+            Serializer() : writePos_(0), readPos_(0)
+            {
+                // PacketHeader serialized size: 1 (type) + 2 (length) + 4 (sessionId) = 7 bytes
+                constexpr std::size_t PACKET_HEADER_SIZE = 7;
+                buffer_.reserve(MAX_PAYLOAD + PACKET_HEADER_SIZE);
+            }
 
             ///
             /// @brief Constructor with initial capacity
@@ -118,7 +123,9 @@ namespace rnp
             ///
             void writeBytes(const void *data, std::size_t size)
             {
-                if (writePos_ + size > MAX_PAYLOAD + sizeof(PacketHeader))
+                // PacketHeader serialized size: 1 (type) + 2 (length) + 4 (sessionId) = 7 bytes
+                constexpr std::size_t PACKET_HEADER_SIZE = 7;
+                if (writePos_ + size > MAX_PAYLOAD + PACKET_HEADER_SIZE)
                 {
                     throw std::runtime_error("Serializer buffer overflow");
                 }
@@ -274,7 +281,6 @@ namespace rnp
             {
                 writeByte(header.type);
                 writeUInt16(header.length);
-                writeUInt16(header.flags);
                 writeUInt32(header.sessionId);
             }
 
@@ -287,7 +293,6 @@ namespace rnp
                 PacketHeader header;
                 header.type = readByte();
                 header.length = readUInt16();
-                header.flags = readUInt16();
                 header.sessionId = readUInt32();
                 return header;
             }
@@ -892,6 +897,23 @@ namespace rnp
             PacketGameStart deserializeGameStart()
             {
                 PacketGameStart packet;
+                packet.lobbyId = readUInt32();
+                return packet;
+            }
+
+            ///
+            /// @brief Serialize START_GAME_REQUEST packet
+            /// @param packet The packet to serialize
+            ///
+            void serializeStartGameRequest(const PacketStartGameRequest &packet) { writeUInt32(packet.lobbyId); }
+
+            ///
+            /// @brief Deserialize START_GAME_REQUEST packet
+            /// @return Deserialized packet
+            ///
+            PacketStartGameRequest deserializeStartGameRequest()
+            {
+                PacketStartGameRequest packet;
                 packet.lobbyId = readUInt32();
                 return packet;
             }

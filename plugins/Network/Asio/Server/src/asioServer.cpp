@@ -28,10 +28,10 @@ namespace srv
           m_clientTimeout(std::chrono::seconds(30)), m_componentId(utl::NETWORK_SERVER),
           m_eventBus(utl::EventBus::getInstance())
     {
-        utl::Logger::log("AsioServer: Constructor called", utl::LogLevel::INFO);
-        utl::Logger::log("AsioServer: Creating I/O context and socket", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Constructor called", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Creating I/O context and socket", utl::LogLevel::INFO);
         setupPacketHandlers();
-        utl::Logger::log("AsioServer: Packet handlers setup complete", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Packet handlers setup complete", utl::LogLevel::INFO);
 
         // EventBus integration
         m_eventBus.registerComponent(m_componentId, "Asio Server");
@@ -39,71 +39,71 @@ namespace srv
         m_eventBus.subscribe(m_componentId, utl::EventType::BROADCAST_WORLD_STATE);
         m_eventBus.subscribe(m_componentId, utl::EventType::SEND_ENTITY_EVENTS);
 
-        utl::Logger::log("AsioServer: Initialized with EventBus integration", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Initialized with EventBus integration", utl::LogLevel::INFO);
     }
 
     AsioServer::~AsioServer()
     {
-        utl::Logger::log("AsioServer: Destructor called", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Destructor called", utl::LogLevel::INFO);
         AsioServer::stop();
-        utl::Logger::log("AsioServer: Destroyed", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Destroyed", utl::LogLevel::INFO);
     }
 
     void AsioServer::init(const std::string &host, std::uint16_t port)
     {
-        utl::Logger::log("AsioServer: init() called with host=" + host + ", port=" + std::to_string(port),
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: init() called with host=" + host + ", port=" + std::to_string(port),
+        //                  utl::LogLevel::INFO);
         m_host = host;
         m_port = port;
-        utl::Logger::log("AsioServer: Configuration stored - ready to start", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Configuration stored - ready to start", utl::LogLevel::INFO);
     }
 
     void AsioServer::start()
     {
-        utl::Logger::log("AsioServer: Starting server...", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Starting server...", utl::LogLevel::INFO);
 
         if (m_started.load())
         {
-            utl::Logger::log("AsioServer: Already started", utl::LogLevel::WARNING);
+            // utl::Logger::log("AsioServer: Already started", utl::LogLevel::WARNING);
             return;
         }
 
         try
         {
-            utl::Logger::log("AsioServer: Creating endpoint for " + m_host + ":" + std::to_string(m_port),
-                             utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Creating endpoint for " + m_host + ":" + std::to_string(m_port),
+            //                  utl::LogLevel::INFO);
 
             // Create endpoint
             asio::ip::udp::endpoint endpoint(asio::ip::make_address(m_host), m_port);
-            utl::Logger::log("AsioServer: Endpoint created successfully", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Endpoint created successfully", utl::LogLevel::INFO);
 
             // Bind socket
-            utl::Logger::log("AsioServer: Opening socket...", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Opening socket...", utl::LogLevel::INFO);
             m_socket->open(endpoint.protocol());
-            utl::Logger::log("AsioServer: Setting socket options...", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Setting socket options...", utl::LogLevel::INFO);
             m_socket->set_option(asio::ip::udp::socket::reuse_address(true));
-            utl::Logger::log("AsioServer: Binding socket to endpoint...", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Binding socket to endpoint...", utl::LogLevel::INFO);
             m_socket->bind(endpoint);
-            utl::Logger::log("AsioServer: Socket bound successfully", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Socket bound successfully", utl::LogLevel::INFO);
 
             m_running.store(true);
             m_started.store(true);
 
             // Start network thread
-            utl::Logger::log("AsioServer: Starting network thread...", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Starting network thread...", utl::LogLevel::INFO);
             m_networkThread = std::make_unique<std::thread>(&AsioServer::networkThreadLoop, this);
 
             // Start receiving
-            utl::Logger::log("AsioServer: Starting packet reception...", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Starting packet reception...", utl::LogLevel::INFO);
             startReceive();
 
-            utl::Logger::log("AsioServer: Started on " + m_host + ":" + std::to_string(m_port), utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Started on " + m_host + ":" + std::to_string(m_port), utl::LogLevel::INFO);
         }
         catch (const std::exception &e)
         {
             m_running.store(false);
             m_started.store(false);
-            utl::Logger::log("AsioServer: Failed to start - " + std::string(e.what()), utl::LogLevel::WARNING);
+            // utl::Logger::log("AsioServer: Failed to start - " + std::string(e.what()), utl::LogLevel::WARNING);
             throw;
         }
     }
@@ -129,7 +129,6 @@ namespace srv
                     rnp::PacketHeader header{};
                     header.type = static_cast<std::uint8_t>(rnp::PacketType::DISCONNECT);
                     header.length = sizeof(rnp::PacketDisconnect);
-                    header.flags = 0;
                     header.sessionId = sessionId;
 
                     rnp::PacketDisconnect disconnect{};
@@ -173,7 +172,7 @@ namespace srv
 
             if (!joined)
             {
-                utl::Logger::log("AsioServer: Network thread join timeout, detaching", utl::LogLevel::WARNING);
+                // utl::Logger::log("AsioServer: Network thread join timeout, detaching", utl::LogLevel::WARNING);
                 m_networkThread->detach();
             }
         }
@@ -189,8 +188,8 @@ namespace srv
                 }
                 catch (const std::exception &e)
                 {
-                    utl::Logger::log("AsioServer: Exception closing socket - " + std::string(e.what()),
-                                     utl::LogLevel::WARNING);
+                    // utl::Logger::log("AsioServer: Exception closing socket - " + std::string(e.what()),
+                    //                  utl::LogLevel::WARNING);
                 }
             }
         }
@@ -202,19 +201,19 @@ namespace srv
             m_endpointToSession.clear();
         }
 
-        utl::Logger::log("AsioServer: Stopped", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Stopped", utl::LogLevel::INFO);
     }
 
     void AsioServer::update()
     {
         if (!m_running.load())
         {
-            static bool loggedNotRunning = false;
-            if (!loggedNotRunning)
-            {
-                utl::Logger::log("AsioServer: Update called but server not running", utl::LogLevel::WARNING);
-                loggedNotRunning = true;
-            }
+            // static bool loggedNotRunning = false;
+            // if (!loggedNotRunning)
+            // {
+            //     utl::Logger::log("AsioServer: Update called but server not running", utl::LogLevel::WARNING);
+            //     loggedNotRunning = true;
+            // }
             return;
         }
 
@@ -234,8 +233,8 @@ namespace srv
         auto it = m_clients.find(sessionId);
         if (it == m_clients.end() || !it->second.isConnected)
         {
-            utl::Logger::log("AsioServer: Attempted to send to invalid session " + std::to_string(sessionId),
-                             utl::LogLevel::WARNING);
+            // utl::Logger::log("AsioServer: Attempted to send to invalid session " + std::to_string(sessionId),
+            //                  utl::LogLevel::WARNING);
             return;
         }
 
@@ -259,47 +258,59 @@ namespace srv
 
     void AsioServer::disconnectClient(std::uint32_t sessionId)
     {
-        std::lock_guard<std::mutex> lock(m_clientsMutex);
-        auto it = m_clients.find(sessionId);
-        if (it == m_clients.end())
+        std::uint32_t lobbyId = 0;
+
+        // Scope for clientsLock to release it before broadcastLobbyUpdate
         {
-            return;
-        }
+            std::lock_guard<std::mutex> lock(m_clientsMutex);
+            auto it = m_clients.find(sessionId);
+            if (it == m_clients.end())
+            {
+                return;
+            }
 
-        // Send disconnect packet
-        rnp::Serializer serializer;
-        rnp::PacketHeader header{};
-        header.type = static_cast<std::uint8_t>(rnp::PacketType::DISCONNECT);
-        header.length = sizeof(rnp::PacketDisconnect);
-        header.flags = 0;
-        header.sessionId = sessionId;
+            utl::Logger::log("AsioServer: Disconnecting client " + std::to_string(sessionId), utl::LogLevel::INFO);
 
-        rnp::PacketDisconnect disconnect{};
-        disconnect.reasonCode = static_cast<std::uint16_t>(rnp::DisconnectReason::CLIENT_REQUEST);
+            rnp::PacketHeader header;
+            header.type = static_cast<std::uint8_t>(rnp::PacketType::DISCONNECT);
+            header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketDisconnect));
+            header.sessionId = sessionId;
 
-        serializer.serializeHeader(header);
-        serializer.serializeDisconnect(disconnect);
+            std::vector<std::uint8_t> packet;
+            rnp::Serializer serializer(packet);
+            rnp::PacketDisconnect disconnect{};
+            disconnect.reasonCode = static_cast<std::uint16_t>(rnp::DisconnectReason::CLIENT_REQUEST);
 
-        sendPacketImmediate(serializer.getData(), it->second.endpoint);
+            serializer.serializeHeader(header);
+            serializer.serializeDisconnect(disconnect);
 
-        // Remove from lobby if in one
-        if (it->second.currentLobbyId != 0)
+            sendPacketImmediate(serializer.getData(), it->second.endpoint);
+
+            // Remove from lobby if in one
+            if (it->second.currentLobbyId != 0)
+            {
+                lobbyId = it->second.currentLobbyId;
+            }
+
+            // Remove from endpoint mapping
+            const std::string endpointStr = endpointToString(it->second.endpoint);
+            m_endpointToSession.erase(endpointStr);
+
+            // Remove client
+            m_clients.erase(it);
+
+            m_packetHandler->clearSession(sessionId);
+
+            // utl::Logger::log("AsioServer: Disconnected client " + std::to_string(sessionId), utl::LogLevel::INFO);
+        } // clientsLock released here
+
+        // Leave lobby AFTER releasing clientsLock to avoid nested mutex acquisitions
+        if (lobbyId != 0)
         {
-            std::uint32_t lobbyId = it->second.currentLobbyId;
             leaveLobby(sessionId);
+            // Broadcast lobby update to remaining players
             broadcastLobbyUpdate(lobbyId);
         }
-
-        // Remove from endpoint mapping
-        const std::string endpointStr = endpointToString(it->second.endpoint);
-        m_endpointToSession.erase(endpointStr);
-
-        // Remove client
-        m_clients.erase(it);
-
-        m_packetHandler->clearSession(sessionId);
-
-        utl::Logger::log("AsioServer: Disconnected client " + std::to_string(sessionId), utl::LogLevel::INFO);
     }
 
     std::size_t AsioServer::getClientCount() const
@@ -327,13 +338,13 @@ namespace srv
     void AsioServer::setTickRate(std::uint16_t tickRate)
     {
         m_tickRate = tickRate;
-        utl::Logger::log("AsioServer: Tick rate set to " + std::to_string(tickRate), utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Tick rate set to " + std::to_string(tickRate), utl::LogLevel::INFO);
     }
 
     void AsioServer::setServerCapabilities(std::uint32_t caps)
     {
         m_serverCaps = caps;
-        utl::Logger::log("AsioServer: Server capabilities set to " + std::to_string(caps), utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Server capabilities set to " + std::to_string(caps), utl::LogLevel::INFO);
     }
 
     void AsioServer::setupPacketHandlers()
@@ -374,7 +385,12 @@ namespace srv
         // LOBBY_LEAVE handler
         m_packetHandler->onLobbyLeave([this](const rnp::PacketContext &context) { return handleLobbyLeave(context); });
 
-        utl::Logger::log("AsioServer: Packet handlers initialized", utl::LogLevel::INFO);
+        // START_GAME_REQUEST handler
+        m_packetHandler->onStartGameRequest(
+            [this](const rnp::PacketStartGameRequest &packet, const rnp::PacketContext &context)
+            { return handleStartGameRequest(packet, context); });
+
+        // utl::Logger::log("AsioServer: Packet handlers initialized", utl::LogLevel::INFO);
     }
 
     void AsioServer::startReceive()
@@ -383,11 +399,10 @@ namespace srv
         if (!m_running.load() || !m_socket || !m_socket->is_open())
         {
             utl::Logger::log("AsioServer: Cannot start receive - server not running or socket closed",
-                             utl::LogLevel::INFO);
+                             utl::LogLevel::WARNING);
             return;
         }
 
-        utl::Logger::log("AsioServer: Setting up async receive...", utl::LogLevel::INFO);
         m_socket->async_receive_from(
             asio::buffer(m_recvBuffer), m_senderEndpoint,
             [this](std::error_code ec, std::size_t bytesReceived)
@@ -420,11 +435,12 @@ namespace srv
         utl::Logger::log("AsioServer: Processing received packet of " + std::to_string(bytesReceived) + " bytes",
                          utl::LogLevel::INFO);
 
-        if (bytesReceived < sizeof(rnp::PacketHeader))
+        // PacketHeader serialized size: 1 (type) + 2 (length) + 4 (sessionId) = 7 bytes
+        constexpr std::size_t PACKET_HEADER_SIZE = 7;
+        if (bytesReceived < PACKET_HEADER_SIZE)
         {
-            utl::Logger::log("AsioServer: Received packet too small (need " +
-                                 std::to_string(sizeof(rnp::PacketHeader)) + " bytes, got " +
-                                 std::to_string(bytesReceived) + ")",
+            utl::Logger::log("AsioServer: Received packet too small (need " + std::to_string(PACKET_HEADER_SIZE) +
+                                 " bytes, got " + std::to_string(bytesReceived) + ")",
                              utl::LogLevel::WARNING);
             return;
         }
@@ -440,7 +456,7 @@ namespace srv
 
         // Extract session ID from header for context
         std::vector<std::uint8_t> data(m_recvBuffer.begin(), m_recvBuffer.begin() + bytesReceived);
-        if (data.size() >= sizeof(rnp::PacketHeader))
+        if (data.size() >= PACKET_HEADER_SIZE)
         {
             rnp::Serializer headerSerializer(data);
             rnp::PacketHeader header = headerSerializer.deserializeHeader();
@@ -467,7 +483,7 @@ namespace srv
 
     void AsioServer::networkThreadLoop() const
     {
-        utl::Logger::log("AsioServer: Network thread started", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Network thread started", utl::LogLevel::INFO);
 
         while (m_running.load())
         {
@@ -490,14 +506,14 @@ namespace srv
             {
                 if (m_running.load())
                 {
-                    utl::Logger::log("AsioServer: Network thread exception - " + std::string(e.what()),
-                                     utl::LogLevel::WARNING);
+                    // utl::Logger::log("AsioServer: Network thread exception - " + std::string(e.what()),
+                    //                  utl::LogLevel::WARNING);
                     std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
             }
         }
 
-        utl::Logger::log("AsioServer: Network thread stopped", utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Network thread stopped", utl::LogLevel::INFO);
     }
 
     std::uint32_t AsioServer::generateSessionId() const
@@ -554,21 +570,21 @@ namespace srv
 
     rnp::HandlerResult AsioServer::handleConnect(const rnp::PacketConnect &packet, const rnp::PacketContext &context)
     {
-        utl::Logger::log("AsioServer: Handling CONNECT packet from " + context.senderAddress + ":" +
-                             std::to_string(context.senderPort),
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Handling CONNECT packet from " + context.senderAddress + ":" +
+        //                      std::to_string(context.senderPort),
+        //                  utl::LogLevel::INFO);
 
         std::lock_guard<std::mutex> lock(m_clientsMutex);
         // Check if server is full (avoid getClientCount() to prevent deadlock)
         const size_t currentClientCount =
             std::ranges::count_if(m_clients, [](const auto &pair) { return pair.second.isConnected; });
-        utl::Logger::log("AsioServer: Current client count: " + std::to_string(currentClientCount) + "/" +
-                             std::to_string(MAX_CLIENTS),
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Current client count: " + std::to_string(currentClientCount) + "/" +
+        //                      std::to_string(MAX_CLIENTS),
+        //                  utl::LogLevel::INFO);
 
         if (currentClientCount >= MAX_CLIENTS)
         {
-            utl::Logger::log("AsioServer: Server full, rejecting connection", utl::LogLevel::WARNING);
+            // utl::Logger::log("AsioServer: Server full, rejecting connection", utl::LogLevel::WARNING);
             sendError(rnp::ErrorCode::RATE_LIMITED, "Server full", m_senderEndpoint, 0);
             return rnp::HandlerResult::SUCCESS;
         }
@@ -578,9 +594,9 @@ namespace srv
         const auto existingIt = m_endpointToSession.find(endpointStr);
         if (existingIt != m_endpointToSession.end())
         {
-            utl::Logger::log("AsioServer: Client already connected, resending accept (Session ID: " +
-                                 std::to_string(existingIt->second) + ")",
-                             utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Client already connected, resending accept (Session ID: " +
+            //                      std::to_string(existingIt->second) + ")",
+            //                  utl::LogLevel::INFO);
             // Client already connected, resend accept
             sendConnectAccept(existingIt->second, m_senderEndpoint);
             return rnp::HandlerResult::SUCCESS;
@@ -588,7 +604,8 @@ namespace srv
 
         // Create new session
         std::uint32_t sessionId = generateSessionId();
-        utl::Logger::log("AsioServer: Creating new session with ID: " + std::to_string(sessionId), utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Creating new session with ID: " + std::to_string(sessionId),
+        // utl::LogLevel::INFO);
 
         ClientSession &client = m_clients[sessionId];
         client.sessionId = sessionId;
@@ -600,26 +617,27 @@ namespace srv
 
         m_endpointToSession[endpointStr] = sessionId;
 
-        utl::Logger::log("AsioServer: Player name: '" + client.playerName +
-                             "', Caps: " + std::to_string(client.clientCaps),
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Player name: '" + client.playerName +
+        //                      "', Caps: " + std::to_string(client.clientCaps),
+        //                  utl::LogLevel::INFO);
 
         // Send accept response
-        utl::Logger::log("AsioServer: Sending CONNECT_ACCEPT to session " + std::to_string(sessionId),
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Sending CONNECT_ACCEPT to session " + std::to_string(sessionId),
+        //                  utl::LogLevel::INFO);
         sendConnectAccept(sessionId, m_senderEndpoint);
 
-        utl::Logger::log("AsioServer: Client connected - " + client.playerName + " (ID: " + std::to_string(sessionId) +
-                             ")",
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Client connected - " + client.playerName + " (ID: " + std::to_string(sessionId)
+        // +
+        //                      ")",
+        //                  utl::LogLevel::INFO);
 
         // Publier vers GameServer
         m_eventBus.publish(utl::EventType::PLAYER_CONNECTED, sessionId, m_componentId,
                            utl::GAME_LOGIC); // GameServer ID
 
-        utl::Logger::log(
-            "AsioServer: Nouvelle connexion publiée vers GameServer (sessionId: " + std::to_string(sessionId) + ")",
-            utl::LogLevel::INFO);
+        // utl::Logger::log(
+        //     "AsioServer: Nouvelle connexion publiée vers GameServer (sessionId: " + std::to_string(sessionId) + ")",
+        //     utl::LogLevel::INFO);
 
         return rnp::HandlerResult::SUCCESS;
     }
@@ -627,52 +645,48 @@ namespace srv
     rnp::HandlerResult AsioServer::handleDisconnect(const rnp::PacketDisconnect &packet,
                                                     const rnp::PacketContext &context)
     {
-        utl::Logger::log("AsioServer: Handling DISCONNECT packet from session " + std::to_string(context.sessionId) +
-                             " from " + context.senderAddress + ":" + std::to_string(context.senderPort),
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Handling DISCONNECT packet from session " + std::to_string(context.sessionId) +
+        //                      " from " + context.senderAddress + ":" + std::to_string(context.senderPort),
+        //                  utl::LogLevel::INFO);
 
         std::lock_guard<std::mutex> lock(m_clientsMutex);
 
         auto it = m_clients.find(context.sessionId);
         if (it != m_clients.end())
         {
-            utl::Logger::log("AsioServer: Client disconnected - " + it->second.playerName +
-                                 " (ID: " + std::to_string(context.sessionId) + ")" +
-                                 ", Reason: " + std::to_string(static_cast<int>(packet.reasonCode)),
-                             utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Client disconnected - " + it->second.playerName +
+            //                      " (ID: " + std::to_string(context.sessionId) + ")" +
+            //                      ", Reason: " + std::to_string(static_cast<int>(packet.reasonCode)),
+            //                  utl::LogLevel::INFO);
 
             // Remove from endpoint mapping
             const std::string endpointStr = endpointToString(it->second.endpoint);
-            utl::Logger::log("AsioServer: Removing endpoint mapping: " + endpointStr, utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Removing endpoint mapping: " + endpointStr, utl::LogLevel::INFO);
             m_endpointToSession.erase(endpointStr);
 
             // Remove client
-            utl::Logger::log("AsioServer: Removing client from session list", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Removing client from session list", utl::LogLevel::INFO);
             m_clients.erase(it);
         }
         else
         {
-            utl::Logger::log("AsioServer: DISCONNECT from unknown session " + std::to_string(context.sessionId),
-                             utl::LogLevel::WARNING);
+            // utl::Logger::log("AsioServer: DISCONNECT from unknown session " + std::to_string(context.sessionId),
+            //                  utl::LogLevel::WARNING);
         }
 
         // Publier vers GameServer
         m_eventBus.publish(utl::EventType::PLAYER_DISCONNECTED, context.sessionId, m_componentId,
                            utl::GAME_LOGIC); // GameServer ID
 
-        utl::Logger::log(
-            "AsioServer: Déconnexion publiée vers GameServer (sessionId: " + std::to_string(context.sessionId) + ")",
-            utl::LogLevel::INFO);
+        // utl::Logger::log(
+        //     "AsioServer: Déconnexion publiée vers GameServer (sessionId: " + std::to_string(context.sessionId) + ")",
+        //     utl::LogLevel::INFO);
 
         return rnp::HandlerResult::SUCCESS;
     }
 
     rnp::HandlerResult AsioServer::handlePing(const rnp::PacketPingPong &packet, const rnp::PacketContext &context)
     {
-        utl::Logger::log("AsioServer: Handling PING from session " + std::to_string(context.sessionId) +
-                             " with nonce " + std::to_string(packet.nonce),
-                         utl::LogLevel::INFO);
-
         // Update client last seen time
         {
             std::lock_guard<std::mutex> lock(m_clientsMutex);
@@ -680,29 +694,16 @@ namespace srv
             if (it != m_clients.end())
             {
                 it->second.lastSeen = context.receiveTime;
-                utl::Logger::log("AsioServer: Updated last seen time for session " + std::to_string(context.sessionId),
-                                 utl::LogLevel::INFO);
-            }
-            else
-            {
-                utl::Logger::log("AsioServer: PING from unknown session " + std::to_string(context.sessionId),
-                                 utl::LogLevel::WARNING);
             }
         }
 
         // Send pong response
-        utl::Logger::log("AsioServer: Sending PONG response to session " + std::to_string(context.sessionId),
-                         utl::LogLevel::INFO);
         sendPong(packet.nonce, m_senderEndpoint, context.sessionId);
         return rnp::HandlerResult::SUCCESS;
     }
 
     rnp::HandlerResult AsioServer::handlePong(const rnp::PacketPingPong &packet, const rnp::PacketContext &context)
     {
-        utl::Logger::log("AsioServer: Handling PONG from session " + std::to_string(context.sessionId) +
-                             " with nonce " + std::to_string(packet.nonce),
-                         utl::LogLevel::INFO);
-
         // Update client latency and last seen time
         {
             std::lock_guard<std::mutex> lock(m_clientsMutex);
@@ -715,15 +716,6 @@ namespace srv
                 auto pingTime = std::chrono::milliseconds(packet.sendTimeMs);
                 auto currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
                 it->second.latency = static_cast<std::uint32_t>((currentTime - pingTime).count());
-
-                utl::Logger::log("AsioServer: Updated client " + std::to_string(context.sessionId) +
-                                     " latency: " + std::to_string(it->second.latency) + "ms",
-                                 utl::LogLevel::INFO);
-            }
-            else
-            {
-                utl::Logger::log("AsioServer: PONG from unknown session " + std::to_string(context.sessionId),
-                                 utl::LogLevel::WARNING);
             }
         }
 
@@ -736,7 +728,6 @@ namespace srv
         rnp::PacketHeader header{};
         header.type = static_cast<std::uint8_t>(rnp::PacketType::PONG);
         header.length = sizeof(rnp::PacketPingPong);
-        header.flags = 0;
         header.sessionId = sessionId;
 
         rnp::PacketPingPong pong{};
@@ -753,15 +744,14 @@ namespace srv
 
     void AsioServer::sendConnectAccept(std::uint32_t sessionId, const asio::ip::udp::endpoint &destination)
     {
-        utl::Logger::log("AsioServer: Preparing CONNECT_ACCEPT packet for session " + std::to_string(sessionId) +
-                             " to " + destination.address().to_string() + ":" + std::to_string(destination.port()),
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Preparing CONNECT_ACCEPT packet for session " + std::to_string(sessionId) +
+        //                      " to " + destination.address().to_string() + ":" + std::to_string(destination.port()),
+        //                  utl::LogLevel::INFO);
 
         rnp::Serializer serializer;
         rnp::PacketHeader header{};
         header.type = static_cast<std::uint8_t>(rnp::PacketType::CONNECT_ACCEPT);
         header.length = sizeof(rnp::PacketConnectAccept);
-        header.flags = 0;
         header.sessionId = sessionId;
 
         rnp::PacketConnectAccept accept{};
@@ -773,9 +763,10 @@ namespace srv
         serializer.serializeHeader(header);
         serializer.serializeConnectAccept(accept);
 
-        utl::Logger::log("AsioServer: Sending CONNECT_ACCEPT packet (" + std::to_string(serializer.getData().size()) +
-                             " bytes)",
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Sending CONNECT_ACCEPT packet (" + std::to_string(serializer.getData().size())
+        // +
+        //                      " bytes)",
+        //                  utl::LogLevel::INFO);
         sendPacketImmediate(serializer.getData(), destination);
     }
 
@@ -786,7 +777,6 @@ namespace srv
         rnp::PacketHeader header{};
         header.type = static_cast<std::uint8_t>(rnp::PacketType::PACKET_ERROR);
         header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketError) + description.length());
-        header.flags = 0;
         header.sessionId = sessionId;
 
         rnp::PacketError error{};
@@ -817,7 +807,6 @@ namespace srv
                     rnp::PacketHeader header{};
                     header.type = static_cast<std::uint8_t>(rnp::PacketType::PING);
                     header.length = sizeof(rnp::PacketPingPong);
-                    header.flags = 0;
                     header.sessionId = sessionId;
 
                     rnp::PacketPingPong ping{};
@@ -851,7 +840,7 @@ namespace srv
         // Disconnect timed out clients
         for (std::uint32_t sessionId : timedOutClients)
         {
-            utl::Logger::log("AsioServer: Client " + std::to_string(sessionId) + " timed out", utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Client " + std::to_string(sessionId) + " timed out", utl::LogLevel::INFO);
             disconnectClient(sessionId);
         }
     }
@@ -889,9 +878,9 @@ namespace srv
                     break;
 
                 default:
-                    utl::Logger::log("AsioServer: Événement non géré: " +
-                                         std::to_string(static_cast<uint32_t>(event.type)),
-                                     utl::LogLevel::WARNING);
+                    // utl::Logger::log("AsioServer: Événement non géré: " +
+                    //                      std::to_string(static_cast<uint32_t>(event.type)),
+                    //                  utl::LogLevel::WARNING);
                     break;
             }
         }
@@ -910,9 +899,9 @@ namespace srv
             // Utiliser la méthode existante
             sendToClient(sessionId, messageData);
 
-            utl::Logger::log("AsioServer: Message envoye au client " + std::to_string(sessionId) +
-                                 " (taille: " + std::to_string(messageData.size()) + " bytes)",
-                             utl::LogLevel::INFO);
+            // utl::Logger::log("AsioServer: Message envoye au client " + std::to_string(sessionId) +
+            //                      " (taille: " + std::to_string(messageData.size()) + " bytes)",
+            //                  utl::LogLevel::INFO);
         }
     }
 
@@ -921,9 +910,9 @@ namespace srv
         // Utiliser la méthode existante pour broadcaster
         sendToAllClients(event.data);
 
-        utl::Logger::log(
-            "AsioServer: Message diffuse a tous les clients (taille: " + std::to_string(event.data.size()) + " bytes)",
-            utl::LogLevel::INFO);
+        // utl::Logger::log(
+        //     "AsioServer: Message diffuse a tous les clients (taille: " + std::to_string(event.data.size()) + "
+        //     bytes)", utl::LogLevel::INFO);
     }
 
     void AsioServer::handleSendEntityEventToClients(const utl::Event &event)
@@ -931,9 +920,9 @@ namespace srv
         // Forward entity events to all clients
         sendToAllClients(event.data);
 
-        utl::Logger::log("AsioServer: Entity events diffuses a tous les clients (taille: " +
-                             std::to_string(event.data.size()) + " bytes)",
-                         utl::LogLevel::INFO);
+        // utl::Logger::log("AsioServer: Entity events diffuses a tous les clients (taille: " +
+        //                      std::to_string(event.data.size()) + " bytes)",
+        //                  utl::LogLevel::INFO);
     }
 
     rnp::HandlerResult AsioServer::handleEntityEvent(const std::vector<rnp::EventRecord> &events,
@@ -947,18 +936,18 @@ namespace srv
                 m_eventBus.publish(utl::EventType::PLAYER_INPUT_RECEIVED, eventRecord.data, m_componentId,
                                    utl::GAME_LOGIC); // GameServer ID
 
-                utl::Logger::log("AsioServer: Input joueur publie vers GameServer (sessionId: " +
-                                     std::to_string(context.sessionId) + ")",
-                                 utl::LogLevel::INFO);
+                // utl::Logger::log("AsioServer: Input joueur publie vers GameServer (sessionId: " +
+                //                      std::to_string(context.sessionId) + ")",
+                //                  utl::LogLevel::INFO);
             }
             else
             {
                 m_eventBus.publish(utl::EventType::ENTITY_EVENT_RECEIVED, eventRecord.data, m_componentId,
                                    utl::GAME_LOGIC); // GameServer ID
 
-                utl::Logger::log("AsioServer: Evenement entite publie vers GameServer (type: " +
-                                     std::to_string(static_cast<uint8_t>(eventRecord.type)) + ")",
-                                 utl::LogLevel::INFO);
+                // utl::Logger::log("AsioServer: Evenement entite publie vers GameServer (type: " +
+                //                      std::to_string(static_cast<uint8_t>(eventRecord.type)) + ")",
+                //                  utl::LogLevel::INFO);
             }
         }
 
@@ -973,13 +962,15 @@ namespace srv
                          utl::LogLevel::INFO);
 
         // Verify session exists
-        std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
-        if (clientIt == m_clients.end() || !clientIt->second.isConnected)
         {
-            sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session", m_senderEndpoint, context.sessionId);
-            return rnp::HandlerResult::PROCESSING_ERROR;
-        }
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+            auto clientIt = m_clients.find(context.sessionId);
+            if (clientIt == m_clients.end() || !clientIt->second.isConnected)
+            {
+                sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session", m_senderEndpoint, context.sessionId);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+        } // Release the lock before calling sendLobbyList
 
         sendLobbyList(context.sessionId);
         return rnp::HandlerResult::SUCCESS;
@@ -991,42 +982,54 @@ namespace srv
         utl::Logger::log("AsioServer: Handling LOBBY_CREATE from session " + std::to_string(context.sessionId),
                          utl::LogLevel::INFO);
 
-        // Verify session exists and is not already in a lobby
-        std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
-        if (clientIt == m_clients.end() || !clientIt->second.isConnected)
-        {
-            sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::UNAUTHORIZED_SESSION);
-            return rnp::HandlerResult::PROCESSING_ERROR;
-        }
+        std::uint32_t lobbyId = 0;
+        bool success = false;
 
-        if (clientIt->second.currentLobbyId != 0)
+        // Scope for clientsLock to release it before broadcastLobbyUpdate
         {
-            sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::ALREADY_IN_LOBBY);
-            return rnp::HandlerResult::PROCESSING_ERROR;
-        }
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+            auto clientIt = m_clients.find(context.sessionId);
+            if (clientIt == m_clients.end() || !clientIt->second.isConnected)
+            {
+                sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::UNAUTHORIZED_SESSION);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
 
-        // Extract lobby name
-        std::string lobbyName;
-        if (packet.nameLen > 0 && packet.nameLen <= 31)
-        {
-            lobbyName = std::string(packet.lobbyName.data(), packet.nameLen);
-        }
-        else
-        {
-            lobbyName = "Lobby " + std::to_string(m_nextLobbyId);
-        }
+            if (clientIt->second.currentLobbyId != 0)
+            {
+                sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::ALREADY_IN_LOBBY);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
 
-        // Create lobby
-        std::uint32_t lobbyId = createLobby(lobbyName, context.sessionId, packet.maxPlayers, packet.gameMode);
-        if (lobbyId > 0)
+            // Extract lobby name
+            std::string lobbyName;
+            if (packet.nameLen > 0 && packet.nameLen <= 31)
+            {
+                lobbyName = std::string(packet.lobbyName.data(), packet.nameLen);
+            }
+            else
+            {
+                lobbyName = "Lobby " + std::to_string(m_nextLobbyId);
+            }
+
+            // Create lobby
+            lobbyId = createLobby(lobbyName, context.sessionId, packet.maxPlayers, packet.gameMode);
+            if (lobbyId > 0)
+            {
+                clientIt->second.currentLobbyId = lobbyId;
+                sendLobbyCreateResponse(context.sessionId, lobbyId, true);
+                success = true;
+            }
+            else
+            {
+                sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::INTERNAL_ERROR);
+            }
+        } // clientsLock released here
+
+        // Broadcast lobby update AFTER releasing clientsLock to avoid deadlock
+        if (success && lobbyId > 0)
         {
-            clientIt->second.currentLobbyId = lobbyId;
-            sendLobbyCreateResponse(context.sessionId, lobbyId, true);
-        }
-        else
-        {
-            sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::INTERNAL_ERROR);
+            broadcastLobbyUpdate(lobbyId);
         }
 
         return rnp::HandlerResult::SUCCESS;
@@ -1039,31 +1042,78 @@ namespace srv
                              " for lobby " + std::to_string(packet.lobbyId),
                          utl::LogLevel::INFO);
 
-        // Verify session exists and is not already in a lobby
-        std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
-        if (clientIt == m_clients.end() || !clientIt->second.isConnected)
+        bool joinSuccess = false;
+
+        // Scope for clientsLock to release it before lobbyToLobbyInfo and broadcastLobbyUpdate
         {
-            sendLobbyJoinResponse(context.sessionId, packet.lobbyId, false, rnp::ErrorCode::UNAUTHORIZED_SESSION);
-            return rnp::HandlerResult::PROCESSING_ERROR;
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+            auto clientIt = m_clients.find(context.sessionId);
+            if (clientIt == m_clients.end() || !clientIt->second.isConnected)
+            {
+                utl::Logger::log("AsioServer: LOBBY_JOIN failed - unauthorized session " +
+                                     std::to_string(context.sessionId),
+                                 utl::LogLevel::WARNING);
+                sendLobbyJoinResponse(context.sessionId, packet.lobbyId, false, rnp::ErrorCode::UNAUTHORIZED_SESSION);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+
+            if (clientIt->second.currentLobbyId != 0)
+            {
+                utl::Logger::log("AsioServer: LOBBY_JOIN failed - session " + std::to_string(context.sessionId) +
+                                     " already in lobby " + std::to_string(clientIt->second.currentLobbyId),
+                                 utl::LogLevel::WARNING);
+                sendLobbyJoinResponse(context.sessionId, packet.lobbyId, false, rnp::ErrorCode::ALREADY_IN_LOBBY);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+
+            // Try to join lobby
+            LobbyStatus joinStatus = joinLobby(packet.lobbyId, context.sessionId);
+            utl::Logger::log("AsioServer: joinLobby returned status: " + std::to_string(static_cast<int>(joinStatus)),
+                             utl::LogLevel::INFO);
+
+            if (joinStatus == LobbyStatus::SUCCESS)
+            {
+                clientIt->second.currentLobbyId = packet.lobbyId;
+                utl::Logger::log("AsioServer: Session " + std::to_string(context.sessionId) +
+                                     " successfully joined lobby " + std::to_string(packet.lobbyId),
+                                 utl::LogLevel::INFO);
+                joinSuccess = true;
+            }
+            else
+            {
+                utl::Logger::log("AsioServer: Session " + std::to_string(context.sessionId) + " failed to join lobby " +
+                                     std::to_string(packet.lobbyId) +
+                                     " - status: " + std::to_string(static_cast<int>(joinStatus)),
+                                 utl::LogLevel::WARNING);
+                sendLobbyJoinResponse(context.sessionId, packet.lobbyId, false, rnp::ErrorCode::LOBBY_NOT_FOUND,
+                                      nullptr);
+            }
+        } // clientsLock released here
+
+        // Get lobby info AFTER releasing clientsLock to avoid deadlock in lobbyToLobbyInfo
+        if (joinSuccess)
+        {
+            rnp::LobbyInfo lobbyInfo;
+            {
+                std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
+                auto lobbyIt = m_lobbies.find(packet.lobbyId);
+                if (lobbyIt != m_lobbies.end())
+                {
+                    lobbyInfo = lobbyToLobbyInfo(lobbyIt->second);
+                    utl::Logger::log("AsioServer: Lobby info - currentPlayers: " +
+                                         std::to_string(static_cast<int>(lobbyInfo.currentPlayers)) + "/" +
+                                         std::to_string(static_cast<int>(lobbyInfo.maxPlayers)),
+                                     utl::LogLevel::INFO);
+                }
+            }
+
+            sendLobbyJoinResponse(context.sessionId, packet.lobbyId, true, rnp::ErrorCode::NONE, &lobbyInfo);
         }
 
-        if (clientIt->second.currentLobbyId != 0)
+        // Broadcast lobby update AFTER releasing clientsLock to avoid deadlock
+        if (joinSuccess)
         {
-            sendLobbyJoinResponse(context.sessionId, packet.lobbyId, false, rnp::ErrorCode::ALREADY_IN_LOBBY);
-            return rnp::HandlerResult::PROCESSING_ERROR;
-        }
-
-        // Try to join lobby
-        if (joinLobby(context.sessionId, packet.lobbyId))
-        {
-            clientIt->second.currentLobbyId = packet.lobbyId;
-            sendLobbyJoinResponse(context.sessionId, packet.lobbyId, true, rnp::ErrorCode::INTERNAL_ERROR);
             broadcastLobbyUpdate(packet.lobbyId);
-        }
-        else
-        {
-            sendLobbyJoinResponse(context.sessionId, packet.lobbyId, false, rnp::ErrorCode::LOBBY_NOT_FOUND, nullptr);
         }
 
         return rnp::HandlerResult::SUCCESS;
@@ -1074,27 +1124,37 @@ namespace srv
         utl::Logger::log("AsioServer: Handling LOBBY_LEAVE from session " + std::to_string(context.sessionId),
                          utl::LogLevel::INFO);
 
-        // Verify session exists
-        std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
-        if (clientIt == m_clients.end() || !clientIt->second.isConnected)
-        {
-            sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session", m_senderEndpoint, context.sessionId);
-            return rnp::HandlerResult::PROCESSING_ERROR;
-        }
+        std::uint32_t lobbyId = 0;
 
-        // Check if client is in a lobby
-        if (clientIt->second.currentLobbyId == 0)
+        // Scope for clientsLock to release it before broadcastLobbyUpdate
         {
-            sendError(rnp::ErrorCode::NOT_IN_LOBBY, "Not in lobby", m_senderEndpoint, context.sessionId);
-            return rnp::HandlerResult::PROCESSING_ERROR;
-        }
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+            auto clientIt = m_clients.find(context.sessionId);
+            if (clientIt == m_clients.end() || !clientIt->second.isConnected)
+            {
+                sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session", m_senderEndpoint, context.sessionId);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
 
-        std::uint32_t lobbyId = clientIt->second.currentLobbyId;
+            // Check if client is in a lobby
+            if (clientIt->second.currentLobbyId == 0)
+            {
+                sendError(rnp::ErrorCode::NOT_IN_LOBBY, "Not in lobby", m_senderEndpoint, context.sessionId);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+
+            lobbyId = clientIt->second.currentLobbyId;
+            clientIt->second.currentLobbyId = 0; // Clear lobby association before leaving
+        } // clientsLock released here
+
+        // Leave lobby after releasing clientsLock to avoid nested mutex acquisitions
         leaveLobby(context.sessionId);
 
-        // Broadcast update to remaining players
-        broadcastLobbyUpdate(lobbyId);
+        // Broadcast update to remaining players AFTER releasing clientsLock to avoid deadlock
+        if (lobbyId != 0)
+        {
+            broadcastLobbyUpdate(lobbyId);
+        }
 
         return rnp::HandlerResult::SUCCESS;
     }
@@ -1111,27 +1171,32 @@ namespace srv
 
             for (const auto &[lobbyId, lobby] : m_lobbies)
             {
-                response.lobbies.push_back(lobbyToLobbyInfo(lobby));
+                rnp::LobbyInfo lobbyInfo = lobbyToLobbyInfo(lobby);
+                utl::Logger::log("AsioServer: Adding lobby " + std::to_string(lobbyInfo.lobbyId) + " with " +
+                                     std::to_string(static_cast<int>(lobbyInfo.currentPlayers)) + "/" +
+                                     std::to_string(static_cast<int>(lobbyInfo.maxPlayers)) + " players",
+                                 utl::LogLevel::INFO);
+                response.lobbies.push_back(lobbyInfo);
             }
         }
 
-        // Serialize and send
-        std::vector<std::uint8_t> data;
-        rnp::Serializer serializer(data);
-        serializer.serializeLobbyListResponse(response);
+        // Serialize header and response data
+        std::vector<std::uint8_t> packet;
+        rnp::Serializer packetSerializer(packet);
 
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_LIST_RESPONSE);
-        header.length = static_cast<std::uint16_t>(data.size());
-        header.flags = 0;
+        header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketLobbyListResponse));
         header.sessionId = sessionId;
 
-        std::vector<std::uint8_t> packet;
-        rnp::Serializer packetSerializer(packet);
         packetSerializer.serializeHeader(header);
-        packet.insert(packet.end(), data.begin(), data.end());
+        packetSerializer.serializeLobbyListResponse(response);
 
-        sendPacketImmediate(packet, m_senderEndpoint);
+        utl::Logger::log("AsioServer: Sending lobby list with " + std::to_string(response.lobbyCount) +
+                             " lobbies, packet size: " + std::to_string(packetSerializer.getData().size()),
+                         utl::LogLevel::INFO);
+
+        sendPacketImmediate(packetSerializer.getData(), m_senderEndpoint);
     }
 
     std::uint32_t AsioServer::createLobby(const std::string &name, std::uint32_t hostSession, std::uint8_t maxPlayers,
@@ -1152,40 +1217,41 @@ namespace srv
         return lobbyId;
     }
 
-    bool AsioServer::joinLobby(std::uint32_t lobbyId, std::uint32_t sessionId)
+    LobbyStatus AsioServer::joinLobby(std::uint32_t lobbyId, std::uint32_t sessionId)
     {
         std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
 
         auto lobbyIt = m_lobbies.find(lobbyId);
         if (lobbyIt == m_lobbies.end())
         {
-            return false; // Lobby not found
+            return LobbyStatus::NOT_FOUND; // Lobby not found
         }
 
         Lobby &lobby = lobbyIt->second;
         if (lobby.playerSessions.size() >= lobby.maxPlayers)
         {
-            return false; // Lobby full
+            return LobbyStatus::FULL; // Lobby full
         }
 
         if (lobby.status != rnp::LobbyStatus::WAITING)
         {
-            return false; // Game already started
+            return LobbyStatus::IN_GAME; // Game already started
         }
 
         // Check if player already in lobby
         auto playerIt = std::find(lobby.playerSessions.begin(), lobby.playerSessions.end(), sessionId);
         if (playerIt != lobby.playerSessions.end())
         {
-            return false; // Already in lobby
+            return LobbyStatus::ALREADY_IN_LOBBY; // Already in lobby
         }
 
         lobby.playerSessions.push_back(sessionId);
 
-        utl::Logger::log("AsioServer: Player " + std::to_string(sessionId) + " joined lobby " + std::to_string(lobbyId),
+        utl::Logger::log("AsioServer: Player " + std::to_string(sessionId) + " joined lobby " +
+                             std::to_string(lobbyId) + " (now " + std::to_string(lobby.playerSessions.size()) + "/" +
+                             std::to_string(static_cast<int>(lobby.maxPlayers)) + " players)",
                          utl::LogLevel::INFO);
-
-        return true;
+        return LobbyStatus::SUCCESS;
     }
 
     void AsioServer::leaveLobby(std::uint32_t sessionId)
@@ -1239,34 +1305,33 @@ namespace srv
         rnp::PacketLobbyUpdate update;
         update.lobbyInfo = lobbyToLobbyInfo(lobbyIt->second);
 
-        // Serialize packet
+        // Serialize packet data
         std::vector<std::uint8_t> data;
         rnp::Serializer serializer(data);
         serializer.serializeLobbyUpdate(update);
 
-        rnp::PacketHeader header;
-        header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_UPDATE);
-        header.length = static_cast<std::uint16_t>(data.size());
-        header.flags = 0;
-
-        std::vector<std::uint8_t> packet;
-        rnp::Serializer packetSerializer(packet);
-        packetSerializer.serializeHeader(header);
-        packet.insert(packet.end(), data.begin(), data.end());
+        // Get the serialized data
+        const std::vector<std::uint8_t> &lobbyUpdateData = serializer.getData();
 
         // Send to all players in lobby
         for (std::uint32_t sessionId : lobbyIt->second.playerSessions)
         {
+            rnp::PacketHeader header;
+            header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_UPDATE);
+            header.length = static_cast<std::uint16_t>(lobbyUpdateData.size());
             header.sessionId = sessionId;
+
             std::vector<std::uint8_t> playerPacket;
             rnp::Serializer playerPacketSerializer(playerPacket);
             playerPacketSerializer.serializeHeader(header);
-            playerPacket.insert(playerPacket.end(), data.begin(), data.end());
+            playerPacketSerializer.serializeLobbyUpdate(update);
 
+            // Lock clients mutex to safely access client data
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
             auto clientIt = m_clients.find(sessionId);
             if (clientIt != m_clients.end())
             {
-                sendPacketImmediate(playerPacket, clientIt->second.endpoint);
+                sendPacketImmediate(playerPacketSerializer.getData(), clientIt->second.endpoint);
             }
         }
 
@@ -1313,23 +1378,17 @@ namespace srv
         response.success = success ? 1 : 0;
         response.errorCode = static_cast<std::uint16_t>(errorCode);
 
-        // Serialize packet
-        std::vector<std::uint8_t> data;
-        rnp::Serializer serializer(data);
-        serializer.serializeLobbyCreateResponse(response);
-
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_CREATE_RESPONSE);
-        header.length = static_cast<std::uint16_t>(data.size());
-        header.flags = 0;
+        header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketLobbyCreateResponse));
         header.sessionId = sessionId;
 
         std::vector<std::uint8_t> packet;
         rnp::Serializer packetSerializer(packet);
         packetSerializer.serializeHeader(header);
-        packet.insert(packet.end(), data.begin(), data.end());
+        packetSerializer.serializeLobbyCreateResponse(response);
 
-        sendPacketImmediate(packet, m_senderEndpoint);
+        sendPacketImmediate(packetSerializer.getData(), m_senderEndpoint);
 
         utl::Logger::log("AsioServer: Sent lobby create response to session " + std::to_string(sessionId) +
                              " (success: " + (success ? "true" : "false") + ")",
@@ -1348,23 +1407,17 @@ namespace srv
             response.lobbyInfo = *lobbyInfo;
         }
 
-        // Serialize packet
-        std::vector<std::uint8_t> data;
-        rnp::Serializer serializer(data);
-        serializer.serializeLobbyJoinResponse(response);
-
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_JOIN_RESPONSE);
-        header.length = static_cast<std::uint16_t>(data.size());
-        header.flags = 0;
+        header.length = static_cast<std::uint16_t>(sizeof(rnp::PacketLobbyJoinResponse));
         header.sessionId = sessionId;
 
         std::vector<std::uint8_t> packet;
         rnp::Serializer packetSerializer(packet);
         packetSerializer.serializeHeader(header);
-        packet.insert(packet.end(), data.begin(), data.end());
+        packetSerializer.serializeLobbyJoinResponse(response);
 
-        sendPacketImmediate(packet, m_senderEndpoint);
+        sendPacketImmediate(packetSerializer.getData(), m_senderEndpoint);
 
         utl::Logger::log("AsioServer: Sent lobby join response to session " + std::to_string(sessionId) +
                              " (success: " + (success ? "true" : "false") + ")",
@@ -1373,8 +1426,7 @@ namespace srv
 
     void AsioServer::cleanupEmptyLobbies()
     {
-        std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
-
+        // NOTE: Assumes m_lobbiesMutex is already held by caller
         auto it = m_lobbies.begin();
         while (it != m_lobbies.end())
         {
@@ -1389,6 +1441,105 @@ namespace srv
                 ++it;
             }
         }
+    }
+
+    rnp::HandlerResult AsioServer::handleStartGameRequest(const rnp::PacketStartGameRequest &packet,
+                                                          const rnp::PacketContext &context)
+    {
+        utl::Logger::log("AsioServer: Handling START_GAME_REQUEST from session " + std::to_string(context.sessionId) +
+                             " for lobby " + std::to_string(packet.lobbyId),
+                         utl::LogLevel::INFO);
+
+        // Verify session exists and is in the lobby
+        {
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+            auto clientIt = m_clients.find(context.sessionId);
+            if (clientIt == m_clients.end() || !clientIt->second.isConnected)
+            {
+                sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session", m_senderEndpoint, context.sessionId);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+
+            if (clientIt->second.currentLobbyId != packet.lobbyId)
+            {
+                sendError(rnp::ErrorCode::NOT_IN_LOBBY, "Not in this lobby", m_senderEndpoint, context.sessionId);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+        }
+
+        // Verify the session is the host and lobby exists
+        {
+            std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
+            auto lobbyIt = m_lobbies.find(packet.lobbyId);
+            if (lobbyIt == m_lobbies.end())
+            {
+                sendError(rnp::ErrorCode::LOBBY_NOT_FOUND, "Lobby not found", m_senderEndpoint, context.sessionId);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+
+            // Only host can start the game
+            if (lobbyIt->second.hostSessionId != context.sessionId)
+            {
+                sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Only host can start game", m_senderEndpoint,
+                          context.sessionId);
+                return rnp::HandlerResult::PROCESSING_ERROR;
+            }
+
+            // Update lobby status to IN_GAME
+            lobbyIt->second.status = rnp::LobbyStatus::IN_GAME;
+        }
+
+        utl::Logger::log("AsioServer: Starting game for lobby " + std::to_string(packet.lobbyId), utl::LogLevel::INFO);
+
+        // Broadcast game start to all players
+        broadcastGameStart(packet.lobbyId);
+
+        return rnp::HandlerResult::SUCCESS;
+    }
+
+    void AsioServer::broadcastGameStart(std::uint32_t lobbyId)
+    {
+        std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
+        auto lobbyIt = m_lobbies.find(lobbyId);
+        if (lobbyIt == m_lobbies.end())
+        {
+            return;
+        }
+
+        rnp::PacketGameStart gameStart;
+        gameStart.lobbyId = lobbyId;
+
+        // Serialize packet
+        std::vector<std::uint8_t> data;
+        rnp::Serializer serializer(data);
+        serializer.serializeGameStart(gameStart);
+
+        const std::vector<std::uint8_t> &gameStartData = serializer.getData();
+
+        // Send to all players in lobby
+        for (std::uint32_t sessionId : lobbyIt->second.playerSessions)
+        {
+            rnp::PacketHeader header;
+            header.type = static_cast<std::uint8_t>(rnp::PacketType::GAME_START);
+            header.length = static_cast<std::uint16_t>(gameStartData.size());
+            header.sessionId = sessionId;
+
+            std::vector<std::uint8_t> playerPacket;
+            rnp::Serializer playerPacketSerializer(playerPacket);
+            playerPacketSerializer.serializeHeader(header);
+            playerPacketSerializer.serializeGameStart(gameStart);
+
+            // Lock clients mutex to safely access client data
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+            auto clientIt = m_clients.find(sessionId);
+            if (clientIt != m_clients.end())
+            {
+                sendPacketImmediate(playerPacketSerializer.getData(), clientIt->second.endpoint);
+            }
+        }
+
+        utl::Logger::log("AsioServer: Broadcasted game start for lobby " + std::to_string(lobbyId),
+                         utl::LogLevel::INFO);
     }
 
 } // namespace srv

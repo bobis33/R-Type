@@ -113,7 +113,7 @@ namespace eng
             /// @param maxPlayers Maximum number of players
             /// @param gameMode Game mode identifier
             ///
-            void createLobby(const std::string &name, std::uint8_t maxPlayers, std::uint8_t gameMode);
+            void createLobby(rnp::PacketLobbyCreate lobbyCreate);
 
             ///
             /// @brief Join an existing lobby
