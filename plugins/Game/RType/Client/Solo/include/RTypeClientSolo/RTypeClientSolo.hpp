@@ -32,7 +32,7 @@ namespace gme
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_CLIENT; }
 
             void update(float deltaTime, unsigned int width, unsigned int height) override;
-            void init(eng::Engine &engine, int &audioVolume, const int skinIndex, bool &showDebug,
+            void init(eng::Engine &engine, float &audioVolume, const int skinIndex, bool &showDebug,
                       const eng::id menuSceneId) override
             {
                 m_engine = &engine;
@@ -45,7 +45,7 @@ namespace gme
 
         private:
             eng::Engine *m_engine = nullptr;
-            int m_audioVolume;
+            float m_audioVolume;
             int m_skinIndex;
             eng::id m_mainSceneId;
 

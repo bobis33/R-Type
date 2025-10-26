@@ -47,5 +47,4 @@ namespace eng
             std::unordered_map<std::string, std::unique_ptr<sf::Music>> musics;
 
     }; // class SFMLRenderer
-
 } // namespace eng

@@ -1,7 +1,7 @@
 ///
 /// @file Systems.hpp
-/// @brief This file contains the system definitions
-/// @namespace cli
+/// @brief This file contains the pixel system definition
+/// @namespace ecs
 ///
 
 #pragma once
@@ -10,10 +10,15 @@
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
 
-namespace cli
+namespace ecs
 {
 
-    class PixelSystem final : public eng::ASystem
+    ///
+    /// @class PixelSystem
+    /// @brief Class for pixel system
+    /// @namespace ecs
+    ///
+    class PixelSystem final : public ASystem
     {
         public:
             explicit PixelSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
@@ -24,12 +29,12 @@ namespace cli
             explicit PixelSystem(PixelSystem &&) = delete;
             PixelSystem &operator=(PixelSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float /* dt */) override
+            void update(Registry &registry, float /* dt */) override
             {
-                for (auto &[entity, pixel] : registry.getAll<ecs::Pixel>())
+                for (const auto &entity : registry.getAll<Pixel>() | std::views::keys)
                 {
-                    const auto *color = registry.getComponent<ecs::Color>(entity);
-                    const auto *transform = registry.getComponent<ecs::Transform>(entity);
+                    const auto *color = registry.getComponent<Color>(entity);
+                    const auto *transform = registry.getComponent<Transform>(entity);
                     m_renderer->drawPoint(transform->x, transform->y,
                                           {.r = color->r, .g = color->g, .b = color->b, .a = color->a});
                 }
@@ -38,5 +43,4 @@ namespace cli
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class PixelSystem
-
-} // namespace cli
+} // namespace ecs

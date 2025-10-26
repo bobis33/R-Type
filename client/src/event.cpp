@@ -38,7 +38,7 @@ void cli::Client::handleEvents(eng::Event &event)
 void cli::Client::updateKeyboardInput(ecs::Registry &registry)
 {
     const auto keyboardEntities = registry.getAll<ecs::KeyboardInput>();
-    ecs::Entity keyboardEntity;
+    ecs::Entity keyboardEntity = 0;
 
     if (keyboardEntities.empty())
     {

@@ -14,7 +14,7 @@
 namespace gme
 {
 
-    class LoadingAnimationSystem final : public eng::ASystem
+    class LoadingAnimationSystem final : public ecs::ASystem
     {
         public:
             explicit LoadingAnimationSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

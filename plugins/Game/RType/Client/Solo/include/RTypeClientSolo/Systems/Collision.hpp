@@ -21,7 +21,7 @@
 namespace gme
 {
 
-    class CollisionSystem final : public eng::ISystem
+    class CollisionSystem final : public ecs::ASystem
     {
         public:
             explicit CollisionSystem(const std::shared_ptr<eng::IRenderer> &renderer, bool &showDebug)

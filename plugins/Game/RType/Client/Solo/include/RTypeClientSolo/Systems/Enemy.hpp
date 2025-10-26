@@ -18,7 +18,7 @@
 namespace gme
 {
 
-    class EnemySystem final : public eng::ISystem
+    class EnemySystem final : public ecs::ASystem
     {
         public:
             explicit EnemySystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

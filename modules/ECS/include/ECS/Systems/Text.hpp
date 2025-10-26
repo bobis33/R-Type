@@ -1,7 +1,7 @@
 ///
 /// @file Systems.hpp
 /// @brief This file contains the TextSystem definitions
-/// @namespace cli
+/// @namespace ecs
 ///
 
 #pragma once
@@ -10,15 +10,15 @@
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
 
-namespace cli
+namespace ecs
 {
 
     ///
     /// @class TextSystem
-    /// @brief Class for managing entities and their components
+    /// @brief Class for text system
     /// @namespace ecs
     ///
-    class TextSystem final : public eng::ASystem
+    class TextSystem final : public ASystem
     {
         public:
             explicit TextSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
@@ -29,13 +29,13 @@ namespace cli
             TextSystem(TextSystem &&) = delete;
             TextSystem &operator=(TextSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float /* dt */) override
+            void update(Registry &registry, float /* dt */) override
             {
 
-                for (auto &[entity, text] : registry.getAll<ecs::Text>())
+                for (auto &[entity, text] : registry.getAll<Text>())
                 {
-                    const auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    const auto *color = registry.getComponent<ecs::Color>(entity);
+                    const auto *transform = registry.getComponent<Transform>(entity);
+                    const auto *color = registry.getComponent<Color>(entity);
 
                     const float x = (transform != nullptr) ? transform->x : 0.F;
                     const float y = (transform != nullptr) ? transform->y : 0.F;
@@ -55,5 +55,4 @@ namespace cli
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
     }; // class TextSystem
-
-} // namespace cli
+} // namespace ecs

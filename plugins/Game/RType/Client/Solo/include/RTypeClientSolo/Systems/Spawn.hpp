@@ -16,7 +16,7 @@
 namespace gme
 {
 
-    class SpawnSystem final : public eng::ISystem
+    class SpawnSystem final : public ecs::ASystem
     {
         public:
             explicit SpawnSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

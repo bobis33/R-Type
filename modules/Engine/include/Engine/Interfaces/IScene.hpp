@@ -38,7 +38,7 @@ namespace eng
             virtual void update(float dt, const WindowSize &size) = 0;
             virtual void event(const Event &event) = 0;
 
-            virtual void addSystem(std::unique_ptr<ISystem> system) = 0;
+            virtual void addSystem(std::unique_ptr<ecs::ISystem> system) = 0;
             virtual void updateSystems(float dt) = 0;
 
     }; // class IScene
@@ -65,7 +65,7 @@ namespace eng
 
             void setName(const std::string &newName) override { m_name = newName; }
 
-            void addSystem(std::unique_ptr<ISystem> system) override { m_systems.emplace_back(std::move(system)); }
+            void addSystem(std::unique_ptr<ecs::ISystem> system) override { m_systems.emplace_back(std::move(system)); }
             void updateSystems(const float dt) override
             {
                 for (const auto &system : m_systems)
@@ -78,11 +78,10 @@ namespace eng
             std::string m_name = "default_name";
             id m_id = 1;
             ecs::Registry m_registry;
-            std::vector<std::unique_ptr<ISystem>> m_systems;
+            std::vector<std::unique_ptr<ecs::ISystem>> m_systems;
 
         protected:
             utl::EventBus &m_eventBus = utl::EventBus::getInstance();
             std::uint32_t m_eventComponentId = 0;
     }; // class AScene
-
 } // namespace eng

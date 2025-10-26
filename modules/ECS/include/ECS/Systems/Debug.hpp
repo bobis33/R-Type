@@ -1,7 +1,7 @@
 ///
 /// @file Debug.hpp
-/// @brief This file contains the debug system definitions
-/// @namespace gme
+/// @brief This file contains the debug system definition
+/// @namespace ecs
 ///
 
 #pragma once
@@ -9,14 +9,18 @@
 #include <ranges>
 
 #include "ECS/Component.hpp"
-#include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
 
-namespace gme
+namespace ecs
 {
 
-    class DebugSystem final : public eng::ASystem
+    ///
+    /// @class DebugSystem
+    /// @brief Class for debug system
+    /// @namespace ecs
+    ///
+    class DebugSystem final : public ASystem
     {
         public:
             explicit DebugSystem(const std::shared_ptr<eng::IRenderer> &renderer, bool &showDebug)
@@ -31,27 +35,27 @@ namespace gme
             DebugSystem(DebugSystem &&) = delete;
             DebugSystem &operator=(DebugSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(Registry &registry, float dt) override
             {
 
-                const auto &circleShapes = registry.getAll<ecs::Hitbox>();
-                const auto &transforms = registry.getAll<ecs::Transform>();
+                const auto &circleShapes = registry.getAll<Hitbox>();
+                const auto &transforms = registry.getAll<Transform>();
                 for (const auto &key : circleShapes | std::views::keys)
                 {
-                    if (!registry.hasComponent<ecs::Hitbox>(key) || !registry.hasComponent<ecs::Transform>(key))
+                    if (!registry.hasComponent<Hitbox>(key) || !registry.hasComponent<Transform>(key))
                     {
                         continue;
                     }
 
-                    const auto *transform = registry.getComponent<ecs::Transform>(key);
-                    const auto *hitbox = registry.getComponent<ecs::Hitbox>(key);
+                    const auto *transform = registry.getComponent<Transform>(key);
+                    const auto *hitbox = registry.getComponent<Hitbox>(key);
 
                     if ((transform == nullptr) || (hitbox == nullptr))
                     {
                         continue;
                     }
-                    float hitboxX = transform->x + hitbox->offsetX - hitbox->radius;
-                    float hitboxY = transform->y + hitbox->offsetY - hitbox->radius;
+                    const float hitboxX = transform->x + hitbox->offsetX - hitbox->radius;
+                    const float hitboxY = transform->y + hitbox->offsetY - hitbox->radius;
                     m_renderer->setCircleShapePosition("hitbox_" + std::to_string(key), hitboxX, hitboxY);
                     if (m_showDebug)
                     {
@@ -64,6 +68,5 @@ namespace gme
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             bool &m_showDebug;
 
-    }; // class AnimationSystem
-
-} // namespace gme
+    }; // class DebugSystem
+} // namespace ecs

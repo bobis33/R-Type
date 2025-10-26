@@ -15,33 +15,33 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     auto serverSceneId = m_engine->getSceneManager()->generateNextId();
     auto serverScene = std::make_unique<ServerScene>(serverSceneId, m_engine->getRenderer(), m_engine->getAudio());
     m_mainSceneId = serverSceneId;
-    serverScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
-    serverScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    serverScene->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    serverScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume));
+    serverScene->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    serverScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    serverScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    serverScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto configMultiId = m_engine->getSceneManager()->generateNextId();
     auto configMulti = std::make_unique<ConfigMulti>(configMultiId, m_engine->getRenderer(), m_engine->getAudio());
-    configMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
-    configMulti->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    configMulti->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    configMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume));
+    configMulti->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    configMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    configMulti->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    configMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto createRoomId = m_engine->getSceneManager()->generateNextId();
     auto createRoomScene =
         std::make_unique<CreateRoomScene>(createRoomId, m_engine->getRenderer(), m_engine->getAudio());
-    createRoomScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
-    createRoomScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    createRoomScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    createRoomScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    createRoomScene->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    createRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume));
+    createRoomScene->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    createRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    createRoomScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    createRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto joinRoomId = m_engine->getSceneManager()->generateNextId();
     auto joinRoomScene = std::make_unique<JoinRoomScene>(joinRoomId, m_engine->getRenderer(), m_engine->getAudio());
-    joinRoomScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
-    joinRoomScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    joinRoomScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    joinRoomScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    joinRoomScene->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    joinRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume));
+    joinRoomScene->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    joinRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    joinRoomScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    joinRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     JoinRoomScene *joinRoomScenePtr = joinRoomScene.get();
 
     serverScene->onConnect =
@@ -79,7 +79,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     createRoomScene->onBackToMulti = [this, configMultiId]()
     { m_engine->getSceneManager()->switchToScene(configMultiId); };
 
-    joinRoomScene->onJoin = [this](int roomId)
+    joinRoomScene->onJoin = [](const int roomId)
     {
         for (auto &room : g_availableRooms)
         {

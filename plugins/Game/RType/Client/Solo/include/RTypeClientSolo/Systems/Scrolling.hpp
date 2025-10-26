@@ -15,7 +15,7 @@
 namespace gme
 {
 
-    class ScrollingSystem final : public eng::ASystem
+    class ScrollingSystem final : public ecs::ASystem
     {
         public:
             explicit ScrollingSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

@@ -18,7 +18,7 @@ namespace gme
     /// @brief Manages weapon firing and charging
     /// @namespace gme
     ///
-    class WeaponSystem final : public eng::ASystem
+    class WeaponSystem final : public ecs::ASystem
     {
         public:
             explicit WeaponSystem(const std::shared_ptr<eng::IRenderer> & /* renderer */) {}

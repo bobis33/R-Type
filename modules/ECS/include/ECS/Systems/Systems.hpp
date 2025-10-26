@@ -1,7 +1,7 @@
 ///
 /// @file Systems.hpp
-/// @brief This file contains the system definitions
-/// @namespace gme
+/// @brief This file contains the systems definitions
+/// @namespace ecs
 ///
 
 #pragma once

@@ -15,7 +15,7 @@
 namespace gme
 {
 
-    class BeamSystem final : public eng::ASystem
+    class BeamSystem final : public ecs::ASystem
     {
         public:
             explicit BeamSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

@@ -1,7 +1,7 @@
 ///
 /// @file Settings.hpp
 /// @brief This file contains the settings scene
-/// @namespace eng
+/// @namespace cli
 ///
 
 #pragma once
@@ -67,7 +67,6 @@ namespace cli
             float m_animationTime = 0.0f;
             float m_titlePulseTime = 0.0f;
 
-            // Audio pour navigation
             ecs::Entity m_selectionSoundEntity;
             std::string m_selectionSoundName;
     }; // class Settings

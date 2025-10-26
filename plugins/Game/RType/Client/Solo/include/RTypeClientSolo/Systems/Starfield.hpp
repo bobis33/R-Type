@@ -13,7 +13,7 @@
 namespace gme
 {
 
-    class StarfieldSystem final : public eng::ASystem
+    class StarfieldSystem final : public ecs::ASystem
     {
         public:
             explicit StarfieldSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

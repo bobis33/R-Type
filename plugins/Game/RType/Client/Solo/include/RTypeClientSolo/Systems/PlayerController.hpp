@@ -14,7 +14,7 @@
 namespace gme
 {
 
-    class PlayerController final : public eng::ASystem
+    class PlayerController final : public ecs::ASystem
     {
         public:
             explicit PlayerController(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

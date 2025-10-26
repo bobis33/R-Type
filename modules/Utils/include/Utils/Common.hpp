@@ -22,7 +22,7 @@ namespace utl
     {
         namespace Audio
         {
-            inline constexpr auto DEFAULT_AUDIO_VOLUME = 100;  // unused
+            inline constexpr auto DEFAULT_AUDIO_VOLUME = 0.5F;  // unused
             inline constexpr auto DEFAULT_AUDIO_MUTED = false; // unused
         } // namespace Audio
         namespace Network

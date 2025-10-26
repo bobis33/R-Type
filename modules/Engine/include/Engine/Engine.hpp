@@ -27,7 +27,7 @@ namespace eng
 
     ///
     /// @class Engine
-    /// @brief Class for the game engine
+    /// @brief Class for the engine
     /// @namespace eng
     ///
     class PLUGIN_EXPORT Engine
