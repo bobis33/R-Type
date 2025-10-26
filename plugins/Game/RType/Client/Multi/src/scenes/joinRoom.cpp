@@ -1,14 +1,7 @@
-#include <cmath>
-
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 #include "Utils/Common.hpp"
-
-static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
-static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
-static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 
 namespace gme
 {
@@ -56,31 +49,31 @@ namespace gme
             registry.createEntity()
                 .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                 .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-                .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+                .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
                 .with<ecs::Text>("title", std::string("JOIN ROOM"), 72U)
                 .build();
 
         m_noRoomsEntity = registry.createEntity()
                               .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                               .with<ecs::Transform>("transform_no_rooms", 100.F, 200.F, 0.F)
-                              .with<ecs::Color>("color_no_rooms", INFO_TEXT_COLOR.r, INFO_TEXT_COLOR.g,
-                                                INFO_TEXT_COLOR.b, INFO_TEXT_COLOR.a)
+                              .with<ecs::Color>("color_no_rooms", utl::Config::Color::INFO_TEXT_COLOR.r, utl::Config::Color::INFO_TEXT_COLOR.g,
+                                                utl::Config::Color::INFO_TEXT_COLOR.b, utl::Config::Color::INFO_TEXT_COLOR.a)
                               .with<ecs::Text>("no_rooms_text", std::string("No rooms available"), 32U)
                               .build();
 
         m_refreshButtonEntity = registry.createEntity()
                                     .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                     .with<ecs::Transform>("transform_refresh", 100.F, 400.F, 0.F)
-                                    .with<ecs::Color>("color_refresh", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                                                      GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+                                    .with<ecs::Color>("color_refresh", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
+                                                      utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
                                     .with<ecs::Text>("refresh_text", std::string("Refresh"), 32U)
                                     .build();
 
         m_backButtonEntity = registry.createEntity()
                                  .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                  .with<ecs::Transform>("transform_back", 100.F, 450.F, 0.F)
-                                 .with<ecs::Color>("color_back", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                                                   GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+                                 .with<ecs::Color>("color_back", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
+                                                   utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
                                  .with<ecs::Text>("back_text", std::string("Back"), 32U)
                                  .build();
     }
@@ -116,9 +109,9 @@ namespace gme
                 }
                 else
                 {
-                    color.r = GRAY_BLUE_SUBTLE.r;
-                    color.g = GRAY_BLUE_SUBTLE.g;
-                    color.b = GRAY_BLUE_SUBTLE.b;
+                    color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                    color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                    color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
                 }
             }
             else if (text.id == "back_text")
@@ -133,9 +126,9 @@ namespace gme
                 }
                 else
                 {
-                    color.r = GRAY_BLUE_SUBTLE.r;
-                    color.g = GRAY_BLUE_SUBTLE.g;
-                    color.b = GRAY_BLUE_SUBTLE.b;
+                    color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                    color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                    color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
                 }
             }
         }
@@ -153,9 +146,9 @@ namespace gme
                 }
                 else
                 {
-                    color->r = TEXT_VALUE_COLOR.r;
-                    color->g = TEXT_VALUE_COLOR.g;
-                    color->b = TEXT_VALUE_COLOR.b;
+                    color->r = utl::Config::Color::TEXT_VALUE_COLOR.r;
+                    color->g = utl::Config::Color::TEXT_VALUE_COLOR.g;
+                    color->b = utl::Config::Color::TEXT_VALUE_COLOR.b;
                 }
             }
         }
@@ -239,8 +232,8 @@ namespace gme
                 registry.createEntity()
                     .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                     .with<ecs::Transform>("transform_room_" + std::to_string(i), 100.F, 200.F + i * 40.F, 0.F)
-                    .with<ecs::Color>("color_room_" + std::to_string(i), TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
-                                      TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                    .with<ecs::Color>("color_room_" + std::to_string(i), utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
+                                      utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                     .with<ecs::Text>("room_" + std::to_string(i), roomText, 28U)
                     .build();
 

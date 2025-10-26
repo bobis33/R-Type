@@ -53,7 +53,7 @@ namespace cli
             const std::vector<std::string> m_settingsOptions = {"Audio Volume", "FPS", "Controls", "Skin",
                                                                 "Back to Menu"};
 
-            int m_audioVolume = 50;
+            float m_audioVolume = 50.0F;
             int m_videoQuality = 1;
             int m_controlScheme = 2;
             int m_skinIndex = 0;

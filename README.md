@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="/assets/icons/icon.png" alt="R-Type Logo" width="326"/>
-</p>
-
 # R-Type
 [![CI - GitLeaks](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/gitleaks.yml)
 [![CI - R-Type](https://github.com/bobis33/R-Type/actions/workflows/ci.yml/badge.svg)](https://github.com/bobis33/R-Type/actions/workflows/ci.yml)

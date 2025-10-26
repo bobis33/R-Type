@@ -1,6 +1,7 @@
+#include <ranges>
+
 #include "RTypeClientSolo/Systems/HUD.hpp"
 #include "ECS/Component.hpp"
-#include "Utils/Common.hpp"
 
 void gme::HUDSystem::createScoreHUD(ecs::Registry &registry, float x, float y)
 {
@@ -24,7 +25,7 @@ void gme::HUDSystem::createScoreHUD(ecs::Registry &registry, float x, float y)
     }
 }
 
-void gme::HUDSystem::updateScore(ecs::Registry &registry, int newScore)
+void gme::HUDSystem::updateScore(ecs::Registry &registry, int newScore) const
 {
     int digits[6];
     for (int i = 5; i >= 0; --i)
@@ -42,8 +43,7 @@ void gme::HUDSystem::updateScore(ecs::Registry &registry, int newScore)
 
     for (int i = 0; i < 6 && i < m_scoreDigitEntities.size(); ++i)
     {
-        auto *digitTexture = registry.getComponent<ecs::Texture>(m_scoreDigitEntities[i]);
-        if (digitTexture)
+        if (auto *digitTexture = registry.getComponent<ecs::Texture>(m_scoreDigitEntities[i]))
         {
             digitTexture->path = digitPaths[digits[i]];
         }
@@ -63,7 +63,7 @@ void gme::HUDSystem::updateScore(ecs::Registry &registry, int newScore)
 void gme::HUDSystem::update(ecs::Registry &registry, float /* dt */)
 {
     int currentScore = 0;
-    for (auto &[scoreEntity, score] : registry.getAll<ecs::Score>())
+    for (const auto &score : registry.getAll<ecs::Score>() | std::views::values)
     {
         currentScore = score.value;
         break;

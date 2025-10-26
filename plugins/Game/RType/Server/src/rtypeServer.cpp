@@ -13,7 +13,7 @@ void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
     m_eventBus.registerComponent(component, "RType-Server");
     m_eventBus.subscribe(component, utl::EventType::PLAYER_INPUT_RECEIVED);
     auto events = m_eventBus.consumeForTarget(component);
-    for (auto &event : events)
+    for (const auto &event : events)
     {
         switch (event.type)
         {

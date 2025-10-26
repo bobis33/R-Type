@@ -16,7 +16,7 @@ namespace gme
     class StarfieldSystem final : public ecs::ASystem
     {
         public:
-            explicit StarfieldSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
+            explicit StarfieldSystem(const std::shared_ptr<eng::IRenderer> &renderer, ecs::Registry &registry) : m_renderer(renderer) { createStarfield(registry, m_renderer->getWindowSize());}
             ~StarfieldSystem() override = default;
 
             StarfieldSystem(const StarfieldSystem &) = delete;
@@ -25,17 +25,17 @@ namespace gme
             StarfieldSystem &operator=(StarfieldSystem &&) = delete;
 
             void update(ecs::Registry &registry, float dt) override;
-            void createStarfield(ecs::Registry &registry, int screenWidth, int screenHeight);
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
 
-            void createStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight,
+            static void createStarfield(ecs::Registry &registry, const eng::WindowSize &windowSize);
+            static void createStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight,
                              const eng::Color &color, float velocity, const std::string &id);
-            void createShootingStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
-            void createPlanets(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
-            void createNebulae(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
-            void createComets(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
+            static void createShootingStars(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
+            static void createPlanets(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
+            static void createNebulae(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
+            static void createComets(ecs::Registry &registry, int count, int screenWidth, int screenHeight);
     }; // class StarfieldSystem
 
 } // namespace gme

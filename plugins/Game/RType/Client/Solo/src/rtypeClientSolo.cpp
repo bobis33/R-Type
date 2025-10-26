@@ -30,6 +30,8 @@ void gme::RTypeClientSolo::setupScenes(bool &showDebug, eng::id menuSceneId)
     gameSolo->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), showDebug));
+    gameSolo->addSystem(std::make_unique<HUDSystem>(m_engine->getRenderer(), gameSolo->getRegistry()));
+    gameSolo->addSystem(std::make_unique<StarfieldSystem>(m_engine->getRenderer(), gameSolo->getRegistry()));
     m_mainSceneId = configSoloId;
 
     configSolo->onOptionSelected = [this, gameSoloId, menuSceneId](const std::string &option)

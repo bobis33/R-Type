@@ -3,14 +3,15 @@
 #include "RTypeClientSolo/Managers/ProjectileManager.hpp"
 #include "Utils/Common.hpp"
 
+#include <ranges>
+
 namespace gme
 {
-    void WeaponSystem::update(ecs::Registry &registry, float dt)
+    void WeaponSystem::update(ecs::Registry &registry, const float dt)
     {
         using namespace GameConfig::Projectile;
         using namespace GameConfig::Beam;
 
-        // Update cooldowns
         if (m_fireCooldown > 0.0f)
         {
             m_fireCooldown -= dt;
@@ -19,7 +20,7 @@ namespace gme
         if (playerEntities.empty())
             return;
         auto &[playerEntity, player] = *playerEntities.begin();
-        auto *transform = registry.getComponent<ecs::Transform>(playerEntity);
+        const auto *transform = registry.getComponent<ecs::Transform>(playerEntity);
         auto *beamCharge = registry.getComponent<ecs::BeamCharge>(playerEntity);
         if (!transform || !beamCharge)
             return;
@@ -59,8 +60,8 @@ namespace gme
                 hideLoadingAnimation(registry, playerEntity);
                 if (m_fireCooldown <= 0.0f)
                 {
-                    float chargeThreshold = beamCharge->max_charge * 0.5f;
-                    if (beamCharge->current_charge >= chargeThreshold)
+                    if (const float chargeThreshold = beamCharge->max_charge * 0.5F;
+                        beamCharge->current_charge >= chargeThreshold)
                     {
                         if (tryFireSupercharged(registry, projectileX, projectileY))
                         {
@@ -116,11 +117,10 @@ namespace gme
     {
         using namespace GameConfig::LoadingAnimation;
 
-        auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
-        for (auto &[entity, animation] : loadingEntities)
+        for (auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
+             const auto &entity : loadingEntities | std::views::keys)
         {
-            auto *loadingTransform = registry.getComponent<ecs::Transform>(entity);
-            if (loadingTransform)
+            if (auto *loadingTransform = registry.getComponent<ecs::Transform>(entity))
             {
                 loadingTransform->x = playerTransform->x + OFFSET_X;
                 loadingTransform->y = playerTransform->y + OFFSET_Y;
@@ -146,12 +146,12 @@ namespace gme
         auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
         std::vector<ecs::Entity> toRemove;
 
-        for (auto &[entity, animation] : loadingEntities)
+        for (const auto &entity : loadingEntities | std::views::keys)
         {
             toRemove.push_back(entity);
         }
 
-        for (auto entity : toRemove)
+        for (const auto entity : toRemove)
         {
             if (registry.hasComponent<ecs::Transform>(entity))
                 registry.removeComponent<ecs::Transform>(entity);

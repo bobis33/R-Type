@@ -16,7 +16,6 @@
 #include "RTypeClientSolo/Systems/HUD.hpp"
 #include "RTypeClientSolo/Systems/LoadingAnimation.hpp"
 #include "ECS/Systems/Pixel.hpp"
-#include "RTypeClientSolo/Systems/PlayerController.hpp"
 #include "RTypeClientSolo/Systems/PlayerDirection.hpp"
 #include "RTypeClientSolo/Systems/Projectile.hpp"
 #include "RTypeClientSolo/Systems/Scrolling.hpp"

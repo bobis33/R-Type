@@ -69,7 +69,7 @@ namespace gme
             /// @param playerEntity The player entity
             /// @param playerTransform The player transform
             ///
-            void showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
+            static void showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
                                       const ecs::Transform *playerTransform);
 
             ///
@@ -77,7 +77,7 @@ namespace gme
             /// @param registry The ECS registry
             /// @param playerEntity The player entity
             ///
-            void hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity);
+            static void hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity);
 
             void ensureSuperShotAudio(ecs::Registry &registry);
 

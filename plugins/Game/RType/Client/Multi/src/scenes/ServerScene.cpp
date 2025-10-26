@@ -1,11 +1,6 @@
-#include <cmath>
-
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
-#include "Interfaces/Protocol/Serializer.hpp"
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
 #include "Utils/Common.hpp"
-#include "Utils/Event.hpp"
 
 static char keyToChar(const eng::Key key, bool shift = false)
 {
@@ -134,7 +129,7 @@ static char keyToChar(const eng::Key key, bool shift = false)
                 .build();
         for (size_t i = 0; i < m_serverOptions.size(); ++i)
         {
-            float yPosition;
+            float yPosition = 0.0F;
             if (i < 3)
             {
                 yPosition = 200.F + i * 50.F;
@@ -304,13 +299,13 @@ static char keyToChar(const eng::Key key, bool shift = false)
     }
 
     void gme::ServerScene::connectServer(const std::string &playerName, const std::string &serverIP,
-                                         const std::string &serverPort)
+                                         const std::string &serverPort) const
     {
         rnp::Serializer serializer;
         serializer.writeString(playerName, 32);
         serializer.writeString(serverIP, 15);
         serializer.writeString(serverPort, 5);
-        auto data = serializer.getData();
+        const auto data = serializer.getData();
 
         m_eventBus.publish(utl::EventType::REQUEST_CONNECT, data, m_eventComponentId, utl::NETWORK_CLIENT);
     }

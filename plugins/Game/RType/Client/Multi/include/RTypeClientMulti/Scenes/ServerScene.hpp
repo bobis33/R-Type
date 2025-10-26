@@ -46,7 +46,7 @@ namespace gme
                                                               "Back"};
 
             void connectServer(const std::string &playerName, const std::string &serverIP,
-                               const std::string &serverPort);
+                               const std::string &serverPort) const;
 
             std::string m_playerName = "Player";
             std::string m_serverIP = "0.0.0.0";

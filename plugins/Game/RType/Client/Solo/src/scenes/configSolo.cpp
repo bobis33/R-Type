@@ -1,8 +1,4 @@
-#include <cmath>
-#include <ranges>
-
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "RTypeClientSolo/Scenes/ConfigSolo.hpp"
 #include "Utils/Common.hpp"
 
@@ -103,7 +99,6 @@ void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
 
     auto &colors = reg.getAll<ecs::Color>();
     auto &texts = reg.getAll<ecs::Text>();
-    auto &audios = reg.getAll<ecs::Audio>();
 
     m_animationTime += dt;
     m_titlePulseTime += dt;
@@ -128,7 +123,7 @@ void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
 
             if (i == m_selectedIndex)
             {
-                float glowIntensity = std::sin(m_animationTime * 2.5f);
+                const float glowIntensity = std::sin(m_animationTime * 2.5f);
                 color.r = 0U;
                 color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
                 color.b = 255U;
@@ -145,7 +140,7 @@ void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
     }
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
-        float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
+        const float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
         titleColor->r = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.r * pulsation);
         titleColor->g = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.g * pulsation);
         titleColor->b = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.b * pulsation);

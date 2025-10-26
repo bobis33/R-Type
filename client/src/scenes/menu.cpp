@@ -1,10 +1,7 @@
-#include <cmath>
 #include <ranges>
-#include <utility>
 
 #include "Client/Scenes/Menu.hpp"
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "Utils/Common.hpp"
 
 cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
@@ -139,7 +136,7 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Pixel>("shooting_star")
             .with<ecs::Transform>("shooting_transform", static_cast<float>(std::rand() % screenWidth),
                                   static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("shooting_color", utl::Config::Color::SHOOTING_STAR.r, utl::Config::Color::SHOOTING_STAR.g, utl::Config::Color::SHOOTING_STAR.b, utl::Config::Color::SHOOTING_STAR.a)
+            .with<ecs::Color>("shooting_color", utl::Config::Color::YELLOW.r, utl::Config::Color::YELLOW.g, utl::Config::Color::YELLOW.b, utl::Config::Color::YELLOW.a)
             .with<ecs::Velocity>("shooting_vel", -80.0f, static_cast<float>((std::rand() % 20) - 10))
             .build();
     }
