@@ -13,7 +13,7 @@ namespace gme
 {
 
     ///
-    /// @class IGameClient
+    /// @interface IGameClient
     /// @brief Interface for the games
     /// @namespace gme
     ///

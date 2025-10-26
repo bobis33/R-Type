@@ -21,7 +21,7 @@ namespace gme
     };
 
     ///
-    /// @class IGameServer
+    /// @interface IGameServer
     /// @brief Interface for the games
     /// @namespace gme
     ///
@@ -36,5 +36,4 @@ namespace gme
 
         private:
     }; // class IGameServer
-
 } // namespace gme

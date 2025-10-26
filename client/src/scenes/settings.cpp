@@ -7,12 +7,6 @@
 #include "Interfaces/IAudio.hpp"
 #include "Utils/Common.hpp"
 
-static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
-static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
-static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
-static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
-
 cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                         const std::shared_ptr<eng::IAudio> &audio, const AppConfig &config)
     : AScene(assignedId), m_renderer(renderer), m_audio(audio), m_appConfig(config)
@@ -82,7 +76,7 @@ cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRe
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("title", std::string("SETTINGS"), 72U)
             .build();
 
@@ -91,45 +85,45 @@ cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRe
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_setting_" + std::to_string(i), 100.F, 200.F + i * 50.F, 0.F)
-            .with<ecs::Color>("color_setting_" + std::to_string(i), GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                              GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Color>("color_setting_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("setting_" + m_settingsOptions[i], m_settingsOptions[i], 32U)
             .build();
     }
     m_volumeValueEntity = registry.createEntity()
                               .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                               .with<ecs::Transform>("transform_volume_value", 580.F, 200.F, 0.F)
-                              .with<ecs::Color>("color_volume_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
-                                                TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                              .with<ecs::Color>("color_volume_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
+                                                utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                               .with<ecs::Text>("volume_value", std::string("50"), 24U)
                               .build();
     m_qualityValueEntity = registry.createEntity()
                                .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                .with<ecs::Transform>("transform_quality_value", 580.F, 250.F, 0.F)
-                               .with<ecs::Color>("color_quality_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
-                                                 TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                               .with<ecs::Color>("color_quality_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
+                                                 utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                .with<ecs::Text>("quality_value", std::string("Medium"), 24U)
                                .build();
     m_controlValueEntity = registry.createEntity()
                                .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                .with<ecs::Transform>("transform_control_value", 580.F, 300.F, 0.F)
-                               .with<ecs::Color>("color_control_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
-                                                 TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                               .with<ecs::Color>("color_control_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
+                                                 utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                .with<ecs::Text>("control_value", std::string("WASD"), 24U)
                                .build();
 
     m_skinSpriteEntity = registry.createEntity()
                              .with<ecs::Transform>("transform_skin_sprite", 580.F, 345.F, 0.F)
                              .with<ecs::Scale>("scale_skin_sprite", 2.0f, 2.0f)
-                             .with<ecs::Color>("color_skin_sprite", WHITE.r, WHITE.g, WHITE.b, WHITE.a)
+                             .with<ecs::Color>("color_skin_sprite", utl::Config::Color::WHITE.r, utl::Config::Color::WHITE.g, utl::Config::Color::WHITE.b, utl::Config::Color::WHITE.a)
                              .with<ecs::Rect>("rect_skin_sprite", 0.0f, 0.0f, 33, 17)
                              .with<ecs::Texture>("skin_sprite", "assets/sprites/r-typesheet42.gif")
                              .build();
     registry.createEntity()
         .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
         .with<ecs::Transform>("transform_instruction", 80.F, 480.F, 0.F)
-        .with<ecs::Color>("color_instruction", INFO_TEXT_COLOR.r, INFO_TEXT_COLOR.g, INFO_TEXT_COLOR.b,
-                          INFO_TEXT_COLOR.a)
+        .with<ecs::Color>("color_instruction", utl::Config::Color::INFO_TEXT_COLOR.r, utl::Config::Color::INFO_TEXT_COLOR.g, utl::Config::Color::INFO_TEXT_COLOR.b,
+                          utl::Config::Color::INFO_TEXT_COLOR.a)
         .with<ecs::Text>("instruction", std::string("UP/DOWN navigate, LEFT/RIGHT change, ESC back"), 16U)
         .build();
 
@@ -173,9 +167,9 @@ void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
                 }
                 else
                 {
-                    color.r = GRAY_BLUE_SUBTLE.r;
-                    color.g = GRAY_BLUE_SUBTLE.g;
-                    color.b = GRAY_BLUE_SUBTLE.b;
+                    color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                    color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                    color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
                 }
                 break;
             }
@@ -184,9 +178,9 @@ void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
         float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
-        titleColor->r = static_cast<unsigned char>(CYAN_ELECTRIC.r * pulsation);
-        titleColor->g = static_cast<unsigned char>(CYAN_ELECTRIC.g * pulsation);
-        titleColor->b = static_cast<unsigned char>(CYAN_ELECTRIC.b * pulsation);
+        titleColor->r = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.r * pulsation);
+        titleColor->g = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.g * pulsation);
+        titleColor->b = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.b * pulsation);
     }
 
     updateSettingsDisplay();
@@ -305,7 +299,7 @@ void cli::Settings::applyVideoQuality() { unsigned int frameLimit; }
 
 void cli::Settings::applySkinChange() {}
 
-void cli::Settings::playInputSound()
+void cli::Settings::playInputSound() const
 {
     if (m_selectionSoundName.empty())
         return;

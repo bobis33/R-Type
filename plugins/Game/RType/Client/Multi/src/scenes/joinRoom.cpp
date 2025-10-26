@@ -12,9 +12,9 @@ static constexpr eng::Color INFO_TEXT_COLOR = {180U, 180U, 180U, 200U};
 
 namespace gme
 {
-    JoinRoomScene::JoinRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+    JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                                  const std::shared_ptr<eng::IAudio> &audio)
-        : eng::AScene(assignedId), m_audio(audio)
+        : AScene(assignedId), m_audio(audio)
     {
         auto &registry = AScene::getRegistry();
 

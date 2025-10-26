@@ -12,8 +12,6 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstring>
-#include <iostream>
 #include <random>
 #include <ranges>
 
@@ -285,9 +283,8 @@ namespace srv
         // Remove from lobby if in one
         if (it->second.currentLobbyId != 0)
         {
-            std::uint32_t lobbyId = it->second.currentLobbyId;
             leaveLobby(sessionId);
-            broadcastLobbyUpdate(lobbyId);
+            broadcastLobbyUpdate(it->second.currentLobbyId);
         }
 
         // Remove from endpoint mapping
@@ -390,7 +387,7 @@ namespace srv
         utl::Logger::log("AsioServer: Setting up async receive...", utl::LogLevel::INFO);
         m_socket->async_receive_from(
             asio::buffer(m_recvBuffer), m_senderEndpoint,
-            [this](std::error_code ec, std::size_t bytesReceived)
+            [this](const std::error_code ec, const std::size_t bytesReceived)
             {
                 if (!ec && m_running.load())
                 {
@@ -937,9 +934,8 @@ namespace srv
     }
 
     rnp::HandlerResult AsioServer::handleEntityEvent(const std::vector<rnp::EventRecord> &events,
-                                                     const rnp::PacketContext &context)
+                                                     const rnp::PacketContext &context) const
     {
-        // Filtrer les événements d'input et les publier vers GameServer
         for (const auto &eventRecord : events)
         {
             if (eventRecord.type == rnp::EventType::INPUT)
@@ -974,7 +970,7 @@ namespace srv
 
         // Verify session exists
         std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
+        const auto clientIt = m_clients.find(context.sessionId);
         if (clientIt == m_clients.end() || !clientIt->second.isConnected)
         {
             sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session", m_senderEndpoint, context.sessionId);
@@ -993,7 +989,7 @@ namespace srv
 
         // Verify session exists and is not already in a lobby
         std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
+        const auto clientIt = m_clients.find(context.sessionId);
         if (clientIt == m_clients.end() || !clientIt->second.isConnected)
         {
             sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::UNAUTHORIZED_SESSION);
@@ -1041,7 +1037,7 @@ namespace srv
 
         // Verify session exists and is not already in a lobby
         std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
+        const auto clientIt = m_clients.find(context.sessionId);
         if (clientIt == m_clients.end() || !clientIt->second.isConnected)
         {
             sendLobbyJoinResponse(context.sessionId, packet.lobbyId, false, rnp::ErrorCode::UNAUTHORIZED_SESSION);
@@ -1076,7 +1072,7 @@ namespace srv
 
         // Verify session exists
         std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
-        auto clientIt = m_clients.find(context.sessionId);
+        const auto clientIt = m_clients.find(context.sessionId);
         if (clientIt == m_clients.end() || !clientIt->second.isConnected)
         {
             sendError(rnp::ErrorCode::UNAUTHORIZED_SESSION, "Invalid session", m_senderEndpoint, context.sessionId);
@@ -1090,7 +1086,7 @@ namespace srv
             return rnp::HandlerResult::PROCESSING_ERROR;
         }
 
-        std::uint32_t lobbyId = clientIt->second.currentLobbyId;
+        const std::uint32_t lobbyId = clientIt->second.currentLobbyId;
         leaveLobby(context.sessionId);
 
         // Broadcast update to remaining players
@@ -1099,7 +1095,7 @@ namespace srv
         return rnp::HandlerResult::SUCCESS;
     }
 
-    void AsioServer::sendLobbyList(std::uint32_t sessionId)
+    void AsioServer::sendLobbyList(const std::uint32_t sessionId)
     {
         utl::Logger::log("AsioServer: Sending lobby list to session " + std::to_string(sessionId), utl::LogLevel::INFO);
 
@@ -1109,7 +1105,7 @@ namespace srv
             response.lobbyCount = static_cast<std::uint16_t>(m_lobbies.size());
             response.lobbies.reserve(m_lobbies.size());
 
-            for (const auto &[lobbyId, lobby] : m_lobbies)
+            for (const auto &lobby : m_lobbies | std::views::values)
             {
                 response.lobbies.push_back(lobbyToLobbyInfo(lobby));
             }
@@ -1174,8 +1170,7 @@ namespace srv
         }
 
         // Check if player already in lobby
-        auto playerIt = std::find(lobby.playerSessions.begin(), lobby.playerSessions.end(), sessionId);
-        if (playerIt != lobby.playerSessions.end())
+        if (auto playerIt = std::ranges::find(lobby.playerSessions, sessionId); playerIt != lobby.playerSessions.end())
         {
             return false; // Already in lobby
         }
@@ -1194,8 +1189,8 @@ namespace srv
 
         for (auto &[lobbyId, lobby] : m_lobbies)
         {
-            auto playerIt = std::find(lobby.playerSessions.begin(), lobby.playerSessions.end(), sessionId);
-            if (playerIt != lobby.playerSessions.end())
+            if (auto playerIt = std::ranges::find(lobby.playerSessions, sessionId);
+                playerIt != lobby.playerSessions.end())
             {
                 lobby.playerSessions.erase(playerIt);
 

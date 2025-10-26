@@ -21,7 +21,7 @@ namespace eng
     };
 
     ///
-    /// @class IAudio
+    /// @interface IAudio
     /// @brief Interface for the audio
     /// @namespace eng
     ///
@@ -38,5 +38,4 @@ namespace eng
 
         private:
     }; // class IAudio
-
 } // namespace eng

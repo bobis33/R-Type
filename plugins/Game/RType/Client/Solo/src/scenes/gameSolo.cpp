@@ -9,7 +9,7 @@
 #include "Utils/Common.hpp"
 
 gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                        const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug)
+                        const std::shared_ptr<eng::IAudio> &audio, const int skinIndex, bool &showDebug)
     : AScene(assignedId), m_audio(audio), m_renderer(renderer), m_skinIndex(skinIndex), m_showDebug(showDebug)
 {
     auto &registry = AScene::getRegistry();
@@ -27,16 +27,13 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
             const auto *transform = registry.getComponent<ecs::Transform>(e);
             const auto *hitBox = registry.getComponent<ecs::Hitbox>(e);
 
-            // if hitBox, createCircleShape from renderer
             if (hitBox && transform)
             {
-                float hitboxX = transform->x + hitBox->offsetX;
-                float hitboxY = transform->y + hitBox->offsetY;
                 renderer->createCircleShape({.name = "hitbox_" + std::to_string(e),
                                              .radius = hitBox->radius,
                                              .color = {.r = 255, .g = 0, .b = 0, .a = 100},
-                                             .x = hitboxX,
-                                             .y = hitboxY,
+                                             .x = transform->x + hitBox->offsetX,
+                                             .y = transform->y + hitBox->offsetY,
                                              .outline_thickness = 1.0f,
                                              .outline_color = {.r = 255, .g = 0, .b = 0, .a = 200}});
             }
@@ -109,16 +106,6 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
 void gme::GameSolo::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
-    const auto &audios = reg.getAll<ecs::Audio>();
-
-    for (const auto &audio : audios)
-    {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
-        {
-            m_audio->stopAudio(audio.second.id);
-        }
-    }
-
     static bool starfieldCreated = false;
     if (!starfieldCreated)
     {
@@ -166,7 +153,7 @@ void gme::GameSolo::updatePlayerSkin()
 
     if (playerRect != nullptr)
     {
-        const float skinPosY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        const float skinPosY = m_skinIndex * GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }
 }

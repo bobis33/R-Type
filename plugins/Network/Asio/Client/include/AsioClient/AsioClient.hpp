@@ -321,7 +321,7 @@ namespace eng
             /// @return Handler result
             ///
             rnp::HandlerResult handleLobbyListResponse(const rnp::PacketLobbyListResponse &packet,
-                                                       const rnp::PacketContext &context);
+                                                       const rnp::PacketContext &context) const;
 
             ///
             /// @brief Handle LOBBY_CREATE_RESPONSE packet
@@ -348,7 +348,7 @@ namespace eng
             /// @return Handler result
             ///
             rnp::HandlerResult handleLobbyUpdate(const rnp::PacketLobbyUpdate &packet,
-                                                 const rnp::PacketContext &context);
+                                                 const rnp::PacketContext &context) const;
 
             ///
             /// @brief Handle GAME_START packet
@@ -356,7 +356,7 @@ namespace eng
             /// @param context Packet context
             /// @return Handler result
             ///
-            rnp::HandlerResult handleGameStart(const rnp::PacketGameStart &packet, const rnp::PacketContext &context);
+            rnp::HandlerResult handleGameStart(const rnp::PacketGameStart &packet, const rnp::PacketContext &context) const;
 
             ///
             /// @brief Send CONNECT packet

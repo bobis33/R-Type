@@ -36,7 +36,7 @@ namespace gme
             std::function<void(const std::string &option)> onOptionSelected;
 
         private:
-            void playInputSound();
+            void playInputSound() const;
 
             std::unordered_map<eng::Key, bool> m_keysPressed;
             ecs::Entity m_fpsEntity;

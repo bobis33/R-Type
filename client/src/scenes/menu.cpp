@@ -7,14 +7,6 @@
 #include "Interfaces/IAudio.hpp"
 #include "Utils/Common.hpp"
 
-static constexpr eng::Color CYAN_ELECTRIC = {.r = 0U, .g = 191U, .b = 255U, .a = 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {.r = 160U, .g = 160U, .b = 160U, .a = 255U};
-static constexpr eng::Color STAR_BG = {.r = 100U, .g = 100U, .b = 150U, .a = 80U};
-static constexpr eng::Color STAR_MID = {.r = 150U, .g = 150U, .b = 200U, .a = 120U};
-static constexpr eng::Color SHOOTING_STAR = {.r = 255U, .g = 255U, .b = 200U, .a = 200U};
-static constexpr eng::Color CYAN_ELECTRIC_PARTICLES = {.r = 0U, .g = 191U, .b = 255U, .a = 100U};
-static constexpr eng::Color CYAN_ELECTRIC_FOREGROUND = {.r = 0U, .g = 191U, .b = 255U, .a = 180U};
-
 cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                 const std::shared_ptr<eng::IAudio> &audio)
     : AScene(assignedId), m_audio(audio)
@@ -93,7 +85,7 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("id", std::string("RTYPE"), 72U)
             .build();
 
@@ -102,8 +94,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b,
-                              GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Color>("color_menu", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 32U)
             .build();
     }
@@ -116,7 +108,7 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Pixel>("star_background")
             .with<ecs::Transform>("star_bg_transform", static_cast<float>(std::rand() % screenWidth),
                                   static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_bg_color", STAR_BG.r, STAR_BG.g, STAR_BG.b, STAR_BG.a)
+            .with<ecs::Color>("star_bg_color", utl::Config::Color::STAR_BG.r, utl::Config::Color::STAR_BG.g, utl::Config::Color::STAR_BG.b, utl::Config::Color::STAR_BG.a)
             .with<ecs::Velocity>("star_bg_vel", -10.0f, 0.0f)
             .build();
     }
@@ -126,7 +118,7 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Pixel>("star_middle")
             .with<ecs::Transform>("star_mid_transform", static_cast<float>(std::rand() % screenWidth),
                                   static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_mid_color", STAR_MID.r, STAR_MID.g, STAR_MID.b, STAR_MID.a)
+            .with<ecs::Color>("star_mid_color", utl::Config::Color::STAR_MID.r, utl::Config::Color::STAR_MID.g, utl::Config::Color::STAR_MID.b, utl::Config::Color::STAR_MID.a)
             .with<ecs::Velocity>("star_mid_vel", -25.0f, 0.0f)
             .build();
     }
@@ -136,8 +128,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Pixel>("star_foreground")
             .with<ecs::Transform>("star_fg_transform", static_cast<float>(std::rand() % screenWidth),
                                   static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("star_fg_color", CYAN_ELECTRIC_FOREGROUND.r, CYAN_ELECTRIC_FOREGROUND.g,
-                              CYAN_ELECTRIC_FOREGROUND.b, CYAN_ELECTRIC_FOREGROUND.a)
+            .with<ecs::Color>("star_fg_color", utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.r, utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.g,
+                              utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.b, utl::Config::Color::CYAN_ELECTRIC_FOREGROUND.a)
             .with<ecs::Velocity>("star_fg_vel", -50.0f, 0.0f)
             .build();
     }
@@ -147,7 +139,7 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Pixel>("shooting_star")
             .with<ecs::Transform>("shooting_transform", static_cast<float>(std::rand() % screenWidth),
                                   static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("shooting_color", SHOOTING_STAR.r, SHOOTING_STAR.g, SHOOTING_STAR.b, SHOOTING_STAR.a)
+            .with<ecs::Color>("shooting_color", utl::Config::Color::SHOOTING_STAR.r, utl::Config::Color::SHOOTING_STAR.g, utl::Config::Color::SHOOTING_STAR.b, utl::Config::Color::SHOOTING_STAR.a)
             .with<ecs::Velocity>("shooting_vel", -80.0f, static_cast<float>((std::rand() % 20) - 10))
             .build();
     }
@@ -157,8 +149,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Pixel>("cyan_particle")
             .with<ecs::Transform>("cyan_transform", static_cast<float>(std::rand() % screenWidth),
                                   static_cast<float>(std::rand() % screenHeight), 0.0f)
-            .with<ecs::Color>("cyan_color", CYAN_ELECTRIC_PARTICLES.r, CYAN_ELECTRIC_PARTICLES.g,
-                              CYAN_ELECTRIC_PARTICLES.b, CYAN_ELECTRIC_PARTICLES.a)
+            .with<ecs::Color>("cyan_color", utl::Config::Color::CYAN_ELECTRIC_PARTICLES.r, utl::Config::Color::CYAN_ELECTRIC_PARTICLES.g,
+                              utl::Config::Color::CYAN_ELECTRIC_PARTICLES.b, utl::Config::Color::CYAN_ELECTRIC_PARTICLES.a)
             .with<ecs::Velocity>("cyan_vel", -35.0f, static_cast<float>((std::rand() % 10) - 5))
             .build();
     }
@@ -177,8 +169,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_contributors", static_cast<float>(renderer->getWindowSize().width * 0.9F),
                                   static_cast<float>(renderer->getWindowSize().height * 0.9F))
-            .with<ecs::Color>("color_contributors", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g, GRAY_BLUE_SUBTLE.b,
-                              GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Color>("color_contributors", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("contributors_text", contributorsText, 24U)
             .build();
 
@@ -197,9 +189,9 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
         const float pulse = (std::sin(m_titlePulseTime * 1.2f) + 1.0f) * 0.5f;
-        titleColor->r = static_cast<uint8_t>(CYAN_ELECTRIC.r * (0.8f + pulse * 0.2f));
-        titleColor->g = static_cast<uint8_t>(CYAN_ELECTRIC.g * (0.8f + pulse * 0.2f));
-        titleColor->b = static_cast<uint8_t>(CYAN_ELECTRIC.b * (0.9f + pulse * 0.1f));
+        titleColor->r = static_cast<uint8_t>(utl::Config::Color::CYAN_ELECTRIC.r * (0.8f + pulse * 0.2f));
+        titleColor->g = static_cast<uint8_t>(utl::Config::Color::CYAN_ELECTRIC.g * (0.8f + pulse * 0.2f));
+        titleColor->b = static_cast<uint8_t>(utl::Config::Color::CYAN_ELECTRIC.b * (0.9f + pulse * 0.1f));
     }
 
     if (auto *titleTransform = reg.getComponent<ecs::Transform>(m_titleEntity))
@@ -250,9 +242,9 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
             }
             else
             {
-                color.r = GRAY_BLUE_SUBTLE.r;
-                color.g = GRAY_BLUE_SUBTLE.g;
-                color.b = GRAY_BLUE_SUBTLE.b;
+                color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
             }
 
             i++;
@@ -354,7 +346,7 @@ void cli::Menu::event(const eng::Event &event)
     }
 }
 
-void cli::Menu::playSelectionSound()
+void cli::Menu::playSelectionSound() const
 {
     if (m_selectionSoundName.empty())
         return;

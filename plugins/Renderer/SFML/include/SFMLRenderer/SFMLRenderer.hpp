@@ -42,6 +42,7 @@ namespace eng
             void clearWindow(Color color) override;
             void displayWindow() override;
             WindowSize getWindowSize() override;
+            void setWindowIcon(const std::string &path) override;
 
             bool pollEvent(Event &event) override;
             void setFrameLimit(unsigned int frameLimit) override;

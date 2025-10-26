@@ -36,13 +36,13 @@ namespace cli
             void event(const eng::Event &event) override;
             void updateSettingsDisplay();
             void loadFromConfig();
-            void applyVideoQuality();
-            void applySkinChange();
+            static void applyVideoQuality();
+            static void applySkinChange();
 
             std::function<void()> onLeave;
 
         private:
-            void playInputSound();
+            void playInputSound() const;
 
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IRenderer> &m_renderer;

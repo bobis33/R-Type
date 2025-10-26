@@ -20,7 +20,7 @@ namespace srv
     constexpr size_t MAX_LEN_RECV_BUFFER = 1024;
 
     ///
-    /// @class INetworkServer
+    /// @interface INetworkServer
     /// @brief Interface for the server network
     /// @namespace srv
     ///
@@ -52,5 +52,4 @@ namespace srv
 
         private:
     }; // class INetworkServer
-
 } // namespace srv

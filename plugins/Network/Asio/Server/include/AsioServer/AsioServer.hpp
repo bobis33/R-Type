@@ -310,7 +310,7 @@ namespace srv
             /// @return Handler result
             ///
             rnp::HandlerResult handleEntityEvent(const std::vector<rnp::EventRecord> &events,
-                                                 const rnp::PacketContext &context);
+                                                 const rnp::PacketContext &context) const;
 
             ///
             /// @brief Handle LOBBY_LIST_REQUEST packet

@@ -859,7 +859,7 @@ namespace eng
     }
 
     rnp::HandlerResult AsioClient::handleLobbyListResponse(const rnp::PacketLobbyListResponse &packet,
-                                                           const rnp::PacketContext &context)
+                                                           const rnp::PacketContext &context) const
     {
         utl::Logger::log("AsioClient: Received lobby list with " + std::to_string(packet.lobbyCount) + " lobbies",
                          utl::LogLevel::INFO);
@@ -917,7 +917,7 @@ namespace eng
     }
 
     rnp::HandlerResult AsioClient::handleLobbyUpdate(const rnp::PacketLobbyUpdate &packet,
-                                                     const rnp::PacketContext &context)
+                                                     const rnp::PacketContext &context) const
     {
         utl::Logger::log("AsioClient: Received lobby update for lobby " + std::to_string(packet.lobbyInfo.lobbyId),
                          utl::LogLevel::INFO);
@@ -931,7 +931,7 @@ namespace eng
     }
 
     rnp::HandlerResult AsioClient::handleGameStart(const rnp::PacketGameStart &packet,
-                                                   const rnp::PacketContext &context)
+                                                   const rnp::PacketContext &context) const
     {
         utl::Logger::log("AsioClient: Game starting for lobby " + std::to_string(packet.lobbyId), utl::LogLevel::INFO);
 

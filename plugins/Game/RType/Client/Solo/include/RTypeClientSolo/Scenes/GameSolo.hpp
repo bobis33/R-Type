@@ -31,7 +31,7 @@ namespace gme
     {
         public:
             GameSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                     const std::shared_ptr<eng::IAudio> &audio, float skinIndex, bool &showDebug);
+                     const std::shared_ptr<eng::IAudio> &audio, int skinIndex, bool &showDebug);
             ~GameSolo() override = default;
 
             GameSolo(const GameSolo &other) = delete;
@@ -47,7 +47,7 @@ namespace gme
             ecs::Entity m_playerEntity;
             const std::shared_ptr<eng::IAudio> &m_audio;
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-            float m_skinIndex;
+            int m_skinIndex;
             std::unique_ptr<HUDSystem> m_hudSystem;
             std::unique_ptr<StarfieldSystem> m_starfieldSystem;
             std::unique_ptr<PlayerController> m_playerController;

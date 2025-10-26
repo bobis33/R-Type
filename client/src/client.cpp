@@ -6,8 +6,6 @@
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
 
-static constexpr eng::Color DARK = {.r = 0U, .g = 0U, .b = 0U, .a = 255U};
-
 cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
 {
     AppConfig appConfig;
@@ -62,6 +60,7 @@ cli::Client::Client(const ArgsConfig &cfg)
         !cfg.game_multi_lib_path.empty() ? cfg.game_multi_lib_path : utl::Path::Plugin::PLUGIN_GAME_MULTI.string());
     m_engine->getRenderer()->createWindow("R-Type Client", m_config.height, m_config.width, m_config.frameLimit,
                                           m_config.fullscreen);
+    m_engine->getRenderer()->setWindowIcon(utl::Path::Texture::ICON_PATH);
 }
 
 void cli::Client::run()
@@ -72,7 +71,7 @@ void cli::Client::run()
     while (m_engine->getState() == eng::State::RUN)
     {
         handleEvents(event);
-        m_engine->render(m_engine->getRenderer()->getWindowSize(), DARK, m_showDebug);
+        m_engine->render(m_engine->getRenderer()->getWindowSize(), utl::Config::Color::DARK, m_showDebug);
         m_engine->getNetwork()->update();
         m_gameSolo->update(m_engine->getClock()->getDeltaSeconds(), m_engine->getRenderer()->getWindowSize().width,
                            m_engine->getRenderer()->getWindowSize().height);

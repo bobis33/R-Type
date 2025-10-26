@@ -5,12 +5,9 @@
 #include "RTypeClientMulti/Scenes/ConfigMulti.hpp"
 #include "Utils/Common.hpp"
 
-static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
-
 gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                               const std::shared_ptr<eng::IAudio> &audio)
-    : eng::AScene(assignedId), m_audio(audio)
+    : AScene(assignedId), m_audio(audio)
 {
     auto &registry = AScene::getRegistry();
 
@@ -77,7 +74,7 @@ gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("title", std::string("MULTIPLAYER"), 72U)
             .build();
 
@@ -86,8 +83,8 @@ gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu_" + std::to_string(i), 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu_" + std::to_string(i), GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                              GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Color>("color_menu_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
@@ -136,9 +133,9 @@ void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
             }
             else
             {
-                color.r = GRAY_BLUE_SUBTLE.r;
-                color.g = GRAY_BLUE_SUBTLE.g;
-                color.b = GRAY_BLUE_SUBTLE.b;
+                color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
             }
             i++;
         }
@@ -146,9 +143,9 @@ void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
         float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
-        titleColor->r = static_cast<unsigned char>(CYAN_ELECTRIC.r * pulsation);
-        titleColor->g = static_cast<unsigned char>(CYAN_ELECTRIC.g * pulsation);
-        titleColor->b = static_cast<unsigned char>(CYAN_ELECTRIC.b * pulsation);
+        titleColor->r = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.r * pulsation);
+        titleColor->g = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.g * pulsation);
+        titleColor->b = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.b * pulsation);
     }
     if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
     {

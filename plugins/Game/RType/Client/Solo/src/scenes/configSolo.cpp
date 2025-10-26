@@ -1,15 +1,12 @@
 #include <cmath>
+#include <ranges>
 
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "RTypeClientSolo/Scenes/ConfigSolo.hpp"
 #include "Utils/Common.hpp"
 
-static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
-static constexpr eng::Color COLOR_MENU = {255U, 255U, 255U, 255U};
-
-gme::ConfigSolo::ConfigSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+gme::ConfigSolo::ConfigSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                             const std::shared_ptr<eng::IAudio> &audio)
     : AScene(assignedId), m_audio(audio)
 {
@@ -78,7 +75,7 @@ gme::ConfigSolo::ConfigSolo(eng::id assignedId, const std::shared_ptr<eng::IRend
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("id", std::string("SOLO"), 80U)
             .build();
 
@@ -87,7 +84,7 @@ gme::ConfigSolo::ConfigSolo(eng::id assignedId, const std::shared_ptr<eng::IRend
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", COLOR_MENU.r, COLOR_MENU.g, COLOR_MENU.b, COLOR_MENU.a)
+            .with<ecs::Color>("color_menu", utl::Config::Color::WHITE.r, utl::Config::Color::WHITE.g, utl::Config::Color::WHITE.b, utl::Config::Color::WHITE.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
@@ -113,21 +110,14 @@ void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
 
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
-        float pulse = (std::sin(m_titlePulseTime * 1.2f) + 1.0f) * 0.5f;
-        titleColor->r = static_cast<uint8_t>(CYAN_ELECTRIC.r * (0.8f + pulse * 0.2f));
-        titleColor->g = static_cast<uint8_t>(CYAN_ELECTRIC.g * (0.8f + pulse * 0.2f));
-        titleColor->b = static_cast<uint8_t>(CYAN_ELECTRIC.b * (0.9f + pulse * 0.1f));
+        const float pulse = (std::sin(m_titlePulseTime * 1.2f) + 1.0f) * 0.5f;
+        titleColor->r = static_cast<uint8_t>(utl::Config::Color::CYAN_ELECTRIC.r * (0.8f + pulse * 0.2f));
+        titleColor->g = static_cast<uint8_t>(utl::Config::Color::CYAN_ELECTRIC.g * (0.8f + pulse * 0.2f));
+        titleColor->b = static_cast<uint8_t>(utl::Config::Color::CYAN_ELECTRIC.b * (0.9f + pulse * 0.1f));
     }
     if (auto *titleTransform = reg.getComponent<ecs::Transform>(m_titleEntity))
     {
         titleTransform->y = 60.0f + std::sin(m_titlePulseTime * 0.8f) * 2.0f;
-    }
-    for (auto &audio : audios)
-    {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
-        {
-            m_audio->stopAudio(audio.second.id);
-        }
     }
     int i = 0;
     for (auto &[entity, text] : texts)
@@ -145,9 +135,9 @@ void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
             }
             else
             {
-                color.r = GRAY_BLUE_SUBTLE.r;
-                color.g = GRAY_BLUE_SUBTLE.g;
-                color.b = GRAY_BLUE_SUBTLE.b;
+                color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
             }
 
             i++;
@@ -156,9 +146,9 @@ void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
         float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
-        titleColor->r = static_cast<unsigned char>(CYAN_ELECTRIC.r * pulsation);
-        titleColor->g = static_cast<unsigned char>(CYAN_ELECTRIC.g * pulsation);
-        titleColor->b = static_cast<unsigned char>(CYAN_ELECTRIC.b * pulsation);
+        titleColor->r = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.r * pulsation);
+        titleColor->g = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.g * pulsation);
+        titleColor->b = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.b * pulsation);
     }
     if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
     {
@@ -234,7 +224,7 @@ void gme::ConfigSolo::event(const eng::Event &event)
     }
 }
 
-void gme::ConfigSolo::playInputSound()
+void gme::ConfigSolo::playInputSound() const
 {
     if (m_selectionSoundName.empty())
         return;

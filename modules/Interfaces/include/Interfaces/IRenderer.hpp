@@ -112,7 +112,7 @@ namespace eng
     };
 
     ///
-    /// @class IRenderer
+    /// @interface IRenderer
     /// @brief Interface for the renderer
     /// @namespace eng
     ///
@@ -127,6 +127,7 @@ namespace eng
             virtual void clearWindow(Color color) = 0;
             virtual void displayWindow() = 0;
             [[nodiscard]] virtual WindowSize getWindowSize() = 0;
+            virtual void setWindowIcon(const std::string &path) = 0;
 
             [[nodiscard]] virtual bool pollEvent(Event &event) = 0;
             virtual void setFrameLimit(unsigned int frameLimit) = 0;
@@ -157,5 +158,4 @@ namespace eng
 
         private:
     }; // class IRenderer
-
 } // namespace eng

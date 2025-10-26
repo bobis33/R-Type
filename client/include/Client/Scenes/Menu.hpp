@@ -57,7 +57,7 @@ namespace cli
             ecs::Entity m_contributorsEntity;
             float m_contributorsOffset = 0.0f;
 
-            void playSelectionSound();
+            void playSelectionSound() const;
             void stopMenuMusic();
     }; // class Menu
 } // namespace cli

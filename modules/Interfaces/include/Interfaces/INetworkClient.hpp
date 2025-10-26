@@ -27,7 +27,7 @@ namespace eng
     };
 
     ///
-    /// @class INetworkClient
+    /// @interface INetworkClient
     /// @brief Interface for the client network
     /// @namespace eng
     ///
@@ -58,5 +58,4 @@ namespace eng
 
         private:
     }; // class INetworkClient
-
 } // namespace eng

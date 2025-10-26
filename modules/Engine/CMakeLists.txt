@@ -18,6 +18,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         "${CMAKE_SOURCE_DIR}/modules/Utils/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ecs utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE utils)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)

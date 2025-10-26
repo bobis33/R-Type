@@ -99,7 +99,7 @@ namespace gme
 
     CreateRoomScene::CreateRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                                      const std::shared_ptr<eng::IAudio> &audio)
-        : eng::AScene(assignedId), m_audio(audio)
+        : AScene(assignedId), m_audio(audio)
     {
         auto &registry = AScene::getRegistry();
 

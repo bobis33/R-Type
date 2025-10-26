@@ -23,6 +23,16 @@ bool eng::SFMLRenderer::windowIsOpen() const { return window.isOpen(); }
 
 void eng::SFMLRenderer::closeWindow() { window.close(); }
 
+void eng::SFMLRenderer::setWindowIcon(const std::string &path)
+{
+    sf::Image icon;
+    if (!icon.loadFromFile(path))
+    {
+        throw std::runtime_error("Failed to load icon: " + path);
+    }
+    window.setIcon(icon.getSize(), icon.getPixelsPtr());
+}
+
 void eng::SFMLRenderer::setFrameLimit(const unsigned int frameLimit) { window.setFramerateLimit(frameLimit); }
 
 void eng::SFMLRenderer::createFont(const std::string &name, const std::string &path)

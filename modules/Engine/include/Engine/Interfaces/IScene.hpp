@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include <Utils/EventBus.hpp>
 #include <cstdint>
 #include <string>
 
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
+#include "Utils/EventBus.hpp"
 
 namespace eng
 {
@@ -20,7 +20,7 @@ namespace eng
     using id = unsigned int;
 
     ///
-    /// @class IScene
+    /// @interface IScene
     /// @brief interface class for scene
     /// @namespace eng
     ///
@@ -45,7 +45,7 @@ namespace eng
 
     ///
     /// @class AScene
-    /// @brief Class for scene
+    /// @brief Abstract class for scene
     /// @namespace eng
     ///
     class AScene : public IScene

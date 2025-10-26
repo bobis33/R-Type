@@ -1,4 +1,3 @@
-#include <array>
 #include <cmath>
 
 #include "ECS/Component.hpp"
@@ -8,15 +7,8 @@
 #include "Utils/Common.hpp"
 #include "Utils/Event.hpp"
 
-static constexpr eng::Color CYAN_ELECTRIC = {0U, 191U, 255U, 255U};
-static constexpr eng::Color GRAY_BLUE_SUBTLE = {160U, 160U, 160U, 255U};
-static constexpr eng::Color TEXT_VALUE_COLOR = {200U, 200U, 255U, 255U};
-static constexpr eng::Color WHITE = {255U, 255U, 255U, 255U};
-
-namespace gme
+static char keyToChar(const eng::Key key, bool shift = false)
 {
-    static char keyToChar(eng::Key key, bool shift = false)
-    {
         switch (key)
         {
             case eng::Key::Q:
@@ -103,7 +95,7 @@ namespace gme
         }
     }
 
-    ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+    gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                              const std::shared_ptr<eng::IAudio> &audio)
         : AScene(assignedId), m_audio(audio)
     {
@@ -137,7 +129,7 @@ namespace gme
             registry.createEntity()
                 .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                 .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-                .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
+                .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
                 .with<ecs::Text>("title", std::string("SERVER"), 72U)
                 .build();
         for (size_t i = 0; i < m_serverOptions.size(); ++i)
@@ -154,32 +146,32 @@ namespace gme
             registry.createEntity()
                 .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                 .with<ecs::Transform>("transform_option_" + std::to_string(i), 100.F, yPosition, 0.F)
-                .with<ecs::Color>("color_option_" + std::to_string(i), GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
-                                  GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
+                .with<ecs::Color>("color_option_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
+                                  utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
                 .with<ecs::Text>("option_" + m_serverOptions[i], m_serverOptions[i], 32U)
                 .build();
         }
         m_playerNameValueEntity = registry.createEntity()
                                       .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                       .with<ecs::Transform>("transform_player_name_value", 580.F, 200.F, 0.F)
-                                      .with<ecs::Color>("color_player_name_value", TEXT_VALUE_COLOR.r,
-                                                        TEXT_VALUE_COLOR.g, TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                                      .with<ecs::Color>("color_player_name_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
+                                                        utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                       .with<ecs::Text>("player_name_value", m_playerName, 24U)
                                       .build();
 
         m_serverIPValueEntity = registry.createEntity()
                                     .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                     .with<ecs::Transform>("transform_server_ip_value", 580.F, 250.F, 0.F)
-                                    .with<ecs::Color>("color_server_ip_value", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
-                                                      TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                                    .with<ecs::Color>("color_server_ip_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
+                                                      utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                     .with<ecs::Text>("server_ip_value", m_serverIP, 24U)
                                     .build();
 
         m_serverPortValueEntity = registry.createEntity()
                                       .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                                       .with<ecs::Transform>("transform_server_port_value", 580.F, 300.F, 0.F)
-                                      .with<ecs::Color>("color_server_port_value", TEXT_VALUE_COLOR.r,
-                                                        TEXT_VALUE_COLOR.g, TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
+                                      .with<ecs::Color>("color_server_port_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
+                                                        utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
                                       .with<ecs::Text>("server_port_value", m_serverPort, 24U)
                                       .build();
 
@@ -212,9 +204,9 @@ namespace gme
                     }
                     else
                     {
-                        color.r = GRAY_BLUE_SUBTLE.r;
-                        color.g = GRAY_BLUE_SUBTLE.g;
-                        color.b = GRAY_BLUE_SUBTLE.b;
+                        color.r = utl::Config::Color::GRAY_BLUE_SUBTLE.r;
+                        color.g = utl::Config::Color::GRAY_BLUE_SUBTLE.g;
+                        color.b = utl::Config::Color::GRAY_BLUE_SUBTLE.b;
                     }
                     break;
                 }
@@ -266,9 +258,7 @@ namespace gme
                 {
                     if (m_selectedIndex < 3)
                     {
-                        char c = keyToChar(event.key);
-
-                        if (c != '\0')
+                        if (const char c = keyToChar(event.key); c != '\0')
                         {
                             std::string &currentField = getCurrentEditField();
                             if (c == ' ' && m_selectedIndex != 0)
@@ -324,4 +314,3 @@ namespace gme
 
         m_eventBus.publish(utl::EventType::REQUEST_CONNECT, data, m_eventComponentId, utl::NETWORK_CLIENT);
     }
-} // namespace gme
