@@ -21,7 +21,7 @@ namespace gme
 {
     struct AppConfig;
 
-    class PlayerDirectionSystem final : public eng::ASystem
+    class PlayerDirectionSystem final : public ecs::ASystem
     {
         public:
             explicit PlayerDirectionSystem(const int skinIndex) : m_skinIndex(skinIndex) {}

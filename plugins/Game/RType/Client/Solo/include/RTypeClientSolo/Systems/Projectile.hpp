@@ -16,7 +16,7 @@
 namespace gme
 {
 
-    class ProjectileSystem final : public eng::ASystem
+    class ProjectileSystem final : public ecs::ASystem
     {
         public:
             explicit ProjectileSystem(const std::shared_ptr<eng::IRenderer> & /* renderer */) {}

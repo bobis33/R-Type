@@ -1,8 +1,8 @@
 #include "Client/Client.hpp"
+#include "ECS/Systems/Systems.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Menu.hpp"
 #include "Client/Scenes/Settings.hpp"
-#include "Client/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
 
@@ -89,22 +89,22 @@ void cli::Client::setupScenes()
 {
     auto menuId = m_engine->getSceneManager()->generateNextId();
     auto menu = std::make_unique<Menu>(menuId, m_engine->getRenderer(), m_engine->getAudio());
-    menu->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    menu->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    menu->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    menu->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    menu->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    menu->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume));
+    menu->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    menu->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    menu->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    menu->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
 
     m_gameSolo->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
     m_gameMulti->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
 
     auto settingsId = m_engine->getSceneManager()->generateNextId();
     auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_engine->getAudio(), m_config);
-    settings->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), m_config));
-    settings->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    settings->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    settings->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    settings->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    settings->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume));
+    settings->addSystem(std::make_unique<ecs::PixelSystem>(m_engine->getRenderer()));
+    settings->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    settings->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    settings->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     const auto configSoloId = m_gameSolo->getMainSceneId();
     const auto serverSceneId = m_gameMulti->getMainSceneId();
     menu->onOptionSelected = [this, configSoloId, serverSceneId, settingsId](const std::string &option)

@@ -58,5 +58,4 @@ namespace cli
 
         private:
     }; // class ArgsHandler
-
 } // namespace cli

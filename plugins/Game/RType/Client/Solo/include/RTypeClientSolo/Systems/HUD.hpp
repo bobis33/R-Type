@@ -14,7 +14,7 @@
 namespace gme
 {
 
-    class HUDSystem final : public eng::ASystem
+    class HUDSystem final : public ecs::ASystem
     {
         public:
             explicit HUDSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

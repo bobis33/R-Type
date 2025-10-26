@@ -24,7 +24,7 @@ namespace cli
             bool fullscreen = utl::Config::Window::DEFAULT_WINDOW_FULLSCREEN;
             std::string host = utl::Config::Network::DEFAULT_NETWORK_HOST;
             unsigned int port = utl::Config::Network::DEFAULT_NETWORK_PORT;
-            int audioVolume = utl::Config::Audio::DEFAULT_AUDIO_VOLUME;
+            float audioVolume = utl::Config::Audio::DEFAULT_AUDIO_VOLUME;
             int videoQuality = utl::Config::Game::DEFAULT_VIDEO_QUALITY;
             int controlScheme = utl::Config::Game::DEFAULT_CONTROL_SCHEME;
             int skinIndex = utl::Config::Game::DEFAULT_SKIN_INDEX;
@@ -65,5 +65,4 @@ namespace cli
             AppConfig m_config;
             bool m_showDebug = false;
     }; // class Client
-
 } // namespace cli

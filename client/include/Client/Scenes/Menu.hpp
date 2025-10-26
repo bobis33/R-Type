@@ -1,7 +1,7 @@
 ///
 /// @file Menu.hpp
 /// @brief This file contains the menu scene
-/// @namespace eng
+/// @namespace cli
 ///
 
 #pragma once

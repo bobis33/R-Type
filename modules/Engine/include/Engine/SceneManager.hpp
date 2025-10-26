@@ -41,6 +41,5 @@ namespace eng
             std::unordered_map<id, std::unique_ptr<IScene>> m_scenes;
             id m_currentSceneId = 1;
             id m_nextId = 1;
-
     }; // class SceneManager
 } // namespace eng

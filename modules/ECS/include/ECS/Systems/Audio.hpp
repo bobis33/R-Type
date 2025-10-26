@@ -1,7 +1,7 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
-/// @namespace cli
+/// @file Audio.hpp
+/// @brief This file contains the audio system definition
+/// @namespace ecs
 ///
 
 #pragma once
@@ -10,20 +10,19 @@
 #include "ECS/Registry.hpp"
 #include "Interfaces/IAudio.hpp"
 
-namespace cli
+namespace ecs
 {
-    struct AppConfig;
 
     ///
     /// @class AudioSystem
-    /// @brief Class for managing entities and their components
+    /// @brief Class for audio system
     /// @namespace ecs
     ///
-    class AudioSystem final : public eng::ASystem
+    class AudioSystem final : public ASystem
     {
         public:
-            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio, const AppConfig &appConfig)
-                : m_audio(audio), m_appConfig(appConfig)
+            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio, const float &audioVolume)
+                : m_audio(audio), m_audioVolume(audioVolume)
             {
             }
             ~AudioSystem() override = default;
@@ -33,14 +32,12 @@ namespace cli
             AudioSystem(AudioSystem &&) = delete;
             AudioSystem &operator=(AudioSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float /* dt */) override
+            void update(Registry &registry, float /* dt */) override
             {
-                for (auto &[entity, audio] : registry.getAll<ecs::Audio>())
+                for (auto &[entity, audio] : registry.getAll<Audio>())
                 {
-                    float globalVolume = static_cast<float>(m_appConfig.audioVolume) / 100.0f;
-                    float effectiveVolume = audio.volume * globalVolume;
                     std::string audioName = audio.id + std::to_string(entity);
-                    m_audio->setVolume(audioName, effectiveVolume);
+                    m_audio->setVolume(audioName, audio.volume * m_audioVolume);
                     m_audio->setLoop(audioName, audio.loop);
 
                     const auto status = m_audio->isPlaying(audioName);
@@ -67,7 +64,6 @@ namespace cli
 
         private:
             const std::shared_ptr<eng::IAudio> &m_audio;
-            const AppConfig &m_appConfig;
+            const float &m_audioVolume;
     }; // class AudioSystem
-
-} // namespace cli
+} // namespace ecs

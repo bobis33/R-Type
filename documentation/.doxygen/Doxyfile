@@ -19,8 +19,11 @@ STRIP_FROM_PATH        = @CMAKE_CURRENT_SOURCE_DIR_LINUX@ \
                          @PROJECT_SOURCE_DIR_LINUX@
 INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/client/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/client/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/client/README.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/server/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/server/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/server/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/modules/README.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/ECS/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/ECS/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Engine/include \
@@ -28,31 +31,30 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/client/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Interfaces/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Utils/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/modules/Utils/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/README.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Audio/SFMLAudio/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Audio/SFMLAudio/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Audio/README.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/Asio/Client/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/Asio/Client/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/Asio/Server/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/Asio/Server/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/README.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Multi/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Multi/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Solo/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Client/Solo/src \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Server/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/RType/Server/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/README.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Renderer/SFMLRenderer/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/plugins/Renderer/SFMLRenderer/src \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Renderer/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/documentation/comparative_study.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/documentation/network_protocol_specification.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/LICENSE.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/client/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/server/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Audio/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Renderer/README.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/modules/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/README.md
 FILE_PATTERNS          = *.hpp \
                          *.cpp \
                          *.md

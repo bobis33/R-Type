@@ -1,25 +1,35 @@
 ///
-/// @file Systems.hpp
-/// @brief This file contains the system definitions
-/// @namespace eng
+/// @file ISystems.hpp
+/// @brief This file contains the interface for systems
+/// @namespace ecs
 ///
 
 #pragma once
 
 #include "ECS/Registry.hpp"
 
-namespace eng
+namespace ecs
 {
 
+    ///
+    /// @interface ISystem
+    /// @brief Interface class for system
+    /// @namespace ecs
+    ///
     class ISystem
     {
         public:
             virtual ~ISystem() = default;
-            virtual void update(ecs::Registry &registry, float dt) = 0;
+            virtual void update(Registry &registry, float dt) = 0;
             virtual bool isEnable() = 0;
             virtual void setEnable(bool enable) = 0;
     };
 
+    ///
+    /// @class ASystem
+    /// @brief Abstract class for system
+    /// @namespace ecs
+    ///
     class ASystem : public ISystem
     {
         public:
@@ -30,4 +40,4 @@ namespace eng
             bool m_isEnable = true;
     };
 
-} // namespace eng
+} // namespace ecs

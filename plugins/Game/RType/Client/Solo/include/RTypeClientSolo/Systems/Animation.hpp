@@ -14,7 +14,7 @@
 namespace gme
 {
 
-    class AnimationSystem final : public eng::ASystem
+    class AnimationSystem final : public ecs::ASystem
     {
         public:
             explicit AnimationSystem(const std::shared_ptr<eng::IRenderer> & /* renderer */) {}

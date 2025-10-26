@@ -31,7 +31,7 @@ namespace gme
     {
         public:
             GameSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                     const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug);
+                     const std::shared_ptr<eng::IAudio> &audio, float skinIndex, bool &showDebug);
             ~GameSolo() override = default;
 
             GameSolo(const GameSolo &other) = delete;

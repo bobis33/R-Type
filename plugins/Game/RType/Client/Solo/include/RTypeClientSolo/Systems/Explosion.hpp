@@ -16,7 +16,7 @@
 namespace gme
 {
 
-    class ExplosionSystem final : public eng::ISystem
+    class ExplosionSystem final : public ecs::ASystem
     {
         public:
             explicit ExplosionSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}

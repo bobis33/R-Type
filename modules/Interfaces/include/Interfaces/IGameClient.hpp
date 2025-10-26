@@ -20,7 +20,7 @@ namespace gme
     class IGameClient : public utl::IPlugin
     {
         public:
-            virtual void init(eng::Engine &engine, int &audioVolume, int skinIndex, bool &showDebug,
+            virtual void init(eng::Engine &engine, float &audioVolume, int skinIndex, bool &showDebug,
                               unsigned int menuSceneId) = 0;
             virtual void update(float deltaTime, unsigned int width, unsigned int height) = 0;
             virtual unsigned int getMainSceneId() const = 0;

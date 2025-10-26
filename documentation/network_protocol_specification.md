@@ -2,23 +2,20 @@ R-Type ProR-Type Protocol Specification (Draft)
 Author: Elliot Mas
 Date: 2025-10-02
 
-1. Introduction
----------------
+## 1. Introduction
 This document specifies the R-Type multiplayer game protocol.
 It targets fast, bandwidth-efficient client/server communication over UDP with:
 - application-level reliability,
 - compact binary payloads,
 - extensibility for future features.
 
-2. Terminology
---------------
+## 2. Terminology
 Client   : a game instance controlled by a player
 Server   : the authoritative game host managing the world state
 Packet   : a datagram transmitted between client and server
 Session  : an authenticated association between client and server, identified by a Session ID
 
-3. Transport
-------------
+## 3. Transport
 Protocol        : UDP
 Default Port    : 4567
 Byte Order      : Big Endian (network byte order)
@@ -26,8 +23,7 @@ Max Msg Size    : 512 bytes (after compression)
 Reliability     : Implemented at application level
 Rate Limits     : <= 200 packets/sec per client recommended
 
-4. Packet Header
-----------------
+## 4. Packet Header
 All packets share this structure:
 
 Type (8b)            : packet type
@@ -44,8 +40,7 @@ Payload              : type-specific data
 
 All multi-byte fields are encoded in big endian.
 
-5. Packet Types
----------------
+## 5. Packet Types
 0x01 - CONNECT
 0x02 - DISCONNECT
 0x03 - WORLD_STATE
@@ -111,8 +106,7 @@ Payload:
   uint16 msg_len
   bytes  description[msg_len]
 
-6. Reliability & Fragmentation
-------------------------------
+## 6. Reliability & Fragmentation
 - Sequence numbers: 32-bit, wraparound
 - ACK packets: selective ACK
 - Retransmission timeout: 200ms -> 1.6s max
@@ -122,8 +116,7 @@ Payload:
   uint16 frag_index
   uint16 frag_count
 
-7. Disconnect & Error Codes
----------------------------
+## 7. Disconnect & Error Codes
 Disconnect Reasons:
   0 unspecified
   1 client_request
@@ -139,8 +132,7 @@ Error Codes:
   3 rate_limited
   4 internal_error
 
-8. Event Types
---------------
+## 8. Event Types
 enum class EventType : uint8
 {
     SPAWN   = 0x01,
@@ -167,13 +159,11 @@ Example per-type data:
 - INPUT: { uint16 buttons; uint8 direction; uint8 shooting; uint32 client_time_ms; }
 - CUSTOM: opaque blob
 
-9. Security
------------
+## 9. Security
 - Session ID bound to (IP, port)
 - Sequence numbers prevent replay
 
-10. Timing
-----------
+## 10. Timing
 - Tick rate: advertised by server
 - Keepalive: PING every 5s, disconnect if no PONG after 15s
 - Clients interpolate WORLD_STATE, corrected by ENTITY_EVENT

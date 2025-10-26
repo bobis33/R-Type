@@ -18,7 +18,7 @@
 namespace gme
 {
 
-    class SpriteSystem final : public eng::ASystem
+    class SpriteSystem final : public ecs::ASystem
     {
         public:
             explicit SpriteSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
