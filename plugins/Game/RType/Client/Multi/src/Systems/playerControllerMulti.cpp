@@ -92,10 +92,6 @@ void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left
     inputData.push_back(right ? 1 : 0);
     inputData.push_back(shoot ? 1 : 0);
     
-    utl::Logger::log("PlayerControllerMulti: Sending input - up:" + std::to_string(up) + 
-                     " down:" + std::to_string(down) + " left:" + std::to_string(left) + 
-                     " right:" + std::to_string(right), utl::LogLevel::INFO);
-
     // Create EventRecord
     rnp::EventRecord eventRecord;
     eventRecord.entityId = 0;
@@ -116,6 +112,46 @@ void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left
 
 void gme::PlayerControllerMulti::update(ecs::Registry &registry, float dt)
 {
-    // In multiplayer, server controls positions
+    // Client-side prediction: Apply inputs immediately to local player
+    if (auto *transform = registry.getComponent<ecs::Transform>(m_playerEntity))
+    {
+        if (auto *velocity = registry.getComponent<ecs::Velocity>(m_playerEntity))
+        {
+            // Calculate velocity based on current key states
+            const float SPEED = 500.0f;
+            velocity->x = 0.0f;
+            velocity->y = 0.0f;
+            
+            auto checkKey = [this](eng::Key key) -> bool {
+                auto it = m_keysPressed.find(key);
+                return it != m_keysPressed.end() && it->second;
+            };
+            
+            bool up = checkKey(eng::Key::Up);
+            bool down = checkKey(eng::Key::Down);
+            bool left = checkKey(eng::Key::Left);
+            bool right = checkKey(eng::Key::Right);
+            
+            if (up) velocity->y = -SPEED;
+            if (down) velocity->y = SPEED;
+            if (left) velocity->x = -SPEED;
+            if (right) velocity->x = SPEED;
+            
+            // Normalize diagonal movement
+            if (velocity->x != 0.0f && velocity->y != 0.0f)
+            {
+                velocity->x *= 0.707f;
+                velocity->y *= 0.707f;
+            }
+            
+            // Apply velocity
+            transform->x += velocity->x * dt;
+            transform->y += velocity->y * dt;
+            
+            // Clamp to screen bounds
+            transform->x = std::max(0.0f, std::min(1920.0f, transform->x));
+            transform->y = std::max(0.0f, std::min(1080.0f, transform->y));
+        }
+    }
 }
 
