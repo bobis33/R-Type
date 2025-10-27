@@ -60,6 +60,12 @@ namespace gme
             void setupEventSubscriptions() const;
             void processEventBus();
             void handleWorldStateUpdate(const utl::Event &event);
+            
+            void updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
+                                    std::unordered_map<uint32_t, ecs::Entity> &entityMap,
+                                    float smoothFactor,
+                                    float dt,
+                                    ecs::Registry &registry);
 
             void updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
                                      std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor, float dt,
@@ -95,6 +101,10 @@ namespace gme
             };
             std::deque<PendingInput> m_inputHistory;
             uint32_t m_lastAckSeqId = 0;
+            
+            static constexpr float REMOTE_PLAYER_SMOOTH_FACTOR = 0.25f;
+            static constexpr float PROJECTILE_SMOOTH_FACTOR = 0.5f;
+            static constexpr float ENEMY_SMOOTH_FACTOR = 0.18f;
 
             static constexpr float REMOTE_PLAYER_SMOOTH_FACTOR = 0.25f;
             static constexpr float PROJECTILE_SMOOTH_FACTOR = 0.5f;

@@ -363,6 +363,40 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     m_enemyData[id].targetVy = vy;
                 }
             }
+            else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::ENEMY))
+            {
+                if (m_enemyEntities.find(entityState.id) == m_enemyEntities.end())
+                {
+                    ecs::Entity enemy = registry.createEntity()
+                        .with<ecs::Transform>("enemy_" + std::to_string(entityState.id), entityState.x, entityState.y, 0.F)
+                        .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx, entityState.vy)
+                        .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, 50, 50)
+                        .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
+                        .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id), utl::Path::Texture::TEXTURE_PLAYER)
+                        .build();
+                    
+                    m_enemyEntities[entityState.id] = enemy;
+                    
+                    m_enemyData[entityState.id] = {
+                        .targetX = entityState.x,
+                        .targetY = entityState.y,
+                        .targetVx = entityState.vx,
+                        .targetVy = entityState.vy,
+                        .currentX = entityState.x,
+                        .currentY = entityState.y,
+                        .smoothFactor = ENEMY_SMOOTH_FACTOR,
+                        .targetRotation = 0.0f,
+                        .currentRotation = 0.0f
+                    };
+                }
+                else
+                {
+                    m_enemyData[entityState.id].targetX = entityState.x;
+                    m_enemyData[entityState.id].targetY = entityState.y;
+                    m_enemyData[entityState.id].targetVx = entityState.vx;
+                    m_enemyData[entityState.id].targetVy = entityState.vy;
+                }
+            }
         }
     }
     catch (const std::exception &e)

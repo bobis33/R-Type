@@ -69,6 +69,8 @@ namespace gme
 
             float m_lastBroadcastTime = 0.0f;
             const float BROADCAST_INTERVAL = 1.0f / 60.0f; // 60 Hz
+            const float PROJECTILE_COOLDOWN = 0.3f;
+            const float PROJECTILE_SPEED = 800.0f;
 
     }; // class RTypeServer
 } // namespace gme
