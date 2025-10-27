@@ -8,16 +8,14 @@
 #include "Utils/Common.hpp"
 #include "Utils/Logger.hpp"
 
-gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                                  const std::shared_ptr<eng::IAudio> &audio)
-    : AScene(assignedId), m_audio(audio)
+gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
+    : AScene(assignedId)
 {
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
         {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
             const auto *textComp = registry.getComponent<ecs::Text>(e);
@@ -36,14 +34,6 @@ gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_pt
                          .x = transform->x,
                          .y = transform->y,
                          .name = textComp->id});
-                }
-            }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
                 }
             }
         });
@@ -185,12 +175,6 @@ void gme::JoinRoomScene::update(const float dt, const eng::WindowSize & /*size*/
 
     m_animationTime += dt;
 
-    for (auto &val : audios | std::views::values)
-    {
-        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
-            m_audio->stopAudio(val.id);
-    }
-
     for (auto &[entity, text] : texts)
     {
         if (text.id == "refresh_text")
@@ -265,11 +249,13 @@ void gme::JoinRoomScene::event(const eng::Event &event)
             }
             else if (event.key == eng::Key::Up)
             {
+                m_playMusic = true;
                 if (totalOptions > 0)
                     m_selectedIndex = (m_selectedIndex == 0) ? totalOptions - 1 : m_selectedIndex - 1;
             }
             else if (event.key == eng::Key::Down)
             {
+                m_playMusic = true;
                 if (totalOptions > 0)
                     m_selectedIndex = (m_selectedIndex == totalOptions - 1) ? 0 : m_selectedIndex + 1;
             }

@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include "Engine/Interfaces/IScene.hpp"
-#include "Interfaces/IAudio.hpp"
 
 namespace cli
 {
@@ -23,8 +22,7 @@ namespace cli
     class Settings final : public eng::AScene
     {
         public:
-            Settings(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                     const std::shared_ptr<eng::IAudio> &audio, const AppConfig &config);
+            Settings(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, AppConfig &config);
             ~Settings() override = default;
 
             Settings(const Settings &other) = delete;
@@ -36,38 +34,31 @@ namespace cli
             void event(const eng::Event &event) override;
             void updateSettingsDisplay();
             void loadFromConfig();
-            static void applyVideoQuality();
-            static void applySkinChange();
+            bool& playMusic() { return m_playMusic; }
 
             std::function<void()> onLeave;
 
         private:
-            void playInputSound() const;
+        static void applyVideoQuality();
+        static void applySkinChange();
 
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-            const std::shared_ptr<eng::IAudio> &m_audio;
-            const AppConfig &m_appConfig;
-
+            AppConfig &m_appConfig;
             size_t m_selectedIndex = 0;
             const std::vector<std::string> m_settingsOptions = {"Audio Volume", "FPS", "Controls", "Skin",
                                                                 "Back to Menu"};
-
             float m_audioVolume = 50.0F;
             int m_videoQuality = 1;
             int m_controlScheme = 2;
             int m_skinIndex = 0;
-
             ecs::Entity m_volumeValueEntity;
             ecs::Entity m_qualityValueEntity;
             ecs::Entity m_controlValueEntity;
             ecs::Entity m_skinSpriteEntity;
             ecs::Entity m_titleEntity;
-
             float m_animationTime = 0.0f;
             float m_titlePulseTime = 0.0f;
-
-            ecs::Entity m_selectionSoundEntity;
-            std::string m_selectionSoundName;
+            bool m_playMusic = false;
     }; // class Settings
 } // namespace cli

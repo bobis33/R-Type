@@ -14,11 +14,6 @@
 
 namespace gme
 {
-    class PlayerController;
-} // namespace gme
-
-namespace gme
-{
     ///
     /// @class GameSolo
     /// @brief GameSolo scene
@@ -27,8 +22,8 @@ namespace gme
     class GameSolo final : public eng::AScene
     {
         public:
-            GameSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                     const std::shared_ptr<eng::IAudio> &audio, int skinIndex, bool &showDebug);
+            GameSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
+                     int skinIndex, bool &showDebug);
             ~GameSolo() override = default;
 
             GameSolo(const GameSolo &other) = delete;
@@ -38,14 +33,15 @@ namespace gme
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
+
             void updatePlayerSkin();
 
         private:
             void handlePlayerInputs(ecs::Registry &registry, float dt);
             static ecs::Entity createPlayer(ecs::Registry &registry);
 
-            const std::shared_ptr<eng::IAudio> &m_audio;
             const std::shared_ptr<eng::IRenderer> &m_renderer;
+            const std::shared_ptr<eng::IAudio> &m_audio;
             std::unordered_map<eng::Key, bool> m_keysPressed;
             ecs::Entity m_playerEntity;
             int m_skinIndex;

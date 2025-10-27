@@ -7,16 +7,14 @@
 #include "Utils/Common.hpp"
 #include "Utils/Logger.hpp"
 
-gme::WaitingRoomScene::WaitingRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                                        const std::shared_ptr<eng::IAudio> &audio)
-    : AScene(assignedId), m_renderer(renderer), m_audio(audio)
+gme::WaitingRoomScene::WaitingRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
+    : AScene(assignedId), m_renderer(renderer)
 {
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
         {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
             const auto *textComp = registry.getComponent<ecs::Text>(e);
@@ -35,14 +33,6 @@ gme::WaitingRoomScene::WaitingRoomScene(const eng::id assignedId, const std::sha
                          .x = transform->x,
                          .y = transform->y,
                          .name = textComp->id});
-                }
-            }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
                 }
             }
         });
@@ -167,13 +157,12 @@ void gme::WaitingRoomScene::update(const float dt, const eng::WindowSize & /*siz
     m_animationTime += dt;
     auto &registry = AScene::getRegistry();
 
-    // Update button selection visual
     auto *leaveColor = registry.getComponent<ecs::Color>(m_leaveButtonEntity);
     auto *readyColor = registry.getComponent<ecs::Color>(m_readyButtonEntity);
     auto *leaveText = registry.getComponent<ecs::Text>(m_leaveButtonEntity);
     auto *readyText = registry.getComponent<ecs::Text>(m_readyButtonEntity);
 
-    if (leaveColor && readyColor && leaveText && readyText)
+    if ((leaveColor != nullptr) && (readyColor != nullptr) && (leaveText != nullptr) && (readyText != nullptr))
     {
         if (m_selectedButton == BUTTON_LEAVE)
         {
@@ -217,10 +206,12 @@ void gme::WaitingRoomScene::event(const eng::Event &event)
         case eng::EventType::KeyPressed:
             if (event.key == eng::Key::Up)
             {
+                m_playMusic = true;
                 m_selectedButton = (m_selectedButton - 1 + BUTTON_COUNT) % BUTTON_COUNT;
             }
             else if (event.key == eng::Key::Down)
             {
+                m_playMusic = true;
                 m_selectedButton = (m_selectedButton + 1) % BUTTON_COUNT;
             }
             else if (event.key == eng::Key::Enter || event.key == eng::Key::Space)
@@ -276,13 +267,11 @@ void gme::WaitingRoomScene::updatePlayerDisplay()
 
     auto &registry = AScene::getRegistry();
 
-    // Update lobby ID
     if (auto *lobbyIdText = registry.getComponent<ecs::Text>(m_lobbyIdEntity))
     {
         lobbyIdText->content = "Lobby ID: " + std::to_string(m_currentLobbyInfo.lobbyId);
     }
 
-    // Update player count
     if (auto *playerCountText = registry.getComponent<ecs::Text>(m_playerCountEntity))
     {
         playerCountText->content = "Players: " + std::to_string(m_currentLobbyInfo.currentPlayers) + "/" +
@@ -311,7 +300,7 @@ void gme::WaitingRoomScene::updatePlayerDisplay()
         constexpr float startY = 320.0F;
         constexpr float spacing = 40.0F;
         std::string playerText;
-        eng::Color playerColor;
+        eng::Color playerColor{};
 
         if (i < m_currentLobbyInfo.currentPlayers)
         {

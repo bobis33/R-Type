@@ -7,7 +7,6 @@
 #pragma once
 
 #include "Engine/Interfaces/IScene.hpp"
-#include "Interfaces/IAudio.hpp"
 
 namespace gme
 {
@@ -19,8 +18,7 @@ namespace gme
     class ServerScene final : public eng::AScene
     {
         public:
-            ServerScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                        const std::shared_ptr<eng::IAudio> &audio);
+            ServerScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer);
             ~ServerScene() override = default;
 
             ServerScene(const ServerScene &other) = delete;
@@ -31,14 +29,14 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
+            bool& playMusic() { return m_playMusic; }
+
             std::function<void(const std::string &playerName, const std::string &serverIP,
                                const std::string &serverPort)>
                 onConnect;
             std::function<void()> onBackToMenu;
 
         private:
-            const std::shared_ptr<eng::IAudio> &m_audio;
-
             size_t m_selectedIndex = 0;
             float m_animationTime = 0.0f;
             bool m_isEditing = false;
@@ -56,7 +54,7 @@ namespace gme
             ecs::Entity m_playerNameValueEntity = 0;
             ecs::Entity m_serverIPValueEntity = 0;
             ecs::Entity m_serverPortValueEntity = 0;
-
+            bool m_playMusic = false;
             std::string &getCurrentEditField();
             void updateValueDisplay();
     }; // class ServerScene

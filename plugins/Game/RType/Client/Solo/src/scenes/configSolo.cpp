@@ -4,16 +4,14 @@
 #include "RTypeClientSolo/Scenes/ConfigSolo.hpp"
 #include "Utils/Common.hpp"
 
-gme::ConfigSolo::ConfigSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                            const std::shared_ptr<eng::IAudio> &audio)
-    : AScene(assignedId), m_audio(audio)
+gme::ConfigSolo::ConfigSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
+    : AScene(assignedId)
 {
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
         {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
             const auto *rectComp = registry.getComponent<ecs::Rect>(e);
@@ -59,14 +57,6 @@ gme::ConfigSolo::ConfigSolo(const eng::id assignedId, const std::shared_ptr<eng:
                     }
                 }
             }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
-                }
-            }
         });
 
     m_titleEntity =
@@ -88,12 +78,6 @@ gme::ConfigSolo::ConfigSolo(const eng::id assignedId, const std::shared_ptr<eng:
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
-
-    m_selectionSoundEntity = registry.createEntity()
-                                 .with<ecs::Audio>("config_input", utl::Path::Audio::AUDIO_INPUT, 8.F, false, false)
-                                 .build();
-    m_selectionSoundName = "config_input" + std::to_string(m_selectionSoundEntity);
-
     m_selectedIndex = 2;
 }
 
@@ -162,6 +146,7 @@ void gme::ConfigSolo::event(const eng::Event &event)
         case eng::EventType::KeyPressed:
             if (event.key == eng::Key::Up)
             {
+                m_playMusic = true;
                 if (m_selectedIndex == 2)
                 {
                     m_selectedIndex = 0;
@@ -170,10 +155,10 @@ void gme::ConfigSolo::event(const eng::Event &event)
                 {
                     m_selectedIndex++;
                 }
-                playInputSound();
             }
             else if (event.key == eng::Key::Down)
             {
+                m_playMusic = true;
                 if (m_selectedIndex == 0)
                 {
                     m_selectedIndex = 2;
@@ -182,7 +167,6 @@ void gme::ConfigSolo::event(const eng::Event &event)
                 {
                     m_selectedIndex--;
                 }
-                playInputSound();
             }
             else if (event.key == eng::Key::Enter)
             {
@@ -221,13 +205,4 @@ void gme::ConfigSolo::event(const eng::Event &event)
         default:
             break;
     }
-}
-
-void gme::ConfigSolo::playInputSound() const
-{
-    if (m_selectionSoundName.empty())
-        return;
-
-    m_audio->stopAudio(m_selectionSoundName);
-    m_audio->playAudio(m_selectionSoundName);
 }

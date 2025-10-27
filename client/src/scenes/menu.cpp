@@ -4,16 +4,14 @@
 #include "ECS/Component.hpp"
 #include "Utils/Common.hpp"
 
-cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                const std::shared_ptr<eng::IAudio> &audio)
-    : AScene(assignedId), m_audio(audio)
+cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
+    : AScene(assignedId)
 {
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
         {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
             const auto *rectComp = registry.getComponent<ecs::Rect>(e);
@@ -59,24 +57,7 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
                     }
                 }
             }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
-                }
-            }
         });
-
-    m_menuBgmEntity =
-        registry.createEntity().with<ecs::Audio>("menu_bgm", utl::Path::Audio::AUDIO_TITLE, 1.F, false, false).build();
-    m_menuBgmName = "menu_bgm" + std::to_string(m_menuBgmEntity);
-
-    m_selectionSoundEntity = registry.createEntity()
-                                 .with<ecs::Audio>("menu_input", utl::Path::Audio::AUDIO_INPUT, 5.F, false, false)
-                                 .build();
-    m_selectionSoundName = "menu_input" + std::to_string(m_selectionSoundEntity);
 
     m_titleEntity =
         registry.createEntity()
@@ -180,10 +161,6 @@ void cli::Menu::update(const float dt, const eng::WindowSize &size)
             contributorsTransform->x = size.width * 0.9f;
         }
     }
-    if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
-    {
-        fpsText->content = "FPS " + std::to_string(static_cast<int>(1 / dt));
-    }
 }
 
 void cli::Menu::event(const eng::Event &event)
@@ -221,7 +198,6 @@ void cli::Menu::event(const eng::Event &event)
             }
             else if (event.key == eng::Key::Enter)
             {
-                stopMenuMusic();
                 const std::string &selectedOption =
                     m_menuOptions[static_cast<int>(m_menuOptions.size()) - 1 - m_selectedIndex];
                 if (onOptionSelected)
@@ -232,7 +208,7 @@ void cli::Menu::event(const eng::Event &event)
 
             if (handledNavigation && m_selectedIndex != previousIndex)
             {
-                playSelectionSound();
+                m_playMusic = true;
             }
             break;
         }
@@ -263,28 +239,4 @@ void cli::Menu::event(const eng::Event &event)
         default:
             break;
     }
-}
-
-void cli::Menu::playSelectionSound() const
-{
-    if (m_selectionSoundName.empty())
-        return;
-
-    m_audio->stopAudio(m_selectionSoundName);
-    m_audio->playAudio(m_selectionSoundName);
-}
-
-void cli::Menu::stopMenuMusic()
-{
-    if (m_menuBgmName.empty())
-        return;
-
-    auto &reg = getRegistry();
-    if (auto *audioComp = reg.getComponent<ecs::Audio>(m_menuBgmEntity))
-    {
-        audioComp->play = false;
-    }
-
-    m_audio->stopAudio(m_menuBgmName);
-    m_hasStartedMenuMusic = false;
 }

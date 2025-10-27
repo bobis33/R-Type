@@ -1,19 +1,16 @@
 #include "Client/Scenes/Settings.hpp"
 #include "Client/Client.hpp"
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "Utils/Common.hpp"
 
-cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                        const std::shared_ptr<eng::IAudio> &audio, const AppConfig &config)
-    : AScene(assignedId), m_renderer(renderer), m_audio(audio), m_appConfig(config)
+cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, AppConfig &config)
+    : AScene(assignedId), m_renderer(renderer), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
         {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
             const auto *rectComp = registry.getComponent<ecs::Rect>(e);
@@ -57,14 +54,6 @@ cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRe
                         renderer->createSprite(textureComp->id + std::to_string(e), textureComp->id, transform->x,
                                                transform->y);
                     }
-                }
-            }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
                 }
             }
         });
@@ -135,11 +124,6 @@ cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRe
         .with<ecs::Text>("instruction", std::string("UP/DOWN navigate, LEFT/RIGHT change, ESC back"), 16U)
         .build();
 
-    m_selectionSoundEntity = registry.createEntity()
-                                 .with<ecs::Audio>("settings_input", utl::Path::Audio::AUDIO_INPUT, 8.F, false, false)
-                                 .build();
-    m_selectionSoundName = "settings_input" + std::to_string(m_selectionSoundEntity);
-
     m_selectedIndex = 0;
     loadFromConfig();
 }
@@ -149,15 +133,9 @@ void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
     auto &reg = getRegistry();
     auto &colors = reg.getAll<ecs::Color>();
     auto &texts = reg.getAll<ecs::Text>();
-    auto &audios = reg.getAll<ecs::Audio>();
 
     m_animationTime += dt;
     m_titlePulseTime += dt;
-    for (auto &val : audios | std::views::values)
-    {
-        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
-            m_audio->stopAudio(val.id);
-    }
     for (auto &[entity, text] : texts)
     {
         for (size_t i = 0; i < m_settingsOptions.size(); ++i)
@@ -185,7 +163,7 @@ void cli::Settings::update(const float dt, const eng::WindowSize & /*size*/)
     }
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
-        float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
+        const float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
         titleColor->r = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.r * pulsation);
         titleColor->g = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.g * pulsation);
         titleColor->b = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.b * pulsation);
@@ -198,8 +176,9 @@ void cli::Settings::updateSettingsDisplay()
 {
     auto &registry = getRegistry();
 
-    if (auto *volumeValueText = registry.getComponent<ecs::Text>(m_volumeValueEntity))
+    if (auto *volumeValueText = registry.getComponent<ecs::Text>(m_volumeValueEntity)) {
         volumeValueText->content = std::to_string(m_audioVolume);
+}
     if (auto *qualityValueText = registry.getComponent<ecs::Text>(m_qualityValueEntity))
     {
         const std::vector<std::string> fpsOptions = {"60 FPS", "144 FPS", "240 FPS"};
@@ -233,18 +212,19 @@ void cli::Settings::event(const eng::Event &event)
             else if (event.key == eng::Key::Up)
             {
                 m_selectedIndex = (m_selectedIndex == 0) ? m_settingsOptions.size() - 1 : m_selectedIndex - 1;
-                playInputSound();
+                m_playMusic = true;
             }
             else if (event.key == eng::Key::Down)
             {
                 m_selectedIndex = (m_selectedIndex == m_settingsOptions.size() - 1) ? 0 : m_selectedIndex + 1;
-                playInputSound();
+                m_playMusic = true;
             }
             else if (event.key == eng::Key::Enter)
             {
                 if (const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
-                    selectedOption == "Back to Menu")
+                    selectedOption == "Back to Menu") {
                     onLeave();
+}
             }
             else if (event.key == eng::Key::Left || event.key == eng::Key::Right)
             {
@@ -254,32 +234,35 @@ void cli::Settings::event(const eng::Event &event)
                 {
                     const float newVolume = m_audioVolume + ((event.key == eng::Key::Right) ? 0.01F : -0.01F);
                     m_audioVolume = (std::max)(0.0F, (std::min)(10.0F, newVolume));
-                    const_cast<AppConfig &>(m_appConfig).audioVolume = m_audioVolume;
+                    m_appConfig.audioVolume = m_audioVolume;
                 }
                 else if (selectedOption == "FPS")
                 {
-                    if (event.key == eng::Key::Left)
+                    if (event.key == eng::Key::Left) {
                         m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
-                    else
+                    } else {
                         m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
-                    const_cast<AppConfig &>(m_appConfig).videoQuality = m_videoQuality;
+}
+                    m_appConfig.videoQuality = m_videoQuality;
                     applyVideoQuality();
                 }
                 else if (selectedOption == "Controls")
                 {
-                    if (event.key == eng::Key::Left)
+                    if (event.key == eng::Key::Left) {
                         m_controlScheme = (m_controlScheme == 0) ? 2 : m_controlScheme - 1;
-                    else
+                    } else {
                         m_controlScheme = (m_controlScheme == 2) ? 0 : m_controlScheme + 1;
-                    const_cast<AppConfig &>(m_appConfig).controlScheme = m_controlScheme;
+}
+                    m_appConfig.controlScheme = m_controlScheme;
                 }
                 else if (selectedOption == "Skin")
                 {
-                    if (event.key == eng::Key::Left)
+                    if (event.key == eng::Key::Left) {
                         m_skinIndex = (m_skinIndex == 0) ? 4 : m_skinIndex - 1;
-                    else
+                    } else {
                         m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
-                    const_cast<AppConfig &>(m_appConfig).skinIndex = m_skinIndex;
+}
+                    m_appConfig.skinIndex = m_skinIndex;
 
                     applySkinChange();
                 }
@@ -305,12 +288,3 @@ void cli::Settings::loadFromConfig()
 void cli::Settings::applyVideoQuality() {}
 
 void cli::Settings::applySkinChange() {}
-
-void cli::Settings::playInputSound() const
-{
-    if (m_selectionSoundName.empty())
-        return;
-
-    m_audio->stopAudio(m_selectionSoundName);
-    m_audio->playAudio(m_selectionSoundName);
-}

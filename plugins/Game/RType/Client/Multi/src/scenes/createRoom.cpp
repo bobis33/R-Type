@@ -95,16 +95,14 @@ static char keyToChar(const eng::Key key, bool shift = false)
     }
 }
 
-gme::CreateRoomScene::CreateRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                                      const std::shared_ptr<eng::IAudio> &audio)
-    : AScene(assignedId), m_audio(audio)
+gme::CreateRoomScene::CreateRoomScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
+    : AScene(assignedId)
 {
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
         {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
             const auto *textComp = registry.getComponent<ecs::Text>(e);
@@ -123,14 +121,6 @@ gme::CreateRoomScene::CreateRoomScene(const eng::id assignedId, const std::share
                          .x = transform->x,
                          .y = transform->y,
                          .name = textComp->id});
-                }
-            }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
                 }
             }
         });
@@ -185,17 +175,10 @@ void gme::CreateRoomScene::update(const float dt, const eng::WindowSize & /*size
     auto &reg = getRegistry();
     auto &colors = reg.getAll<ecs::Color>();
     auto &texts = reg.getAll<ecs::Text>();
-    auto &audios = reg.getAll<ecs::Audio>();
 
     m_animationTime += dt;
 
     processEventBus();
-
-    for (auto &val : audios | std::views::values)
-    {
-        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
-            m_audio->stopAudio(val.id);
-    }
 
     for (auto &[entity, text] : texts)
     {
@@ -236,10 +219,12 @@ void gme::CreateRoomScene::event(const eng::Event &event)
             }
             else if (event.key == eng::Key::Up)
             {
+                m_playMusic = true;
                 m_selectedIndex = (m_selectedIndex == 0) ? m_options.size() - 1 : m_selectedIndex - 1;
             }
             else if (event.key == eng::Key::Down)
             {
+                m_playMusic = true;
                 m_selectedIndex = (m_selectedIndex == m_options.size() - 1) ? 0 : m_selectedIndex + 1;
             }
             else if (event.key == eng::Key::Enter)
@@ -344,7 +329,7 @@ void gme::CreateRoomScene::processEventBus() const
         {
             rnp::Serializer serializer(event.data);
             rnp::PacketLobbyCreateResponse packet = serializer.deserializeLobbyCreateResponse();
-            if (packet.success)
+            if (packet.success != 0u)
             {
                 utl::Logger::log("CreateRoomScene: Lobby created successfully with ID " +
                                      std::to_string(packet.lobbyId),

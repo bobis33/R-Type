@@ -5,16 +5,14 @@
 #include "RTypeClientMulti/Scenes/ConfigMulti.hpp"
 #include "Utils/Common.hpp"
 
-gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                              const std::shared_ptr<eng::IAudio> &audio)
-    : AScene(assignedId), m_audio(audio)
+gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
+    : AScene(assignedId)
 {
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [&renderer, &registry](const ecs::Entity e, const std::type_info &type)
         {
-            const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
             const auto *fontComp = registry.getComponent<ecs::Font>(e);
             const auto *rectComp = registry.getComponent<ecs::Rect>(e);
@@ -60,14 +58,6 @@ gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
                     }
                 }
             }
-            else if (type == typeid(ecs::Audio))
-            {
-                if (audioComp)
-                {
-                    audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                       audioComp->id + std::to_string(e));
-                }
-            }
         });
 
     m_titleEntity =
@@ -91,12 +81,6 @@ gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
             .build();
     }
 
-    m_selectionSoundEntity =
-        registry.createEntity()
-            .with<ecs::Audio>("config_multi_input", utl::Path::Audio::AUDIO_INPUT, 8.F, false, false)
-            .build();
-    m_selectionSoundName = "config_multi_input" + std::to_string(m_selectionSoundEntity);
-
     m_selectedIndex = 2;
 }
 
@@ -106,18 +90,9 @@ void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
 
     auto &colors = reg.getAll<ecs::Color>();
     auto &texts = reg.getAll<ecs::Text>();
-    auto &audios = reg.getAll<ecs::Audio>();
 
     m_animationTime += dt;
     m_titlePulseTime += dt;
-
-    for (auto &val : audios | std::views::values)
-    {
-        if (!val.play && (m_audio->isPlaying(val.id) == eng::Status::Playing))
-        {
-            m_audio->stopAudio(val.id);
-        }
-    }
 
     int i = 0;
     for (auto &[entity, text] : texts)
@@ -149,10 +124,6 @@ void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
         titleColor->g = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.g * pulsation);
         titleColor->b = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.b * pulsation);
     }
-    if (auto *fpsText = reg.getComponent<ecs::Text>(m_fpsEntity))
-    {
-        fpsText->content = "FPS: " + std::to_string(static_cast<int>(1 / dt));
-    }
 }
 
 void gme::ConfigMulti::event(const eng::Event &event)
@@ -163,12 +134,12 @@ void gme::ConfigMulti::event(const eng::Event &event)
             if (event.key == eng::Key::Up)
             {
                 m_selectedIndex = (m_selectedIndex == 2) ? 0 : m_selectedIndex + 1;
-                playInputSound();
+                m_playMusic = true;
             }
             else if (event.key == eng::Key::Down)
             {
                 m_selectedIndex = (m_selectedIndex == 0) ? 2 : m_selectedIndex - 1;
-                playInputSound();
+                m_playMusic = true;
             }
             else if (event.key == eng::Key::Enter)
             {
@@ -186,13 +157,4 @@ void gme::ConfigMulti::event(const eng::Event &event)
         default:
             break;
     }
-}
-
-void gme::ConfigMulti::playInputSound() const
-{
-    if (m_selectionSoundName.empty())
-        return;
-
-    m_audio->stopAudio(m_selectionSoundName);
-    m_audio->playAudio(m_selectionSoundName);
 }

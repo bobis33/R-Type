@@ -9,6 +9,7 @@
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "Utils/Common.hpp"
 
 namespace ecs
 {
@@ -21,9 +22,28 @@ namespace ecs
     class AudioSystem final : public ASystem
     {
         public:
-            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio, const float &audioVolume)
-                : m_audio(audio), m_audioVolume(audioVolume)
+            explicit AudioSystem(const std::shared_ptr<eng::IAudio> &audio, const float &audioVolume, Registry &registry, bool &playSelectionMusic)
+                : m_audio(audio), m_registry(registry), m_audioVolume(audioVolume), m_playSelectionMusic(playSelectionMusic)
             {
+
+        registry.onComponentAdded(
+            [&audio, &registry](const Entity e, const std::type_info &type)
+            {
+                const auto *audioComp = registry.getComponent<Audio>(e);
+
+                if (type == typeid(Audio))
+                {
+                    if (audioComp)
+                    {
+                        audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
+                                           audioComp->id + std::to_string(e));
+                    }
+                }
+            });
+                m_selectionSoundEntity = registry.createEntity()
+                                             .with<Audio>("menu_input", utl::Path::Audio::AUDIO_INPUT, 10.F, false, false)
+                                             .build();
+                m_selectionSoundName = "menu_input" + std::to_string(m_selectionSoundEntity);
             }
             ~AudioSystem() override = default;
 
@@ -60,10 +80,24 @@ namespace ecs
                         }
                     }
                 }
+                if (m_playSelectionMusic) {
+                    if (m_selectionSoundName.empty())
+                        return;
+
+                    m_audio->stopAudio(m_selectionSoundName);
+                    m_audio->playAudio(m_selectionSoundName);
+                    m_playSelectionMusic = false;
+
+                }
             }
 
         private:
             const std::shared_ptr<eng::IAudio> &m_audio;
+            Registry &m_registry;
             const float &m_audioVolume;
+
+            Entity m_selectionSoundEntity{};
+            std::string m_selectionSoundName;
+            bool &m_playSelectionMusic;
     }; // class AudioSystem
 } // namespace ecs

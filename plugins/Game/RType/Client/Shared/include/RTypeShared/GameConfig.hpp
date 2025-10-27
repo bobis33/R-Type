@@ -27,7 +27,6 @@ namespace gme
             inline constexpr float SPRITE_HEIGHT = 17.0f;
             inline constexpr float SCALE = 2.0f;
             inline constexpr int FRAMES_PER_ROW = 5;
-            inline constexpr int TOTAL_FRAMES = 5;
         } // namespace Player
         namespace Projectile
         {
@@ -80,8 +79,8 @@ namespace gme
         } // namespace LoadingAnimation
         namespace Stage
         {
-            inline constexpr float FLOOR_OFFSET_Y = 16.0f;   // remonte le sol par rapport au bas
-            inline constexpr float CEILING_OFFSET_Y = -1.0f; // descend le plafond depuis le haut
+            inline constexpr float FLOOR_OFFSET_Y = 16.0f;
+            inline constexpr float CEILING_OFFSET_Y = -1.0f;
         } // namespace Stage
         namespace Enemy
         {

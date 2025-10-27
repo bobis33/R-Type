@@ -87,8 +87,8 @@ void cli::Client::stop() const
 void cli::Client::setupScenes()
 {
     auto menuId = m_engine->getSceneManager()->generateNextId();
-    auto menu = std::make_unique<Menu>(menuId, m_engine->getRenderer(), m_engine->getAudio());
-    menu->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume));
+    auto menu = std::make_unique<Menu>(menuId, m_engine->getRenderer());
+    menu->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume, menu->getRegistry(), menu->playMusic()));
     menu->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), menu->getRegistry()));
     menu->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
@@ -98,8 +98,8 @@ void cli::Client::setupScenes()
     m_gameMulti->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
 
     auto settingsId = m_engine->getSceneManager()->generateNextId();
-    auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_engine->getAudio(), m_config);
-    settings->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume));
+    auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_config);
+    settings->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume, settings->getRegistry(), settings->playMusic()));
     settings->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), settings->getRegistry()));
     settings->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     settings->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));

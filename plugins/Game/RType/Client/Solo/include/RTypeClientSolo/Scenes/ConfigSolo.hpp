@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include "Engine/Interfaces/IScene.hpp"
-#include "Interfaces/IAudio.hpp"
 
 namespace gme
 {
@@ -21,8 +20,7 @@ namespace gme
     class ConfigSolo final : public eng::AScene
     {
         public:
-            ConfigSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                       const std::shared_ptr<eng::IAudio> &audio);
+            ConfigSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer);
             ~ConfigSolo() override = default;
 
             ConfigSolo(const ConfigSolo &other) = delete;
@@ -32,13 +30,11 @@ namespace gme
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
+            bool &playMusic() { return m_playMusic; }
 
             std::function<void(const std::string &option)> onOptionSelected;
 
         private:
-            void playInputSound() const;
-
-            const std::shared_ptr<eng::IAudio> &m_audio;
             std::unordered_map<eng::Key, bool> m_keysPressed;
             ecs::Entity m_fpsEntity;
             ecs::Entity m_titleEntity;
@@ -47,9 +43,6 @@ namespace gme
             int m_selectedIndex = 0;
             float m_animationTime = 0.0f;
             float m_titlePulseTime = 0.0f;
-
-            // Audio pour navigation
-            ecs::Entity m_selectionSoundEntity;
-            std::string m_selectionSoundName;
+            bool m_playMusic = false;
     }; // class ConfigSolo
 } // namespace gme

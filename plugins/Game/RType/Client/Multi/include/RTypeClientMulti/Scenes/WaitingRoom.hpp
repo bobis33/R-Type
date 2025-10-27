@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Engine/Interfaces/IScene.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 
 namespace gme
@@ -23,8 +22,7 @@ namespace gme
     class WaitingRoomScene final : public eng::AScene
     {
         public:
-            WaitingRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                             const std::shared_ptr<eng::IAudio> &audio);
+            WaitingRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer);
             ~WaitingRoomScene() override = default;
 
             WaitingRoomScene(const WaitingRoomScene &other) = delete;
@@ -38,12 +36,13 @@ namespace gme
             void setLobbyId(std::uint32_t lobbyId);
             void setLobbyInfo(const rnp::LobbyInfo &lobbyInfo);
 
+            bool& playMusic() { return m_playMusic; }
+
             std::function<void()> onLeaveLobby;
             std::function<void()> onGameStart;
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-            const std::shared_ptr<eng::IAudio> &m_audio;
 
             std::uint32_t m_lobbyId = 0;
             rnp::LobbyInfo m_currentLobbyInfo;
@@ -63,7 +62,7 @@ namespace gme
             ecs::Entity m_leaveButtonEntity = 0;
             ecs::Entity m_readyButtonEntity = 0;
             std::vector<ecs::Entity> m_playerEntities;
-
+            bool m_playMusic = false;
             void setupEventSubscriptions() const;
             void processEventBus();
             void handleLobbyUpdate(const utl::Event &event);

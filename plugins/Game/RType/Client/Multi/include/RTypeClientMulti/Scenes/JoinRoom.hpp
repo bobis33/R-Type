@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "Engine/Interfaces/IScene.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 
 namespace gme
@@ -22,8 +21,7 @@ namespace gme
     class JoinRoomScene final : public eng::AScene
     {
         public:
-            JoinRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                          const std::shared_ptr<eng::IAudio> &audio);
+            JoinRoomScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer);
             ~JoinRoomScene() override = default;
 
             JoinRoomScene(const JoinRoomScene &other) = delete;
@@ -34,6 +32,9 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
+            bool& playMusic() { return m_playMusic; }
+
+
             void setRooms(const std::vector<rnp::LobbyInfo> &rooms);
             void refreshRoomList() const;
 
@@ -42,8 +43,6 @@ namespace gme
             std::function<void()> onRefreshRequest;
 
         private:
-            const std::shared_ptr<eng::IAudio> &m_audio;
-
             size_t m_selectedIndex = 0;
             float m_animationTime = 0.0f;
             std::vector<rnp::LobbyInfo> m_rooms;
@@ -53,7 +52,7 @@ namespace gme
             ecs::Entity m_refreshButtonEntity = 0;
             ecs::Entity m_backButtonEntity = 0;
             std::vector<ecs::Entity> m_roomEntities;
-
+            bool m_playMusic = false;
             void updateRoomDisplay();
             void clearRoomEntities();
             void processEventBus();
