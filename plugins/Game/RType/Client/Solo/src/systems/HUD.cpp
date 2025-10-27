@@ -2,6 +2,8 @@
 
 #include "ECS/Component.hpp"
 #include "RTypeClientSolo/Systems/HUD.hpp"
+#include "ECS/Component.hpp"
+#include "Utils/Common.hpp"
 
 void gme::HUDSystem::createScoreHUD(ecs::Registry &registry, float x, float y)
 {

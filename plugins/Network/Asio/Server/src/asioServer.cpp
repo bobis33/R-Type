@@ -926,12 +926,21 @@ namespace srv
     rnp::HandlerResult AsioServer::handleEntityEvent(const std::vector<rnp::EventRecord> &events,
                                                      const rnp::PacketContext &context) const
     {
+        utl::Logger::log("AsioServer: Received " + std::to_string(events.size()) + " entity events from session " + std::to_string(context.sessionId),
+                         utl::LogLevel::INFO);
+        
+        // Filtrer les événements d'input et les publier vers GameServer
         for (const auto &eventRecord : events)
         {
             if (eventRecord.type == rnp::EventType::INPUT)
             {
-                m_eventBus.publish(utl::EventType::PLAYER_INPUT_RECEIVED, eventRecord.data, m_componentId,
-                                   utl::GAME_LOGIC); // GameServer ID
+                utl::Logger::log("AsioServer: Input event received, data size: " + std::to_string(eventRecord.data.size()),
+                                 utl::LogLevel::INFO);
+                
+                // Create event with sessionId as sourceId so RTypeServer knows which player
+                utl::Event event(utl::EventType::PLAYER_INPUT_RECEIVED, context.sessionId, utl::GAME_LOGIC);
+                event.data = eventRecord.data;
+                m_eventBus.publish(event);
 
                 // utl::Logger::log("AsioServer: Input joueur publie vers GameServer (sessionId: " +
                 //                      std::to_string(context.sessionId) + ")",
@@ -1486,6 +1495,33 @@ namespace srv
         }
 
         utl::Logger::log("AsioServer: Starting game for lobby " + std::to_string(packet.lobbyId), utl::LogLevel::INFO);
+        
+        // Get sessionIds of players in lobby
+        std::vector<std::uint32_t> playerSessions;
+        {
+            std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
+            auto lobbyIt = m_lobbies.find(packet.lobbyId);
+            if (lobbyIt != m_lobbies.end())
+            {
+                playerSessions = lobbyIt->second.playerSessions;
+                utl::Logger::log("AsioServer: Player sessions in lobby: " + std::to_string(playerSessions.size()),
+                                 utl::LogLevel::INFO);
+            }
+        }
+        
+        // Notify RTypeServer about game start with player sessions
+        utl::Event startEvent(utl::EventType::SERVER_START, m_componentId, utl::GAME_LOGIC);
+        std::vector<std::uint8_t> sessionsData;
+        sessionsData.resize(sizeof(std::uint32_t) * playerSessions.size());
+        for (size_t i = 0; i < playerSessions.size(); ++i)
+        {
+            std::memcpy(sessionsData.data() + i * sizeof(std::uint32_t), &playerSessions[i], sizeof(std::uint32_t));
+        }
+        startEvent.data = sessionsData;
+        m_eventBus.publish(startEvent);
+        
+        utl::Logger::log("AsioServer: Sent SERVER_START to RTypeServer with " + std::to_string(playerSessions.size()) + " players",
+                         utl::LogLevel::INFO);
 
         // Broadcast game start to all players
         broadcastGameStart(packet.lobbyId);

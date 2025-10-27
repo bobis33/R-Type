@@ -1,4 +1,3 @@
-#include "RTypeClientSolo/Scenes/GameSolo.hpp"
 #include "ECS/Component.hpp"
 #include "RTypeClientSolo/Utils/HitboxUtils.hpp"
 #include "RTypeShared/GameConfig.hpp"

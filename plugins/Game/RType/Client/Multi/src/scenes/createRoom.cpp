@@ -1,3 +1,7 @@
+#include <Interfaces/Protocol/Protocol.hpp>
+#include <Interfaces/Protocol/Serializer.hpp>
+#include <Utils/Event.hpp>
+#include <Utils/Logger.hpp>
 #include <cmath>
 #include <ranges>
 

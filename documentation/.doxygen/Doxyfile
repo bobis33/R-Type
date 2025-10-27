@@ -54,7 +54,15 @@ INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/client/include \
                          @CMAKE_CURRENT_SOURCE_DIR@/documentation/network_protocol_specification.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/CONTRIBUTING.md \
                          @CMAKE_CURRENT_SOURCE_DIR@/LICENSE.md \
-                         @CMAKE_CURRENT_SOURCE_DIR@/README.md
+                         @CMAKE_CURRENT_SOURCE_DIR@/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/client/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/server/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Audio/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Game/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Network/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/plugins/Renderer/README.md \
+                         @CMAKE_CURRENT_SOURCE_DIR@/modules/README.md \
 FILE_PATTERNS          = *.hpp \
                          *.cpp \
                          *.md
