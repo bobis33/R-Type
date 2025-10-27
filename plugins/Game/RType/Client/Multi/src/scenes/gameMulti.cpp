@@ -5,6 +5,7 @@
 #include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
+#include <algorithm>
 
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                           const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
@@ -133,8 +134,6 @@ void gme::GameMulti::processEventBus()
 
 void gme::GameMulti::handlePlayerInputReceived(const utl::Event &event)
 {
-    // This is used when we receive our own input back from server (for validation)
-    // For now, we don't need to do anything special here
 }
 
 void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
@@ -146,21 +145,18 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 
         auto &registry = getRegistry();
 
-        // Update each entity received from server
         for (const auto &entityState : worldState.entities)
         {
             if (entityState.id == m_sessionId)
             {
-                // Local player: Gentle reconciliation to fix position drift
                 if (auto *transform = registry.getComponent<ecs::Transform>(m_localPlayerEntity))
                 {
                     float deltaX = std::abs(transform->x - entityState.x);
                     float deltaY = std::abs(transform->y - entityState.y);
-                    const float CORRECTION_THRESHOLD = 5.0f; // Only correct if difference is significant
+                    const float CORRECTION_THRESHOLD = 5.0f;
 
                     if (deltaX > CORRECTION_THRESHOLD || deltaY > CORRECTION_THRESHOLD)
                     {
-                        // Gentle correction (20% blend per frame)
                         float t = 0.2f;
                         transform->x = transform->x + t * (entityState.x - transform->x);
                         transform->y = transform->y + t * (entityState.y - transform->y);
@@ -168,19 +164,15 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                 }
                 if (auto *velocity = registry.getComponent<ecs::Velocity>(m_localPlayerEntity))
                 {
-                    // Sync velocity from server
                     velocity->x = entityState.vx;
                     velocity->y = entityState.vy;
                 }
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
             {
-                // Update or create remote player
                 if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
                 {
-                    // Create new remote player entity
-                    ecs::Entity remotePlayer =
-                        registry.createEntity()
+                    ecs::Entity remotePlayer = registry.createEntity()
                             .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
                                                   entityState.y, 0.F)
                             .with<ecs::Velocity>("remote_velocity_" + std::to_string(entityState.id), entityState.vx,
@@ -195,42 +187,94 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                             .with<ecs::Player>("remote_player_comp_" + std::to_string(entityState.id), false)
                             .build();
                     m_remotePlayers[entityState.id] = remotePlayer;
+                    
+                    m_remotePlayerData[entityState.id] = {
+                        .targetX = entityState.x,
+                        .targetY = entityState.y,
+                        .targetVx = entityState.vx,
+                        .targetVy = entityState.vy,
+                        .currentX = entityState.x,
+                        .currentY = entityState.y,
+                        .smoothFactor = REMOTE_PLAYER_SMOOTH_FACTOR,
+                        .targetRotation = 0.0f,
+                        .currentRotation = 0.0f
+                    };
                 }
                 else
                 {
-                    // Remote player: Apply directly with slight smoothing
-                    ecs::Entity remotePlayer = m_remotePlayers[entityState.id];
-                    if (auto *transform = registry.getComponent<ecs::Transform>(remotePlayer))
-                    {
-                        // Store previous position for interpolation
-                        float prevX = transform->x;
-                        float prevY = transform->y;
-
-                        // Store interpolation data
-                        if (m_interpolationData.find(entityState.id) == m_interpolationData.end() ||
-                            m_interpolationData[entityState.id].interpolationTime >=
-                                m_interpolationData[entityState.id].interpolationDuration)
-                        {
-                            m_interpolationData[entityState.id] = {
-                                .prevX = prevX,
-                                .prevY = prevY,
-                                .targetX = entityState.x,
-                                .targetY = entityState.y,
-                                .interpolationTime = 0.0f,
-                                .interpolationDuration = 0.05f // 50ms smooth interpolation
-                            };
-                        }
-                    }
-                    if (auto *velocity = registry.getComponent<ecs::Velocity>(remotePlayer))
-                    {
-                        velocity->x = entityState.vx;
-                        velocity->y = entityState.vy;
-                    }
+                    m_remotePlayerData[entityState.id].targetX = entityState.x;
+                    m_remotePlayerData[entityState.id].targetY = entityState.y;
+                    m_remotePlayerData[entityState.id].targetVx = entityState.vx;
+                    m_remotePlayerData[entityState.id].targetVy = entityState.vy;
                 }
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
             {
-                // Handle projectile entities (TODO: implement)
+                if (m_projectileEntities.find(entityState.id) == m_projectileEntities.end())
+                {
+                    ecs::Entity projectile = registry.createEntity()
+                        .with<ecs::Transform>("projectile_" + std::to_string(entityState.id), entityState.x, entityState.y, 0.F)
+                        .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id), entityState.vx, entityState.vy)
+                        .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, 20, 10)
+                        .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
+                        .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id), utl::Path::Texture::TEXTURE_PLAYER)
+                        .build();
+                    
+                    m_projectileEntities[entityState.id] = projectile;
+                    
+                    m_projectileData[entityState.id] = {
+                        .targetX = entityState.x,
+                        .targetY = entityState.y,
+                        .targetVx = entityState.vx,
+                        .targetVy = entityState.vy,
+                        .currentX = entityState.x,
+                        .currentY = entityState.y,
+                        .smoothFactor = PROJECTILE_SMOOTH_FACTOR,
+                        .targetRotation = 0.0f,
+                        .currentRotation = 0.0f
+                    };
+                }
+                else
+                {
+                    m_projectileData[entityState.id].targetX = entityState.x;
+                    m_projectileData[entityState.id].targetY = entityState.y;
+                    m_projectileData[entityState.id].targetVx = entityState.vx;
+                    m_projectileData[entityState.id].targetVy = entityState.vy;
+                }
+            }
+            else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::ENEMY))
+            {
+                if (m_enemyEntities.find(entityState.id) == m_enemyEntities.end())
+                {
+                    ecs::Entity enemy = registry.createEntity()
+                        .with<ecs::Transform>("enemy_" + std::to_string(entityState.id), entityState.x, entityState.y, 0.F)
+                        .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx, entityState.vy)
+                        .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, 50, 50)
+                        .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
+                        .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id), utl::Path::Texture::TEXTURE_PLAYER)
+                        .build();
+                    
+                    m_enemyEntities[entityState.id] = enemy;
+                    
+                    m_enemyData[entityState.id] = {
+                        .targetX = entityState.x,
+                        .targetY = entityState.y,
+                        .targetVx = entityState.vx,
+                        .targetVy = entityState.vy,
+                        .currentX = entityState.x,
+                        .currentY = entityState.y,
+                        .smoothFactor = ENEMY_SMOOTH_FACTOR,
+                        .targetRotation = 0.0f,
+                        .currentRotation = 0.0f
+                    };
+                }
+                else
+                {
+                    m_enemyData[entityState.id].targetX = entityState.x;
+                    m_enemyData[entityState.id].targetY = entityState.y;
+                    m_enemyData[entityState.id].targetVx = entityState.vx;
+                    m_enemyData[entityState.id].targetVy = entityState.vy;
+                }
             }
         }
     }
@@ -244,7 +288,6 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
 
-    // Client-side prediction: Update local player immediately
     if (m_playerController)
     {
         m_playerController->update(reg, dt);
@@ -260,27 +303,9 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
         }
     }
 
-    // Update interpolation for remote players ONLY (not local player)
-    for (auto &[playerId, interpData] : m_interpolationData)
-    {
-        // Skip local player
-        if (playerId == m_sessionId)
-            continue;
-
-        if (m_remotePlayers.find(playerId) != m_remotePlayers.end())
-        {
-            ecs::Entity remotePlayer = m_remotePlayers[playerId];
-            if (auto *transform = reg.getComponent<ecs::Transform>(remotePlayer))
-            {
-                interpData.interpolationTime += dt;
-                float t = std::min(interpData.interpolationTime / interpData.interpolationDuration, 1.0f);
-
-                // Linear interpolation
-                transform->x = interpData.prevX + (interpData.targetX - interpData.prevX) * t;
-                transform->y = interpData.prevY + (interpData.targetY - interpData.prevY) * t;
-            }
-        }
-    }
+    updateInterpolation(m_remotePlayerData, m_remotePlayers, REMOTE_PLAYER_SMOOTH_FACTOR, dt, reg);
+    updateInterpolation(m_projectileData, m_projectileEntities, PROJECTILE_SMOOTH_FACTOR, dt, reg);
+    updateInterpolation(m_enemyData, m_enemyEntities, ENEMY_SMOOTH_FACTOR, dt, reg);
 
     processEventBus();
 }
@@ -289,6 +314,41 @@ void gme::GameMulti::event(const eng::Event &event)
 {
     auto &reg = getRegistry();
     m_playerController->handleInput(reg, event);
+}
+
+void gme::GameMulti::updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
+                                         std::unordered_map<uint32_t, ecs::Entity> &entityMap,
+                                         float smoothFactor,
+                                         float dt,
+                                         ecs::Registry &registry)
+{
+    for (auto &[entityId, interpData] : dataMap)
+    {
+        if (&dataMap == &m_remotePlayerData && entityId == m_sessionId)
+            continue;
+        
+        if (entityMap.find(entityId) != entityMap.end())
+        {
+            ecs::Entity entity = entityMap[entityId];
+            if (auto *transform = registry.getComponent<ecs::Transform>(entity))
+            {
+                interpData.currentX += (interpData.targetX - interpData.currentX) * interpData.smoothFactor;
+                interpData.currentY += (interpData.targetY - interpData.currentY) * interpData.smoothFactor;
+                
+                transform->x = interpData.currentX;
+                transform->y = interpData.currentY;
+                
+                if (auto *velocity = registry.getComponent<ecs::Velocity>(entity))
+                {
+                    velocity->x = interpData.targetVx;
+                    velocity->y = interpData.targetVy;
+                }
+                
+                interpData.currentRotation += (interpData.targetRotation - interpData.currentRotation) * interpData.smoothFactor;
+                transform->rotation = interpData.currentRotation;
+            }
+        }
+    }
 }
 
 void gme::GameMulti::updatePlayerSkin()
