@@ -47,7 +47,7 @@ namespace gme
                                const std::string &serverPort) const;
 
             std::string m_playerName = "Player";
-            std::string m_serverIP = "0.0.0.0";
+            std::string m_serverIP = "127.0.0.1";
             std::string m_serverPort = "2560";
 
             ecs::Entity m_titleEntity = 0;
