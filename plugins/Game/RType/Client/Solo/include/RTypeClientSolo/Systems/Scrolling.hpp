@@ -37,9 +37,10 @@ namespace gme
                     const bool isFloor = registry.hasComponent<ecs::Floor>(entity);
                     const bool isCeiling = registry.hasComponent<ecs::Ceiling>(entity);
 
-                    if (transform == nullptr) {
+                    if (transform == nullptr)
+                    {
                         continue;
-}
+                    }
 
                     if (scrolling.fit_width && (scale != nullptr))
                     {
@@ -56,8 +57,7 @@ namespace gme
                     }
                     else if (isFloor)
                     {
-                        transform->y =
-                            static_cast<float>(height) - scaledHeight - GameConfig::Stage::FLOOR_OFFSET_Y;
+                        transform->y = static_cast<float>(height) - scaledHeight - GameConfig::Stage::FLOOR_OFFSET_Y;
                     }
 
                     transform->x += scrolling.speed_x * dt;

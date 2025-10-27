@@ -71,6 +71,7 @@ namespace rnp
     using LobbyLeaveHandler = std::function<HandlerResult(const PacketContext &)>;
     using LobbyUpdateHandler = std::function<HandlerResult(const PacketLobbyUpdate &, const PacketContext &)>;
     using GameStartHandler = std::function<HandlerResult(const PacketGameStart &, const PacketContext &)>;
+    using StartGameRequestHandler = std::function<HandlerResult(const PacketStartGameRequest &, const PacketContext &)>;
 
     ///
     /// @brief Statistics for packet handling
@@ -112,6 +113,7 @@ namespace rnp
             LobbyLeaveHandler lobbyLeaveHandler_;
             LobbyUpdateHandler lobbyUpdateHandler_;
             GameStartHandler gameStartHandler_;
+            StartGameRequestHandler startGameRequestHandler_;
 
             // Statistics
             HandlerStats stats_;
@@ -334,6 +336,12 @@ namespace rnp
             void onGameStart(GameStartHandler handler) { gameStartHandler_ = std::move(handler); }
 
             ///
+            /// @brief Register START_GAME_REQUEST packet handler
+            /// @param handler Callback function for START_GAME_REQUEST packets
+            ///
+            void onStartGameRequest(StartGameRequestHandler handler) { startGameRequestHandler_ = std::move(handler); }
+
+            ///
             /// @brief Process a received packet
             /// @param data Raw packet data
             /// @param context Packet context information
@@ -341,7 +349,9 @@ namespace rnp
             ///
             HandlerResult processPacket(const std::vector<std::uint8_t> &data, const PacketContext &context)
             {
-                if (data.size() < sizeof(PacketHeader))
+                // PacketHeader serialized size: 1 (type) + 2 (length) + 4 (sessionId) = 7 bytes
+                constexpr std::size_t PACKET_HEADER_SIZE = 7;
+                if (data.size() < PACKET_HEADER_SIZE)
                 {
                     updateStats(static_cast<PacketType>(0), HandlerResult::INVALID_PACKET, data.size());
                     return HandlerResult::INVALID_PACKET;
@@ -502,6 +512,14 @@ namespace rnp
                             {
                                 auto packet = serializer.deserializeGameStart();
                                 result = gameStartHandler_(packet, context);
+                            }
+                            break;
+
+                        case PacketType::START_GAME_REQUEST:
+                            if (startGameRequestHandler_)
+                            {
+                                auto packet = serializer.deserializeStartGameRequest();
+                                result = startGameRequestHandler_(packet, context);
                             }
                             break;
 

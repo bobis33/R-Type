@@ -30,9 +30,11 @@ namespace gme
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
+            void processEventBus() const;
 
             std::function<void(const std::string &roomName, int maxPlayers)> onCreate;
             std::function<void()> onBackToMulti;
+            std::function<void(int lobbyId, const rnp::LobbyInfo *lobbyInfo)> onRoomCreated;
 
         private:
             const std::shared_ptr<eng::IAudio> &m_audio;
@@ -49,5 +51,6 @@ namespace gme
             ecs::Entity m_maxPlayersValueEntity = 0;
 
             void updateValueDisplay();
+            void createRoom() const;
     }; // class CreateRoomScene
 } // namespace gme

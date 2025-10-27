@@ -1,7 +1,7 @@
 #include <ranges>
 
-#include "RTypeClientSolo/Systems/HUD.hpp"
 #include "ECS/Component.hpp"
+#include "RTypeClientSolo/Systems/HUD.hpp"
 
 void gme::HUDSystem::createScoreHUD(ecs::Registry &registry, float x, float y)
 {

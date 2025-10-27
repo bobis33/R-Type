@@ -1,5 +1,5 @@
-#include "Client/Client.hpp"
 #include "Client/Scenes/Settings.hpp"
+#include "Client/Client.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Utils/Common.hpp"
@@ -73,7 +73,8 @@ cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRe
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
+                              utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("title", std::string("SETTINGS"), 72U)
             .build();
 
@@ -82,44 +83,54 @@ cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRe
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_setting_" + std::to_string(i), 100.F, 200.F + i * 50.F, 0.F)
-            .with<ecs::Color>("color_setting_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Color>("color_setting_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("setting_" + m_settingsOptions[i], m_settingsOptions[i], 32U)
             .build();
     }
-    m_volumeValueEntity = registry.createEntity()
-                              .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                              .with<ecs::Transform>("transform_volume_value", 580.F, 200.F, 0.F)
-                              .with<ecs::Color>("color_volume_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
-                                                utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
-                              .with<ecs::Text>("volume_value", std::string("50"), 24U)
-                              .build();
-    m_qualityValueEntity = registry.createEntity()
-                               .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                               .with<ecs::Transform>("transform_quality_value", 580.F, 250.F, 0.F)
-                               .with<ecs::Color>("color_quality_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
-                                                 utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
-                               .with<ecs::Text>("quality_value", std::string("Medium"), 24U)
-                               .build();
-    m_controlValueEntity = registry.createEntity()
-                               .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                               .with<ecs::Transform>("transform_control_value", 580.F, 300.F, 0.F)
-                               .with<ecs::Color>("color_control_value", utl::Config::Color::TEXT_VALUE_COLOR.r, utl::Config::Color::TEXT_VALUE_COLOR.g,
-                                                 utl::Config::Color::TEXT_VALUE_COLOR.b, utl::Config::Color::TEXT_VALUE_COLOR.a)
-                               .with<ecs::Text>("control_value", std::string("WASD"), 24U)
-                               .build();
+    m_volumeValueEntity =
+        registry.createEntity()
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_volume_value", 580.F, 200.F, 0.F)
+            .with<ecs::Color>("color_volume_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
+                              utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b,
+                              utl::Config::Color::TEXT_VALUE_COLOR.a)
+            .with<ecs::Text>("volume_value", std::string("50"), 24U)
+            .build();
+    m_qualityValueEntity =
+        registry.createEntity()
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_quality_value", 580.F, 250.F, 0.F)
+            .with<ecs::Color>("color_quality_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
+                              utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b,
+                              utl::Config::Color::TEXT_VALUE_COLOR.a)
+            .with<ecs::Text>("quality_value", std::string("Medium"), 24U)
+            .build();
+    m_controlValueEntity =
+        registry.createEntity()
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("transform_control_value", 580.F, 300.F, 0.F)
+            .with<ecs::Color>("color_control_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
+                              utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b,
+                              utl::Config::Color::TEXT_VALUE_COLOR.a)
+            .with<ecs::Text>("control_value", std::string("WASD"), 24U)
+            .build();
 
-    m_skinSpriteEntity = registry.createEntity()
-                             .with<ecs::Transform>("transform_skin_sprite", 580.F, 345.F, 0.F)
-                             .with<ecs::Scale>("scale_skin_sprite", 2.0f, 2.0f)
-                             .with<ecs::Color>("color_skin_sprite", utl::Config::Color::WHITE.r, utl::Config::Color::WHITE.g, utl::Config::Color::WHITE.b, utl::Config::Color::WHITE.a)
-                             .with<ecs::Rect>("rect_skin_sprite", 0.0f, 0.0f, 33, 17)
-                             .with<ecs::Texture>("skin_sprite", "assets/sprites/r-typesheet42.gif")
-                             .build();
+    m_skinSpriteEntity =
+        registry.createEntity()
+            .with<ecs::Transform>("transform_skin_sprite", 580.F, 345.F, 0.F)
+            .with<ecs::Scale>("scale_skin_sprite", 2.0f, 2.0f)
+            .with<ecs::Color>("color_skin_sprite", utl::Config::Color::WHITE.r, utl::Config::Color::WHITE.g,
+                              utl::Config::Color::WHITE.b, utl::Config::Color::WHITE.a)
+            .with<ecs::Rect>("rect_skin_sprite", 0.0f, 0.0f, 33, 17)
+            .with<ecs::Texture>("skin_sprite", "assets/sprites/r-typesheet42.gif")
+            .build();
     registry.createEntity()
         .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
         .with<ecs::Transform>("transform_instruction", 80.F, 480.F, 0.F)
-        .with<ecs::Color>("color_instruction", utl::Config::Color::INFO_TEXT_COLOR.r, utl::Config::Color::INFO_TEXT_COLOR.g, utl::Config::Color::INFO_TEXT_COLOR.b,
+        .with<ecs::Color>("color_instruction", utl::Config::Color::INFO_TEXT_COLOR.r,
+                          utl::Config::Color::INFO_TEXT_COLOR.g, utl::Config::Color::INFO_TEXT_COLOR.b,
                           utl::Config::Color::INFO_TEXT_COLOR.a)
         .with<ecs::Text>("instruction", std::string("UP/DOWN navigate, LEFT/RIGHT change, ESC back"), 16U)
         .build();
@@ -291,7 +302,7 @@ void cli::Settings::loadFromConfig()
     applyVideoQuality();
 }
 
-void cli::Settings::applyVideoQuality() {  }
+void cli::Settings::applyVideoQuality() {}
 
 void cli::Settings::applySkinChange() {}
 

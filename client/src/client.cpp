@@ -1,8 +1,8 @@
 #include "Client/Client.hpp"
-#include "ECS/Systems/Systems.hpp"
 #include "Client/Generated/Version.hpp"
 #include "Client/Scenes/Menu.hpp"
 #include "Client/Scenes/Settings.hpp"
+#include "ECS/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
 

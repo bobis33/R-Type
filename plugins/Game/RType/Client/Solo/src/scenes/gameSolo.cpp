@@ -86,8 +86,8 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
     m_stageManager = std::make_unique<StageManager>();
 
     const auto beginSoundEntity = registry.createEntity()
-                                .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
-                                .build();
+                                      .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
+                                      .build();
     if (auto *audioComp = registry.getComponent<ecs::Audio>(beginSoundEntity))
     {
         audioComp->play = true;
@@ -110,7 +110,7 @@ void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)
     const bool up = m_keysPressed[eng::Key::Up];
     const bool down = m_keysPressed[eng::Key::Down];
     const bool left = m_keysPressed[eng::Key::Left];
-   const bool right = m_keysPressed[eng::Key::Right];
+    const bool right = m_keysPressed[eng::Key::Right];
     if (up && right)
     {
         playerVelocity->x = diagonal_speed;
@@ -155,7 +155,6 @@ void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)
     playerTransform->x = std::min(playerTransform->x, maxX);
     playerTransform->y = std::min(playerTransform->y, maxY);
 }
-
 
 void gme::GameSolo::update(const float dt, const eng::WindowSize &size)
 {
@@ -225,17 +224,17 @@ void gme::GameSolo::updatePlayerSkin()
 ecs::Entity gme::GameSolo::createPlayer(ecs::Registry &registry)
 {
     auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
-    GameConfig::Player::SPRITE_WIDTH, GameConfig::Player::SPRITE_HEIGHT, GameConfig::Player::SCALE);
+        GameConfig::Player::SPRITE_WIDTH, GameConfig::Player::SPRITE_HEIGHT, GameConfig::Player::SCALE);
 
     return registry.createEntity()
-                         .with<ecs::Transform>("player_transform", 200.0F, 100.0F, 0.F)
-                         .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
-                         .with<ecs::Rect>("player_rect", 0.F, 0.F, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
-                                          static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
-                         .with<ecs::Scale>("player_scale", GameConfig::Player::SCALE, GameConfig::Player::SCALE)
-                         .with<ecs::Texture>("player_texture", utl::Path::Texture::TEXTURE_PLAYER)
-                         .with<ecs::Player>("player", true)
-                         .with<ecs::BeamCharge>("beam_charge", 0.0f, GameConfig::Beam::MAX_CHARGE)
-                         .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
-                         .build();
+        .with<ecs::Transform>("player_transform", 200.0F, 100.0F, 0.F)
+        .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
+        .with<ecs::Rect>("player_rect", 0.F, 0.F, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
+                         static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
+        .with<ecs::Scale>("player_scale", GameConfig::Player::SCALE, GameConfig::Player::SCALE)
+        .with<ecs::Texture>("player_texture", utl::Path::Texture::TEXTURE_PLAYER)
+        .with<ecs::Player>("player", true)
+        .with<ecs::BeamCharge>("beam_charge", 0.0f, GameConfig::Beam::MAX_CHARGE)
+        .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
+        .build();
 }

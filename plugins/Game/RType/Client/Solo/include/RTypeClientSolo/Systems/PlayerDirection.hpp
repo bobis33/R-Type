@@ -39,7 +39,8 @@ namespace gme
                 {
                     const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
 
-                    if (auto *rect = registry.getComponent<ecs::Rect>(entity); (velocity != nullptr) && (rect != nullptr))
+                    if (auto *rect = registry.getComponent<ecs::Rect>(entity);
+                        (velocity != nullptr) && (rect != nullptr))
                     {
                         int frame = 0;
                         float angle = std::atan2(velocity->y, velocity->x);
@@ -49,20 +50,30 @@ namespace gme
                         }
                         else
                         {
-                            if (angle < 0) {
+                            if (angle < 0)
+                            {
                                 angle += 2.0f * std::numbers::pi_v<float>;
-}
-                            if (angle >= 0 && angle < M_PI / 4) {
+                            }
+                            if (angle >= 0 && angle < M_PI / 4)
+                            {
                                 frame = 0;
-                            } else if (angle >= M_PI / 4 && angle < 3 * M_PI / 4) {
+                            }
+                            else if (angle >= M_PI / 4 && angle < 3 * M_PI / 4)
+                            {
                                 frame = 1;
-                            } else if (angle >= 3 * M_PI / 4 && angle < 5 * M_PI / 4) {
+                            }
+                            else if (angle >= 3 * M_PI / 4 && angle < 5 * M_PI / 4)
+                            {
                                 frame = 2;
-                            } else if (angle >= 5 * M_PI / 4 && angle < 7 * M_PI / 4) {
+                            }
+                            else if (angle >= 5 * M_PI / 4 && angle < 7 * M_PI / 4)
+                            {
                                 frame = 3;
-                            } else {
+                            }
+                            else
+                            {
                                 frame = 4;
-}
+                            }
                         }
                         int frame_width = static_cast<int>(GameConfig::Player::SPRITE_WIDTH);
                         int frame_height = static_cast<int>(GameConfig::Player::SPRITE_HEIGHT);

@@ -40,7 +40,8 @@ namespace gme
                     if (auto *rect = registry.getComponent<ecs::Rect>(entity))
                     {
                         // Calculer la position du frame dans la spritesheet
-                        const int frame_x = (animation.current_frame % animation.frames_per_row) * animation.frame_width;
+                        const int frame_x =
+                            (animation.current_frame % animation.frames_per_row) * animation.frame_width;
                         if (int frame_y = (animation.current_frame / animation.frames_per_row) * animation.frame_height;
                             rect->pos_x != static_cast<float>(frame_x) || rect->pos_y != static_cast<float>(frame_y))
                         {

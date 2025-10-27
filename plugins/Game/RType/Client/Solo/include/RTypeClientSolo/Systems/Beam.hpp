@@ -30,14 +30,16 @@ namespace gme
             {
                 for (auto &[entity, beamCharge] : registry.getAll<ecs::BeamCharge>())
                 {
-                    if (const auto *player = registry.getComponent<ecs::Player>(entity); player == nullptr) {
+                    if (const auto *player = registry.getComponent<ecs::Player>(entity); player == nullptr)
+                    {
                         continue;
-}
+                    }
 
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    if (transform == nullptr) {
+                    if (transform == nullptr)
+                    {
                         continue;
-}
+                    }
 
                     const float barX =
                         transform->x + (GameConfig::Player::SPRITE_WIDTH / 2.0f) - (GameConfig::Beam::BAR_WIDTH / 2.0f);
@@ -57,9 +59,7 @@ namespace gme
                     const float thresholdX = barX + (GameConfig::Beam::BAR_WIDTH * 0.5f);
                     for (int y = 0; y < static_cast<int>(GameConfig::Beam::BAR_HEIGHT); y += 2)
                     {
-                        m_renderer->drawPoint(
-                            thresholdX, barY + y,
-                            {.r = 255, .g = 255, .b = 255, .a = 150});
+                        m_renderer->drawPoint(thresholdX, barY + y, {.r = 255, .g = 255, .b = 255, .a = 150});
                     }
 
                     if (chargeWidth > 0)
@@ -71,8 +71,7 @@ namespace gme
                                 eng::Color chargeColor{};
                                 if (chargeRatio < 0.5f)
                                 {
-                                    chargeColor = {
-                                        .r = 255, .g = 100, .b = 0, .a = 255};
+                                    chargeColor = {.r = 255, .g = 100, .b = 0, .a = 255};
                                 }
                                 else if (chargeRatio < 0.8f)
                                 {

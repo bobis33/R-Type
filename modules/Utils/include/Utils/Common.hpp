@@ -24,7 +24,7 @@ namespace utl
     {
         namespace Audio
         {
-            inline constexpr auto DEFAULT_AUDIO_VOLUME = 0.5F;  // unused
+            inline constexpr auto DEFAULT_AUDIO_VOLUME = 0.5F; // unused
             inline constexpr auto DEFAULT_AUDIO_MUTED = false; // unused
         } // namespace Audio
         namespace Network
@@ -63,6 +63,8 @@ namespace utl
             static constexpr eng::Color BLUE_SECOND = {.r = 50U, .g = 100U, .b = 200U, .a = 60U};
             static constexpr eng::Color PURPLE = {.r = 100U, .g = 50U, .b = 150U, .a = 80U};
             static constexpr eng::Color GREEN = {.r = 200U, .g = 255U, .b = 200U, .a = 180U};
+            static constexpr eng::Color GREEN_READY = {0U, 255U, 100U, 255U};
+
         } // namespace Color
     } // namespace Config
     namespace Path

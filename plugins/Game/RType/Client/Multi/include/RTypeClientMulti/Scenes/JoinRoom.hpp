@@ -10,21 +10,10 @@
 
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "Interfaces/Protocol/Protocol.hpp"
 
 namespace gme
 {
-    ///
-    /// @struct RoomInfo
-    /// @brief Structure containing room information
-    ///
-    struct RoomInfo
-    {
-            std::string name;
-            int currentPlayers;
-            int maxPlayers;
-            int roomId;
-    };
-
     ///
     /// @class JoinRoomScene
     /// @brief Join room scene
@@ -45,10 +34,10 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
-            void setRooms(const std::vector<RoomInfo> &rooms);
-            void refreshRoomList();
+            void setRooms(const std::vector<rnp::LobbyInfo> &rooms);
+            void refreshRoomList() const;
 
-            std::function<void(int roomId)> onJoin;
+            std::function<void(int roomId, const rnp::LobbyInfo *lobbyInfo)> onJoin;
             std::function<void()> onBackToMulti;
             std::function<void()> onRefreshRequest;
 
@@ -57,7 +46,7 @@ namespace gme
 
             size_t m_selectedIndex = 0;
             float m_animationTime = 0.0f;
-            std::vector<RoomInfo> m_rooms;
+            std::vector<rnp::LobbyInfo> m_rooms;
 
             ecs::Entity m_titleEntity = 0;
             ecs::Entity m_noRoomsEntity = 0;
@@ -67,5 +56,9 @@ namespace gme
 
             void updateRoomDisplay();
             void clearRoomEntities();
+            void processEventBus();
+            void setupEventSubscriptions() const;
+            void handleLobbyListResponse(const utl::Event &event);
+            void handleLobbyJoinResponse(const utl::Event &event) const;
     }; // class JoinRoomScene
 } // namespace gme
