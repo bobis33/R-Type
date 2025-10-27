@@ -230,8 +230,16 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     }
                     
                     ecs::Entity projectile = entityBuilder.build();
-                    
                     m_projectileEntities[entityState.id] = projectile;
+                    
+                    auto shootSound = registry.createEntity()
+                        .with<ecs::Audio>("projectile_shoot_" + std::to_string(entityState.id), 
+                                         utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 1.5F, false, false)
+                        .build();
+                    if (auto *audioComp = registry.getComponent<ecs::Audio>(shootSound))
+                    {
+                        audioComp->play = true;
+                    }
                 }
                 else
                 {
