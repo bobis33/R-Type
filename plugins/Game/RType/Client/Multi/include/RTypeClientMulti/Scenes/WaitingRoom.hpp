@@ -35,9 +35,9 @@ namespace gme
 
             void setLobbyId(std::uint32_t lobbyId);
             void setLobbyInfo(const rnp::LobbyInfo &lobbyInfo);
-            void setIsHost(bool isHost) { m_isHost = isHost; }
+            void setIsHost(const bool isHost) { m_isHost = isHost; }
             [[nodiscard]] bool isHost() const { return m_isHost; }
-            std::uint32_t getLobbyId() { return m_lobbyId; };
+            std::uint32_t getLobbyId() const { return m_lobbyId; };
 
             bool &playMusic() { return m_playMusic; }
 
@@ -60,7 +60,6 @@ namespace gme
             static constexpr int BUTTON_COUNT = 3;
 
             // UI Entities
-            ecs::Entity m_titleEntity = 0;
             ecs::Entity m_lobbyIdEntity = 0;
             ecs::Entity m_playerCountEntity = 0;
             ecs::Entity m_statusEntity = 0;

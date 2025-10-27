@@ -40,8 +40,7 @@ gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_pt
             }
         });
 
-    m_titleEntity =
-        registry.createEntity()
+    registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
             .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
@@ -59,8 +58,7 @@ gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_pt
             .with<ecs::Text>("no_rooms_text", std::string("No rooms available"), 32U)
             .build();
 
-    m_refreshButtonEntity =
-        registry.createEntity()
+    registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_refresh", 100.F, 400.F, 0.F)
             .with<ecs::Color>("color_refresh", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
@@ -69,8 +67,7 @@ gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_pt
             .with<ecs::Text>("refresh_text", std::string("Refresh"), 32U)
             .build();
 
-    m_backButtonEntity =
-        registry.createEntity()
+    registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_back", 100.F, 450.F, 0.F)
             .with<ecs::Color>("color_back", utl::Config::Color::GRAY_BLUE_SUBTLE.r,

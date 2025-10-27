@@ -3,7 +3,6 @@
 #include "Interfaces/Protocol/Protocol.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
 #include "RTypeShared/GameConfig.hpp"
-#include "Utils/Logger.hpp"
 
 ecs::Entity gme::PlayerControllerMulti::createPlayer(ecs::Registry &registry, float x, float y)
 {
@@ -59,9 +58,8 @@ void gme::PlayerControllerMulti::handleInput(ecs::Registry &registry, const eng:
 
 void gme::PlayerControllerMulti::sendInputsIfChanged()
 {
-    // Throttle inputs to 30 Hz max
     static float accumulatedTime = 0.0f;
-    accumulatedTime += 1.0f / 60.0f; // Assume 60 FPS (will be adjusted by actual deltaTime later)
+    accumulatedTime += 1.0f / 60.0f;
 
     if (accumulatedTime < INPUT_THROTTLE_INTERVAL)
         return;

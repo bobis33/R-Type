@@ -9,8 +9,7 @@
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                           const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
                           const uint32_t lobbyId, const uint32_t sessionId)
-    : AScene(assignedId), m_audio(audio), m_renderer(renderer), m_skinIndex(skinIndex), m_showDebug(showDebug),
-      m_lobbyId(lobbyId), m_sessionId(sessionId)
+    : AScene(assignedId), m_audio(audio), m_renderer(renderer), m_skinIndex(skinIndex), m_showDebug(showDebug), m_sessionId(sessionId)
 {
     auto &registry = AScene::getRegistry();
 

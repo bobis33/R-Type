@@ -13,13 +13,8 @@
 
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "Interfaces/Protocol/Protocol.hpp"
 #include "Utils/EventBus.hpp"
-
-namespace gme
-{
-    class PlayerControllerMulti;
-} // namespace gme
+#include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 
 namespace gme
 {
@@ -61,25 +56,19 @@ namespace gme
             float m_skinIndex;
             std::unique_ptr<PlayerControllerMulti> m_playerController;
             std::unordered_map<eng::Key, bool> m_keysPressed;
-            int m_lastAppliedSkinIndex = -1;
             bool &m_showDebug;
             bool m_playMusic = false;
 
-            uint32_t m_lobbyId;
             uint32_t m_sessionId;
             uint32_t m_eventComponentId = 10;
 
-            std::unordered_map<uint32_t, ecs::Entity> m_projectileEntities;
-
-            // Local player input tracking for prediction + reconciliation
             struct PendingInput
             {
                     uint32_t seqId;
-                    std::vector<uint8_t> inputData; // [up, down, left, right, shoot]
+                    std::vector<uint8_t> inputData;
                     float dt;
             };
             std::deque<PendingInput> m_inputHistory;
-            uint32_t m_nextSeqId = 1;
             uint32_t m_lastAckSeqId = 0;
 
             // Interpolation data for smooth remote player movement

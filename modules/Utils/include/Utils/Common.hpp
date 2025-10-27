@@ -57,6 +57,7 @@ namespace utl
             static constexpr eng::Color CYAN_ELECTRIC_FOREGROUND = {.r = 0U, .g = 191U, .b = 255U, .a = 180U};
             static constexpr eng::Color INFO_TEXT_COLOR = {.r = 180U, .g = 180U, .b = 180U, .a = 200U};
             static constexpr eng::Color WHITE = {.r = 255U, .g = 255U, .b = 255U, .a = 255U};
+            static constexpr eng::Color WHITE_LOW = {.r = 255U, .g = 255U, .b = 255U, .a = 0U};
             static constexpr eng::Color TEXT_VALUE_COLOR = {.r = 200U, .g = 200U, .b = 255U, .a = 255U};
             static constexpr eng::Color WHITE_TRANS = {.r = 255U, .g = 255U, .b = 255U, .a = 100U};
             static constexpr eng::Color BLUE = {.r = 200U, .g = 200U, .b = 255U, .a = 150U};

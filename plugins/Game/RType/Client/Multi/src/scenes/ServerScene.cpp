@@ -121,8 +121,7 @@ gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<en
                 }
             }
         });
-    m_titleEntity =
-        registry.createEntity()
+    registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
             .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,

@@ -39,7 +39,6 @@ namespace gme
         private:
             size_t m_selectedIndex = 0;
             float m_animationTime = 0.0f;
-            bool m_isEditing = false;
             const std::vector<std::string> m_serverOptions = {"Player Name", "Server IP", "Server Port", "Connect",
                                                               "Back"};
 
@@ -50,7 +49,6 @@ namespace gme
             std::string m_serverIP = "0.0.0.0";
             std::string m_serverPort = "2560";
 
-            ecs::Entity m_titleEntity = 0;
             ecs::Entity m_playerNameValueEntity = 0;
             ecs::Entity m_serverIPValueEntity = 0;
             ecs::Entity m_serverPortValueEntity = 0;

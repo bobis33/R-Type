@@ -11,7 +11,6 @@
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "Interfaces/Protocol/Protocol.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
 
@@ -21,7 +20,7 @@ namespace gme
     {
         public:
             explicit PlayerControllerMulti(const std::shared_ptr<eng::IRenderer> &renderer, uint32_t sessionId)
-                : m_renderer(renderer), m_sessionId(sessionId), m_eventBus(utl::EventBus::getInstance())
+                : m_renderer(renderer), m_playerEntity(0), m_eventBus(utl::EventBus::getInstance())
             {
                 m_componentId = 11;
                 m_eventBus.registerComponent(m_componentId, "PlayerControllerMulti");
@@ -44,16 +43,10 @@ namespace gme
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             std::unordered_map<eng::Key, bool> m_keysPressed;
             ecs::Entity m_playerEntity;
-            uint32_t m_sessionId;
             uint32_t m_componentId;
             utl::EventBus &m_eventBus;
 
-            float m_lastInputSendTime = 0.0f;
             const float INPUT_THROTTLE_INTERVAL = 1.0f / 144.0f; // Send inputs at 144 Hz max
-
-            // Input sequence tracking for prediction + reconciliation
-            uint32_t m_nextSeqId = 1;
-            uint32_t m_lastAckSeqId = 0;
 
             struct PendingInput
             {
@@ -61,6 +54,5 @@ namespace gme
                     std::vector<uint8_t> inputData;
                     float dt;
             };
-            std::deque<PendingInput> m_inputHistory;
     }; // class PlayerControllerMulti
 } // namespace gme

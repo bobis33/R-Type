@@ -45,8 +45,7 @@ namespace gme
                 }
             });
 
-        m_titleEntity =
-            registry.createEntity()
+        registry.createEntity()
                 .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                 .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
                 .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)

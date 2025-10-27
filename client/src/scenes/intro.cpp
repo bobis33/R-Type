@@ -57,12 +57,16 @@ cli::Intro::Intro(const eng::id assignedId, const std::shared_ptr<eng::IRenderer
         registry.createEntity().with<ecs::Audio>("game_begin", "assets/audio/goofy.wav", 20.0F, false, true).build();
 
     auto [width, height] = renderer->getWindowSize();
-    m_logoEntity = registry.createEntity()
-                       .with<ecs::Transform>("logo_transform", width / 3, height / 5)
-                       .with<ecs::Scale>("logo_scale", 1.5F, 1.5F)
-                       .with<ecs::Color>("logo_color", 255, 255, 255, 0)
-                       .with<ecs::Texture>("logo_text", utl::Path::Icons::ICON_APP)
-                       .build();
+m_logoEntity = registry.createEntity()
+    .with<ecs::Transform>("logo_transform", width * 0.37F, height * 0.2F)
+    .with<ecs::Scale>("logo_scale", 1.5F, 1.5F)
+    .with<ecs::Color>("logo_color",
+        utl::Config::Color::WHITE_LOW.r,
+        utl::Config::Color::WHITE_LOW.g,
+        utl::Config::Color::WHITE_LOW.b,
+        utl::Config::Color::WHITE_LOW.a)
+    .with<ecs::Texture>("logo_text", utl::Path::Icons::ICON_APP)
+    .build();
 }
 
 void cli::Intro::update(const float dt, const eng::WindowSize &size)

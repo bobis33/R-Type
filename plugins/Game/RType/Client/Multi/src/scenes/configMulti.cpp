@@ -1,5 +1,4 @@
 #include <cmath>
-#include <ranges>
 
 #include "ECS/Component.hpp"
 #include "RTypeClientMulti/Scenes/ConfigMulti.hpp"

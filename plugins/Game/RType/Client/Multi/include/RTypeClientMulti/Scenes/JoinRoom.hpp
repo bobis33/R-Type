@@ -46,10 +46,7 @@ namespace gme
             float m_animationTime = 0.0f;
             std::vector<rnp::LobbyInfo> m_rooms;
 
-            ecs::Entity m_titleEntity = 0;
             ecs::Entity m_noRoomsEntity = 0;
-            ecs::Entity m_refreshButtonEntity = 0;
-            ecs::Entity m_backButtonEntity = 0;
             std::vector<ecs::Entity> m_roomEntities;
             bool m_playMusic = false;
             void updateRoomDisplay();
