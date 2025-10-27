@@ -36,10 +36,15 @@ namespace gme
             void event(const eng::Event &event) override;
 
             void setLobbyId(std::uint32_t lobbyId);
+            [[nodiscard]] std::uint32_t getLobbyId() const { return m_lobbyId; }
             void setLobbyInfo(const rnp::LobbyInfo &lobbyInfo);
 
+            void setIsHost(bool isHost) { m_isHost = isHost; }
+            [[nodiscard]] bool isHost() const { return m_isHost; }
+            
             std::function<void()> onLeaveLobby;
             std::function<void()> onGameStart;
+            void startGame();
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
@@ -53,7 +58,12 @@ namespace gme
             int m_selectedButton = 0;
             static constexpr int BUTTON_LEAVE = 0;
             static constexpr int BUTTON_READY = 1;
-            static constexpr int BUTTON_COUNT = 2;
+            static constexpr int BUTTON_START = 2;
+            static constexpr int BUTTON_COUNT = 3;
+            
+            bool m_isHost = false;
+            ecs::Entity m_startButtonEntity = 0;
+            uint32_t m_eventComponentId = 8;
 
             // UI Entities
             ecs::Entity m_titleEntity = 0;
