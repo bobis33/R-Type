@@ -1,5 +1,6 @@
 #include "RTypeClientSolo/Scenes/GameSolo.hpp"
 #include "ECS/Component.hpp"
+#include "Interfaces/IAudio.hpp"
 #include "RTypeClientSolo/Utils/HitboxUtils.hpp"
 #include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"

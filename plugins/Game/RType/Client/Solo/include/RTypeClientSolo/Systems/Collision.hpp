@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cmath>
+#include <ranges>
 #include <string>
 #include <vector>
 

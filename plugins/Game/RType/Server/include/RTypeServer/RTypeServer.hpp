@@ -6,8 +6,11 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "ECS/Registry.hpp"
 #include "Interfaces/IGameServer.hpp"
+#include "Interfaces/Protocol/Protocol.hpp"
 #include "Utils/EventBus.hpp"
 
 namespace gme
@@ -48,11 +51,27 @@ namespace gme
             void update(float deltaTime) override;
 
         private:
+            void processInputs();
+            void updateEntities(float deltaTime);
+            void broadcastWorldState();
+            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy);
+            void processServerStartEvents();
+
             utl::EventBus &m_eventBus;
             ecs::Registry m_registry;
 
             State m_gameState = State::PLAYING;
             LevelState m_levelState = LevelState::WAITING_FOR_PLAYERS;
+
+            std::unordered_map<std::uint32_t, ecs::Entity> m_playerEntities;
+            std::unordered_map<std::uint32_t, ecs::Entity> m_projectileEntities;
+            std::unordered_map<std::uint32_t, float> m_lastShotTime;
+            std::uint32_t m_nextProjectileId = 1000;
+
+            float m_lastBroadcastTime = 0.0f;
+            const float BROADCAST_INTERVAL = 1.0f / 144.0f; // 144 Hz - ultra smooth
+            const float PROJECTILE_COOLDOWN = 0.3f;
+            const float PROJECTILE_SPEED = 800.0f;
 
     }; // class RTypeServer
 } // namespace gme

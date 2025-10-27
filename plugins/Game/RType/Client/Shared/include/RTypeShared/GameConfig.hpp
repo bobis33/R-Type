@@ -1,6 +1,6 @@
 ///
 /// @file GameConfig.hpp
-/// @brief Configuration constants for the game
+/// @brief Configuration constants for the multiplayer game
 /// @namespace gme
 ///
 

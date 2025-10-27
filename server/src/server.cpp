@@ -29,9 +29,18 @@ srv::Server::Server(const ArgsConfig &config)
 void srv::Server::run() const
 {
     m_network->start();
+    m_game->start();
+    
+    auto startTime = std::chrono::steady_clock::now();
+    
     for (;;)
     {
+        auto currentTime = std::chrono::steady_clock::now();
+        float deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
+        startTime = currentTime;
+        
         m_network->update();
+        m_game->update(deltaTime);
 
         // Print connected sessions
         auto sessions = m_network->getConnectedSessions();
@@ -44,7 +53,7 @@ void srv::Server::run() const
         }
         std::cout << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS
     }
 }
 

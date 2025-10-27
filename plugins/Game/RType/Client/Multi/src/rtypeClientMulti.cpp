@@ -1,9 +1,11 @@
 #include "RTypeClientMulti/RTypeClientMulti.hpp"
 #include "RTypeClientMulti/Scenes/ConfigMulti.hpp"
 #include "RTypeClientMulti/Scenes/CreateRoom.hpp"
+#include "RTypeClientMulti/Scenes/GameMulti.hpp"
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
 #include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
+#include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 #include "RTypeShared/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 
@@ -91,6 +93,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         utl::Logger::log("RTypeClientMulti: Room created with ID " + std::to_string(lobbyId), utl::LogLevel::INFO);
         // Transition to waiting room after successful room creation
         waitingRoomScenePtr->setLobbyId(static_cast<std::uint32_t>(lobbyId));
+        waitingRoomScenePtr->setIsHost(true); // Creator is the host
         if (lobbyInfo)
         {
             waitingRoomScenePtr->setLobbyInfo(*lobbyInfo);
@@ -105,6 +108,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         utl::Logger::log("RTypeClientMulti: Joined room with ID " + std::to_string(roomId), utl::LogLevel::INFO);
         // Transition to waiting room after successful join
         waitingRoomScenePtr->setLobbyId(static_cast<std::uint32_t>(roomId));
+        waitingRoomScenePtr->setIsHost(false); // Joiner is not host
         if (lobbyInfo)
         {
             waitingRoomScenePtr->setLobbyInfo(*lobbyInfo);
@@ -122,10 +126,42 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
 
     waitingRoomScene->onLeaveLobby = [this, configMultiId]()
     { m_engine->getSceneManager()->switchToScene(configMultiId); };
-    waitingRoomScene->onGameStart = [this]()
+    waitingRoomScene->onGameStart = [this, waitingRoomScenePtr]()
     {
         utl::Logger::log("RTypeClientMulti: Game starting!", utl::LogLevel::INFO);
-        // TODO: Transition to game scene
+
+        // Get sessionId from network client
+        uint32_t sessionId = 0;
+        if (m_engine && m_engine->getNetwork())
+        {
+            sessionId = m_engine->getNetwork()->getSessionId();
+            utl::Logger::log("RTypeClientMulti: Using sessionId " + std::to_string(sessionId), utl::LogLevel::INFO);
+        }
+
+        // Create and setup GameMulti scene
+        // Reuse Solo systems
+        // Note: You'll need to include these systems from Solo
+        // gameMulti->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
+        // gameMulti->addSystem(std::make_unique<BeamSystem>(m_engine->getRenderer()));
+        // gameMulti->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer(), m_showDebug));
+        // gameMulti->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
+        // gameMulti->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
+        // gameMulti->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
+        // gameMulti->addSystem(std::make_unique<PlayerDirectionSystem>(m_skinIndex));
+        // gameMulti->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
+
+        auto gameMultiId = m_engine->getSceneManager()->generateNextId();
+        auto gameMulti =
+            std::make_unique<GameMulti>(gameMultiId, m_engine->getRenderer(), m_engine->getAudio(), m_skinIndex,
+                                        m_showDebug, waitingRoomScenePtr->getLobbyId(), sessionId);
+        gameMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume,
+                                                                gameMulti->getRegistry(), gameMulti->playMusic()));
+        gameMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
+
+        m_engine->getSceneManager()->addScene(std::move(gameMulti));
+        m_engine->getSceneManager()->switchToScene(gameMultiId);
     };
 
     m_engine->getSceneManager()->addScene(std::move(serverScene));

@@ -127,6 +127,12 @@ namespace eng
             void leaveLobby();
 
             ///
+            /// @brief Request to start the game (host only)
+            /// @param lobbyId Lobby ID to start
+            ///
+            void requestStartGame(std::uint32_t lobbyId);
+
+            ///
             /// @brief Get current lobby ID
             /// @return Current lobby ID (0 if not in lobby)
             ///

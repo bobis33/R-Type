@@ -12,6 +12,7 @@
 #include "Interfaces/IRenderer.hpp"
 #include "RTypeClientSolo/Utils/HitboxUtils.hpp"
 #include "RTypeShared/GameConfig.hpp"
+#include "Utils/Common.hpp"
 
 namespace gme
 {

@@ -8,11 +8,13 @@
 
 #include <cmath>
 #include <numbers>
+#include <ranges>
 
 #include "ECS/Component.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "RTypeShared/GameConfig.hpp"
+#include "Utils/Common.hpp"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
