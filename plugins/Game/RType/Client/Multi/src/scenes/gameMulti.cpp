@@ -151,14 +151,24 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
         {
             if (entityState.id == m_sessionId)
             {
-                // Update local player position
+                // Local player: Gentle reconciliation to fix position drift
                 if (auto *transform = registry.getComponent<ecs::Transform>(m_localPlayerEntity))
                 {
-                    transform->x = entityState.x;
-                    transform->y = entityState.y;
+                    float deltaX = std::abs(transform->x - entityState.x);
+                    float deltaY = std::abs(transform->y - entityState.y);
+                    const float CORRECTION_THRESHOLD = 5.0f; // Only correct if difference is significant
+                    
+                    if (deltaX > CORRECTION_THRESHOLD || deltaY > CORRECTION_THRESHOLD)
+                    {
+                        // Gentle correction (20% blend per frame)
+                        float t = 0.2f;
+                        transform->x = transform->x + t * (entityState.x - transform->x);
+                        transform->y = transform->y + t * (entityState.y - transform->y);
+                    }
                 }
                 if (auto *velocity = registry.getComponent<ecs::Velocity>(m_localPlayerEntity))
                 {
+                    // Sync velocity from server
                     velocity->x = entityState.vx;
                     velocity->y = entityState.vy;
                 }
@@ -187,16 +197,15 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                 }
                 else
                 {
-                    // Update existing remote player with interpolation
+                    // Remote player: Apply directly with slight smoothing
                     ecs::Entity remotePlayer = m_remotePlayers[entityState.id];
                     if (auto *transform = registry.getComponent<ecs::Transform>(remotePlayer))
                     {
-                        // Store current interpolated position as previous
+                        // Store previous position for interpolation
                         float prevX = transform->x;
                         float prevY = transform->y;
                         
-                        // Store interpolation data (DON'T update transform position directly)
-                        // Only update if we don't have interpolation data or if previous interpolation finished
+                        // Store interpolation data
                         if (m_interpolationData.find(entityState.id) == m_interpolationData.end() || 
                             m_interpolationData[entityState.id].interpolationTime >= m_interpolationData[entityState.id].interpolationDuration)
                         {
@@ -206,14 +215,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                                 .targetX = entityState.x,
                                 .targetY = entityState.y,
                                 .interpolationTime = 0.0f,
-                                .interpolationDuration = 0.016f // ~16ms interpolation (1 frame à 60Hz)
+                                .interpolationDuration = 0.05f // 50ms smooth interpolation
                             };
-                        }
-                        else
-                        {
-                            // If still interpolating, update target but don't reset timer
-                            m_interpolationData[entityState.id].targetX = entityState.x;
-                            m_interpolationData[entityState.id].targetY = entityState.y;
                         }
                     }
                     if (auto *velocity = registry.getComponent<ecs::Velocity>(remotePlayer))
@@ -238,6 +241,13 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
+    
+    // Client-side prediction: Update local player immediately
+    if (m_playerController)
+    {
+        m_playerController->update(reg, dt);
+    }
+    
     const auto &audios = reg.getAll<ecs::Audio>();
 
     for (const auto &audio : audios)
@@ -248,9 +258,13 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
         }
     }
 
-    // Update interpolation for remote players
+    // Update interpolation for remote players ONLY (not local player)
     for (auto &[playerId, interpData] : m_interpolationData)
     {
+        // Skip local player
+        if (playerId == m_sessionId)
+            continue;
+            
         if (m_remotePlayers.find(playerId) != m_remotePlayers.end())
         {
             ecs::Entity remotePlayer = m_remotePlayers[playerId];
@@ -259,7 +273,7 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
                 interpData.interpolationTime += dt;
                 float t = std::min(interpData.interpolationTime / interpData.interpolationDuration, 1.0f);
                 
-                // Use linear interpolation for smoother movement (no curve)
+                // Linear interpolation
                 transform->x = interpData.prevX + (interpData.targetX - interpData.prevX) * t;
                 transform->y = interpData.prevY + (interpData.targetY - interpData.prevY) * t;
             }

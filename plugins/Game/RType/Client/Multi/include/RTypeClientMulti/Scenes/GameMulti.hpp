@@ -9,6 +9,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <deque>
 
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
@@ -67,7 +68,17 @@ namespace gme
             
             std::unordered_map<uint32_t, ecs::Entity> m_projectileEntities;
             
-            // Interpolation data for smooth movement
+            // Local player input tracking for prediction + reconciliation
+            struct PendingInput {
+                uint32_t seqId;
+                std::vector<uint8_t> inputData; // [up, down, left, right, shoot]
+                float dt;
+            };
+            std::deque<PendingInput> m_inputHistory;
+            uint32_t m_nextSeqId = 1;
+            uint32_t m_lastAckSeqId = 0;
+            
+            // Interpolation data for smooth remote player movement
             struct InterpolationData {
                 float prevX, prevY;
                 float targetX, targetY;
