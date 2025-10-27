@@ -52,8 +52,8 @@ namespace gme
         private:
             void updateEntities(float deltaTime);
             void broadcastWorldState();
-            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy,
-                                 bool isSupercharged = false);
+            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy, bool isSupercharged = false);
+            void processServerStartEvents();
 
             utl::EventBus &m_eventBus;
             ecs::Registry m_registry;
