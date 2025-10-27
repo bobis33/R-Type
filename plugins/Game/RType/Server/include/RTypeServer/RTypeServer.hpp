@@ -69,7 +69,7 @@ namespace gme
             std::uint32_t m_nextProjectileId = 1000;
 
             float m_lastBroadcastTime = 0.0f;
-            const float BROADCAST_INTERVAL = 1.0f / 144.0f; // 144 Hz - ultra smooth
+            const float BROADCAST_INTERVAL = 1.0f / 60.0f; // 60 Hz
             const float PROJECTILE_COOLDOWN = 0.3f;
             const float PROJECTILE_SPEED = 800.0f;
 

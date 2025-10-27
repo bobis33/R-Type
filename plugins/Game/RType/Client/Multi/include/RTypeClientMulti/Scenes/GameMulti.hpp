@@ -18,6 +18,21 @@
 
 namespace gme
 {
+    class PlayerControllerMulti;
+} // namespace gme
+
+namespace gme
+{
+    struct InterpolationData
+    {
+            float targetX, targetY;
+            float targetVx, targetVy;
+            float currentX, currentY;
+            float smoothFactor;
+            float targetRotation;
+            float currentRotation;
+    };
+
     ///
     /// @class GameMulti
     /// @brief GameMulti scene
@@ -46,6 +61,12 @@ namespace gme
             void processEventBus();
             void handlePlayerInputReceived(const utl::Event &event);
             void handleWorldStateUpdate(const utl::Event &event);
+            
+            void updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
+                                    std::unordered_map<uint32_t, ecs::Entity> &entityMap,
+                                    float smoothFactor,
+                                    float dt,
+                                    ecs::Registry &registry);
 
             ecs::Entity m_localPlayerEntity;
             std::unordered_map<uint32_t, ecs::Entity> m_remotePlayers;
@@ -61,6 +82,12 @@ namespace gme
             uint32_t m_sessionId;
             uint32_t m_eventComponentId = 10;
 
+            std::unordered_map<uint32_t, ecs::Entity> m_projectileEntities;
+            std::unordered_map<uint32_t, ecs::Entity> m_enemyEntities;
+
+            std::unordered_map<uint32_t, InterpolationData> m_remotePlayerData;
+            std::unordered_map<uint32_t, InterpolationData> m_projectileData;
+            std::unordered_map<uint32_t, InterpolationData> m_enemyData;
             struct PendingInput
             {
                     uint32_t seqId;
@@ -69,16 +96,10 @@ namespace gme
             };
             std::deque<PendingInput> m_inputHistory;
             uint32_t m_lastAckSeqId = 0;
-
-            // Interpolation data for smooth remote player movement
-            struct InterpolationData
-            {
-                    float prevX, prevY;
-                    float targetX, targetY;
-                    float interpolationTime;
-                    float interpolationDuration;
-            };
-            std::unordered_map<uint32_t, InterpolationData> m_interpolationData;
+            
+            static constexpr float REMOTE_PLAYER_SMOOTH_FACTOR = 0.25f;
+            static constexpr float PROJECTILE_SMOOTH_FACTOR = 0.5f;
+            static constexpr float ENEMY_SMOOTH_FACTOR = 0.18f;
 
             bool m_starfieldCreated = false;
     }; // class GameMulti
