@@ -1,14 +1,14 @@
+#include "RTypeClientMulti/Scenes/GameMulti.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "RTypeClientMulti/Scenes/GameMulti.hpp"
-#include "RTypeClientMulti/GameConfig.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
+#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
 
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                        const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
-                        const uint32_t lobbyId, const uint32_t sessionId)
+                          const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
+                          const uint32_t lobbyId, const uint32_t sessionId)
     : AScene(assignedId), m_audio(audio), m_renderer(renderer), m_skinIndex(skinIndex), m_showDebug(showDebug),
       m_lobbyId(lobbyId), m_sessionId(sessionId)
 {
@@ -91,7 +91,7 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     m_playerController = std::make_unique<PlayerControllerMulti>(renderer, m_sessionId);
 
     m_localPlayerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
-    
+
     auto beginSoundEntity = registry.createEntity()
                                 .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
                                 .build();
@@ -157,7 +157,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     float deltaX = std::abs(transform->x - entityState.x);
                     float deltaY = std::abs(transform->y - entityState.y);
                     const float CORRECTION_THRESHOLD = 5.0f; // Only correct if difference is significant
-                    
+
                     if (deltaX > CORRECTION_THRESHOLD || deltaY > CORRECTION_THRESHOLD)
                     {
                         // Gentle correction (20% blend per frame)
@@ -179,20 +179,21 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                 if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
                 {
                     // Create new remote player entity
-                    ecs::Entity remotePlayer = registry.createEntity()
-                                                    .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id),
-                                                                         entityState.x, entityState.y, 0.F)
-                                                    .with<ecs::Velocity>("remote_velocity_" + std::to_string(entityState.id),
-                                                                         entityState.vx, entityState.vy)
-                                                    .with<ecs::Rect>("remote_rect_" + std::to_string(entityState.id), 0.F, 0.F,
-                                                                     static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
-                                                                     static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
-                                                    .with<ecs::Scale>("remote_scale_" + std::to_string(entityState.id),
-                                                                      GameConfig::Player::SCALE, GameConfig::Player::SCALE)
-                                                    .with<ecs::Texture>("remote_texture_" + std::to_string(entityState.id),
-                                                                        utl::Path::Texture::TEXTURE_PLAYER)
-                                                    .with<ecs::Player>("remote_player_comp_" + std::to_string(entityState.id), false)
-                                                    .build();
+                    ecs::Entity remotePlayer =
+                        registry.createEntity()
+                            .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
+                                                  entityState.y, 0.F)
+                            .with<ecs::Velocity>("remote_velocity_" + std::to_string(entityState.id), entityState.vx,
+                                                 entityState.vy)
+                            .with<ecs::Rect>("remote_rect_" + std::to_string(entityState.id), 0.F, 0.F,
+                                             static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
+                                             static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
+                            .with<ecs::Scale>("remote_scale_" + std::to_string(entityState.id),
+                                              GameConfig::Player::SCALE, GameConfig::Player::SCALE)
+                            .with<ecs::Texture>("remote_texture_" + std::to_string(entityState.id),
+                                                utl::Path::Texture::TEXTURE_PLAYER)
+                            .with<ecs::Player>("remote_player_comp_" + std::to_string(entityState.id), false)
+                            .build();
                     m_remotePlayers[entityState.id] = remotePlayer;
                 }
                 else
@@ -204,10 +205,11 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                         // Store previous position for interpolation
                         float prevX = transform->x;
                         float prevY = transform->y;
-                        
+
                         // Store interpolation data
-                        if (m_interpolationData.find(entityState.id) == m_interpolationData.end() || 
-                            m_interpolationData[entityState.id].interpolationTime >= m_interpolationData[entityState.id].interpolationDuration)
+                        if (m_interpolationData.find(entityState.id) == m_interpolationData.end() ||
+                            m_interpolationData[entityState.id].interpolationTime >=
+                                m_interpolationData[entityState.id].interpolationDuration)
                         {
                             m_interpolationData[entityState.id] = {
                                 .prevX = prevX,
@@ -241,13 +243,13 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
-    
+
     // Client-side prediction: Update local player immediately
     if (m_playerController)
     {
         m_playerController->update(reg, dt);
     }
-    
+
     const auto &audios = reg.getAll<ecs::Audio>();
 
     for (const auto &audio : audios)
@@ -264,7 +266,7 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
         // Skip local player
         if (playerId == m_sessionId)
             continue;
-            
+
         if (m_remotePlayers.find(playerId) != m_remotePlayers.end())
         {
             ecs::Entity remotePlayer = m_remotePlayers[playerId];
@@ -272,7 +274,7 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
             {
                 interpData.interpolationTime += dt;
                 float t = std::min(interpData.interpolationTime / interpData.interpolationDuration, 1.0f);
-                
+
                 // Linear interpolation
                 transform->x = interpData.prevX + (interpData.targetX - interpData.prevX) * t;
                 transform->y = interpData.prevY + (interpData.targetY - interpData.prevY) * t;
@@ -300,4 +302,3 @@ void gme::GameMulti::updatePlayerSkin()
         playerRect->pos_y = skinPosY;
     }
 }
-

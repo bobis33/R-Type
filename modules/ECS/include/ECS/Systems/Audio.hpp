@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ECS/Component.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Utils/Common.hpp"

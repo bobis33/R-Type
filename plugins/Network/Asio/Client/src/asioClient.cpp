@@ -699,17 +699,17 @@ namespace eng
                 {
                     // Create full packet with header and payload
                     rnp::Serializer packetSerializer;
-                    
+
                     // Create header for ENTITY_EVENT packet
                     rnp::PacketHeader header;
                     header.type = static_cast<std::uint8_t>(rnp::PacketType::ENTITY_EVENT);
                     header.length = static_cast<std::uint16_t>(e.data.size());
                     header.sessionId = m_sessionId;
-                    
+
                     // Serialize header and payload
                     packetSerializer.serializeHeader(header);
                     packetSerializer.writeBytes(e.data.data(), e.data.size());
-                    
+
                     // Send to server
                     sendToServer(packetSerializer.getData());
                     break;
@@ -762,38 +762,6 @@ namespace eng
                 {
                     // This event is for other components (GameMulti), not AsioClient
                     // Just ignore it here
-                    break;
-                }
-                case utl::EventType::LOBBY_LIST_REQUEST:
-                {
-                    requestLobbyList();
-                    break;
-                }
-                case utl::EventType::LOBBY_CREATE:
-                {
-                    rnp::Serializer serializer(e.data);
-                    rnp::PacketLobbyCreate lobbyCreate = serializer.deserializeLobbyCreate();
-                    std::string lobbyName(lobbyCreate.lobbyName.data(), lobbyCreate.nameLen);
-                    std::uint8_t maxPlayers = lobbyCreate.maxPlayers;
-                    std::uint8_t gameMode = lobbyCreate.gameMode;
-                    utl::Logger::log("AsioClient: Received LOBBY_CREATE event - Name: " + lobbyName +
-                                         ", Max Players: " + std::to_string(maxPlayers) +
-                                         ", Game Mode: " + std::to_string(gameMode),
-                                     utl::LogLevel::INFO);
-                    createLobby(lobbyCreate);
-                    break;
-                }
-                case utl::EventType::LOBBY_JOIN:
-                {
-                    rnp::Serializer serializer(e.data);
-                    std::uint32_t lobbyId = serializer.readUInt32();
-                    joinLobby(lobbyId);
-                    break;
-                }
-                case utl::EventType::LOBBY_LEAVE:
-                {
-                    utl::Logger::log("AsioClient: Received LOBBY_LEAVE event", utl::LogLevel::INFO);
-                    leaveLobby();
                     break;
                 }
                 default:
@@ -951,7 +919,8 @@ namespace eng
             return;
         }
 
-        utl::Logger::log("AsioClient: Requesting to start game for lobby " + std::to_string(lobbyId), utl::LogLevel::INFO);
+        utl::Logger::log("AsioClient: Requesting to start game for lobby " + std::to_string(lobbyId),
+                         utl::LogLevel::INFO);
 
         rnp::PacketStartGameRequest request;
         request.lobbyId = lobbyId;
@@ -1086,8 +1055,9 @@ namespace eng
 
         // Publish to event bus so WaitingRoomScene can receive the game start event
         utl::Event gameStartEvent(utl::EventType::GAME_START, m_componentId, 8); // target = WaitingRoomScene ID
-        gameStartEvent.data = std::vector<std::uint8_t>(reinterpret_cast<const std::uint8_t*>(&packet), 
-                                                         reinterpret_cast<const std::uint8_t*>(&packet) + sizeof(rnp::PacketGameStart));
+        gameStartEvent.data =
+            std::vector<std::uint8_t>(reinterpret_cast<const std::uint8_t *>(&packet),
+                                      reinterpret_cast<const std::uint8_t *>(&packet) + sizeof(rnp::PacketGameStart));
         m_eventBus.publish(gameStartEvent);
 
         return rnp::HandlerResult::SUCCESS;

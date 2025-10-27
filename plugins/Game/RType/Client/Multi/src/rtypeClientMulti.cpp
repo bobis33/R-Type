@@ -5,6 +5,7 @@
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
 #include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
+#include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 #include "RTypeShared/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 
@@ -128,7 +129,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     waitingRoomScene->onGameStart = [this, waitingRoomScenePtr]()
     {
         utl::Logger::log("RTypeClientMulti: Game starting!", utl::LogLevel::INFO);
-        
+
         // Get sessionId from network client
         uint32_t sessionId = 0;
         if (m_engine && m_engine->getNetwork())
@@ -136,19 +137,8 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
             sessionId = m_engine->getNetwork()->getSessionId();
             utl::Logger::log("RTypeClientMulti: Using sessionId " + std::to_string(sessionId), utl::LogLevel::INFO);
         }
-        
+
         // Create and setup GameMulti scene
-        auto gameMultiId = m_engine->getSceneManager()->generateNextId();
-        auto gameMulti = std::make_unique<GameMulti>(
-            gameMultiId, m_engine->getRenderer(), m_engine->getAudio(), m_skinIndex, m_showDebug,
-            waitingRoomScenePtr->getLobbyId(), sessionId);
-        
-        // Add systems to GameMulti
-        gameMulti->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
-        gameMulti->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
         // Reuse Solo systems
         // Note: You'll need to include these systems from Solo
         // gameMulti->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
@@ -159,7 +149,17 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         // gameMulti->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
         // gameMulti->addSystem(std::make_unique<PlayerDirectionSystem>(m_skinIndex));
         // gameMulti->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
-        
+
+        auto gameMultiId = m_engine->getSceneManager()->generateNextId();
+        auto gameMulti =
+            std::make_unique<GameMulti>(gameMultiId, m_engine->getRenderer(), m_engine->getAudio(), m_skinIndex,
+                                        m_showDebug, waitingRoomScenePtr->getLobbyId(), sessionId);
+        gameMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume,
+                                                                gameMulti->getRegistry(), gameMulti->playMusic()));
+        gameMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
+
         m_engine->getSceneManager()->addScene(std::move(gameMulti));
         m_engine->getSceneManager()->switchToScene(gameMultiId);
     };

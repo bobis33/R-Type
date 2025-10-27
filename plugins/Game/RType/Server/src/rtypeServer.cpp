@@ -1,17 +1,17 @@
 #include "RTypeServer/RTypeServer.hpp"
 #include "ECS/Component.hpp"
-#include "Utils/EventBus.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/EventBus.hpp"
 #include <algorithm>
 
 gme::RTypeServer::RTypeServer() : m_eventBus(utl::EventBus::getInstance())
 {
     // Register this component with the event bus
     m_eventBus.registerComponent(utl::GAME_LOGIC, "RTypeServer");
-    
+
     // Subscribe to SERVER_START event to create player entities
     m_eventBus.subscribe(utl::GAME_LOGIC, utl::EventType::SERVER_START);
-    
+
     // Subscribe to PLAYER_INPUT_RECEIVED to process player inputs
     m_eventBus.subscribe(utl::GAME_LOGIC, utl::EventType::PLAYER_INPUT_RECEIVED);
 }
@@ -20,11 +20,29 @@ void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
 {
     m_gameState = State::PLAYING;
 
-    // create scenes, with necessary entities
-    uint32_t component = 1;
-    m_eventBus.registerComponent(component, "RType-Server");
-    m_eventBus.subscribe(component, utl::EventType::PLAYER_INPUT_RECEIVED);
-    auto events = m_eventBus.consumeForTarget(component);
+    utl::Logger::log("RTypeServer: Start called", utl::LogLevel::INFO);
+
+    // SERVER_START events will be processed in update()
+}
+
+void gme::RTypeServer::stop()
+{
+    m_gameState = State::LOSE;
+    m_playerEntities.clear();
+    m_projectileEntities.clear();
+}
+
+void gme::RTypeServer::processServerStartEvents()
+{
+    // Already handled in update() now
+}
+
+void gme::RTypeServer::update(const float deltaTime)
+{
+    m_lastBroadcastTime += deltaTime;
+
+    // Process all events (SERVER_START and PLAYER_INPUT_RECEIVED)
+    auto events = m_eventBus.consumeForTarget(utl::GAME_LOGIC);
     for (const auto &event : events)
     {
         if (event.type == utl::EventType::SERVER_START)
@@ -37,17 +55,21 @@ void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
                 {
                     std::uint32_t sessionId;
                     std::memcpy(&sessionId, event.data.data() + i * sizeof(std::uint32_t), sizeof(std::uint32_t));
-                    
+
                     if (m_playerEntities.find(sessionId) == m_playerEntities.end())
                     {
-                        ecs::Entity playerEntity = m_registry.createEntity()
-                                                            .with<ecs::Transform>("player_transform_" + std::to_string(sessionId),
-                                                                                  200.F + (i * 200.F), 100.F, 0.F)
-                                                            .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
-                                                            .with<ecs::Player>("player_" + std::to_string(sessionId), true)
-                                                            .build();
+                        ecs::Entity playerEntity =
+                            m_registry.createEntity()
+                                .with<ecs::Transform>("player_transform_" + std::to_string(sessionId),
+                                                      200.F + (i * 200.F), 100.F, 0.F)
+                                .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
+                                .with<ecs::Player>("player_" + std::to_string(sessionId), true)
+                                .build();
                         m_playerEntities[sessionId] = playerEntity;
-                        utl::Logger::log("RTypeServer: Created player entity for sessionId " + std::to_string(sessionId) + " at position " + std::to_string(200.F + (i * 200.F)), utl::LogLevel::INFO);
+                        utl::Logger::log("RTypeServer: Created player entity for sessionId " +
+                                             std::to_string(sessionId) + " at position " +
+                                             std::to_string(200.F + (i * 200.F)),
+                                         utl::LogLevel::INFO);
                     }
                 }
             }
@@ -66,41 +88,49 @@ void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
                     bool shoot = event.data[4] != 0;
 
                     std::uint32_t sessionId = event.sourceId;
-                    
-                    utl::Logger::log("RTypeServer: Received input from sessionId " + std::to_string(sessionId), utl::LogLevel::INFO);
-                    
+
+                    utl::Logger::log("RTypeServer: Received input from sessionId " + std::to_string(sessionId),
+                                     utl::LogLevel::INFO);
+
                     // Create player entity if it doesn't exist
                     if (m_playerEntities.find(sessionId) == m_playerEntities.end())
                     {
-                        ecs::Entity playerEntity = m_registry.createEntity()
-                                                        .with<ecs::Transform>("player_transform_" + std::to_string(sessionId),
-                                                                              200.F + (sessionId % 1000), 100.F, 0.F)
-                                                        .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
-                                                        .with<ecs::Player>("player_" + std::to_string(sessionId), true)
-                                                        .build();
+                        ecs::Entity playerEntity =
+                            m_registry.createEntity()
+                                .with<ecs::Transform>("player_transform_" + std::to_string(sessionId),
+                                                      200.F + (sessionId % 1000), 100.F, 0.F)
+                                .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
+                                .with<ecs::Player>("player_" + std::to_string(sessionId), true)
+                                .build();
                         m_playerEntities[sessionId] = playerEntity;
-                        utl::Logger::log("RTypeServer: Created player entity for sessionId " + std::to_string(sessionId), utl::LogLevel::INFO);
+                        utl::Logger::log("RTypeServer: Created player entity for sessionId " +
+                                             std::to_string(sessionId),
+                                         utl::LogLevel::INFO);
                     }
-                    
+
                     // Apply input to player entity
                     if (sessionId != 0 && m_playerEntities.find(sessionId) != m_playerEntities.end())
                     {
                         ecs::Entity playerEntity = m_playerEntities[sessionId];
                         auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
                         auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
-                        
+
                         if (velocity && transform)
                         {
                             // Calculate velocity based on input
                             const float SPEED = 500.0f;
                             velocity->x = 0.0f;
                             velocity->y = 0.0f;
-                            
-                            if (up) velocity->y = -SPEED;
-                            if (down) velocity->y = SPEED;
-                            if (left) velocity->x = -SPEED;
-                            if (right) velocity->x = SPEED;
-                            
+
+                            if (up)
+                                velocity->y = -SPEED;
+                            if (down)
+                                velocity->y = SPEED;
+                            if (left)
+                                velocity->x = -SPEED;
+                            if (right)
+                                velocity->x = SPEED;
+
                             // Normalize diagonal movement
                             if (velocity->x != 0.0f && velocity->y != 0.0f)
                             {
@@ -113,15 +143,16 @@ void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
             }
             catch (const std::exception &e)
             {
-                utl::Logger::log("RTypeServer: Error processing input: " + std::string(e.what()), utl::LogLevel::WARNING);
+                utl::Logger::log("RTypeServer: Error processing input: " + std::string(e.what()),
+                                 utl::LogLevel::WARNING);
             }
         }
     }
-    
+
     utl::Logger::log("RTypeServer: Processed " + std::to_string(events.size()) + " events", utl::LogLevel::INFO);
-    
+
     updateEntities(deltaTime);
-    
+
     // Broadcast at 60 Hz
     if (m_lastBroadcastTime >= BROADCAST_INTERVAL)
     {
@@ -133,9 +164,9 @@ void gme::RTypeServer::start(/* vector<clientId> clientIds*/)
 void gme::RTypeServer::processInputs()
 {
     auto events = m_eventBus.consumeForTarget(utl::GAME_LOGIC); // Component ID = GAME_LOGIC (ID 3)
-    
+
     utl::Logger::log("RTypeServer: Processing " + std::to_string(events.size()) + " events", utl::LogLevel::INFO);
-    
+
     for (const auto &event : events)
     {
         if (event.type == utl::EventType::PLAYER_INPUT_RECEIVED)
@@ -153,35 +184,39 @@ void gme::RTypeServer::processInputs()
 
                     // Extract sessionId from event data or use sourceId
                     std::uint32_t sessionId = event.sourceId;
-                    
-                    utl::Logger::log("RTypeServer: Received input from sessionId " + std::to_string(sessionId), utl::LogLevel::INFO);
-                    
+
+                    utl::Logger::log("RTypeServer: Received input from sessionId " + std::to_string(sessionId),
+                                     utl::LogLevel::INFO);
+
                     // Create player entity if it doesn't exist
                     if (m_playerEntities.find(sessionId) == m_playerEntities.end())
                     {
-                        ecs::Entity playerEntity = m_registry.createEntity()
-                                                        .with<ecs::Transform>("player_transform_" + std::to_string(sessionId),
-                                                                              200.F + (sessionId % 1000), 100.F, 0.F)
-                                                        .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
-                                                        .with<ecs::Player>("player_" + std::to_string(sessionId), true)
-                                                        .build();
+                        ecs::Entity playerEntity =
+                            m_registry.createEntity()
+                                .with<ecs::Transform>("player_transform_" + std::to_string(sessionId),
+                                                      200.F + (sessionId % 1000), 100.F, 0.F)
+                                .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
+                                .with<ecs::Player>("player_" + std::to_string(sessionId), true)
+                                .build();
                         m_playerEntities[sessionId] = playerEntity;
-                        utl::Logger::log("RTypeServer: Created player entity for sessionId " + std::to_string(sessionId), utl::LogLevel::INFO);
+                        utl::Logger::log("RTypeServer: Created player entity for sessionId " +
+                                             std::to_string(sessionId),
+                                         utl::LogLevel::INFO);
                     }
-                    
+
                     // Apply input to player entity
                     if (sessionId != 0 && m_playerEntities.find(sessionId) != m_playerEntities.end())
                     {
                         ecs::Entity playerEntity = m_playerEntities[sessionId];
                         auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
                         auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
-                        
+
                         if (velocity && transform)
                         {
                             // Calculate velocity based on input
                             const float SPEED = 500.0f;
                             const float DIAGONAL_SPEED = SPEED * 0.707f;
-                            
+
                             velocity->x = 0.0f;
                             velocity->y = 0.0f;
 
@@ -207,10 +242,14 @@ void gme::RTypeServer::processInputs()
                             }
                             else
                             {
-                                if (up) velocity->y = -SPEED;
-                                if (down) velocity->y = SPEED;
-                                if (left) velocity->x = -SPEED;
-                                if (right) velocity->x = SPEED;
+                                if (up)
+                                    velocity->y = -SPEED;
+                                if (down)
+                                    velocity->y = SPEED;
+                                if (left)
+                                    velocity->x = -SPEED;
+                                if (right)
+                                    velocity->x = SPEED;
                             }
 
                             // Handle shoot
@@ -224,7 +263,8 @@ void gme::RTypeServer::processInputs()
             }
             catch (const std::exception &e)
             {
-                utl::Logger::log("RTypeServer: Error processing input: " + std::string(e.what()), utl::LogLevel::WARNING);
+                utl::Logger::log("RTypeServer: Error processing input: " + std::string(e.what()),
+                                 utl::LogLevel::WARNING);
             }
         }
     }
@@ -280,11 +320,11 @@ void gme::RTypeServer::broadcastWorldState()
                 entityState.vx = velocity->x;
                 entityState.vy = velocity->y;
                 entityState.stateFlags = 0;
-                
+
                 worldState.entities.push_back(entityState);
             }
         }
-        
+
         // Serialize all projectile entities
         for (auto &[projId, projEntity] : m_projectileEntities)
         {
@@ -301,7 +341,7 @@ void gme::RTypeServer::broadcastWorldState()
                 entityState.vx = velocity->x;
                 entityState.vy = velocity->y;
                 entityState.stateFlags = 0;
-                
+
                 worldState.entities.push_back(entityState);
             }
         }
@@ -310,32 +350,32 @@ void gme::RTypeServer::broadcastWorldState()
 
         // Create full packet with header for each client
         std::unordered_map<std::uint32_t, std::vector<std::uint8_t>> clientPackets;
-        
+
         for (const auto &[sessionId, playerEntity] : m_playerEntities)
         {
             if (clientPackets.find(sessionId) != clientPackets.end())
                 continue;
-                
+
             // Create packet with header for this session
             rnp::Serializer packetSerializer;
-            
+
             // Create header
             rnp::PacketHeader header;
             header.type = static_cast<std::uint8_t>(rnp::PacketType::WORLD_STATE);
-            
+
             // Serialize world state to calculate length
             rnp::Serializer tempSerializer;
             tempSerializer.serializeWorldState(worldState);
             header.length = static_cast<std::uint16_t>(tempSerializer.getData().size());
             header.sessionId = sessionId;
-            
+
             // Serialize header and world state
             packetSerializer.serializeHeader(header);
             packetSerializer.serializeWorldState(worldState);
-            
+
             clientPackets[sessionId] = packetSerializer.getData();
         }
-        
+
         // Broadcast packets
         for (const auto &[sessionId, packet] : clientPackets)
         {
@@ -346,11 +386,13 @@ void gme::RTypeServer::broadcastWorldState()
             broadcastEvent.data = eventData;
             m_eventBus.publish(broadcastEvent);
         }
-        
-        utl::Logger::log("RTypeServer: Broadcasted world state to " + std::to_string(clientPackets.size()) + " clients", utl::LogLevel::INFO);
+
+        utl::Logger::log("RTypeServer: Broadcasted world state to " + std::to_string(clientPackets.size()) + " clients",
+                         utl::LogLevel::INFO);
     }
     catch (const std::exception &e)
     {
-        utl::Logger::log("RTypeServer: Error broadcasting world state: " + std::string(e.what()), utl::LogLevel::WARNING);
+        utl::Logger::log("RTypeServer: Error broadcasting world state: " + std::string(e.what()),
+                         utl::LogLevel::WARNING);
     }
 }

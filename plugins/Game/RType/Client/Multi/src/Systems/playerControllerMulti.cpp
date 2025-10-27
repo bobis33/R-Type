@@ -1,8 +1,8 @@
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 #include "ECS/Component.hpp"
-#include "RTypeClientMulti/GameConfig.hpp"
-#include "Interfaces/Protocol/Serializer.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
+#include "Interfaces/Protocol/Serializer.hpp"
+#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Logger.hpp"
 
 ecs::Entity gme::PlayerControllerMulti::createPlayer(ecs::Registry &registry, float x, float y)
@@ -62,23 +62,24 @@ void gme::PlayerControllerMulti::sendInputsIfChanged()
     // Throttle inputs to 30 Hz max
     static float accumulatedTime = 0.0f;
     accumulatedTime += 1.0f / 60.0f; // Assume 60 FPS (will be adjusted by actual deltaTime later)
-    
+
     if (accumulatedTime < INPUT_THROTTLE_INTERVAL)
         return;
-    
+
     accumulatedTime = 0.0f;
-    
-    auto checkKey = [this](eng::Key key) -> bool {
+
+    auto checkKey = [this](eng::Key key) -> bool
+    {
         auto it = m_keysPressed.find(key);
         return it != m_keysPressed.end() && it->second;
     };
-    
+
     bool up = checkKey(eng::Key::Up);
     bool down = checkKey(eng::Key::Down);
     bool left = checkKey(eng::Key::Left);
     bool right = checkKey(eng::Key::Right);
     bool shoot = checkKey(eng::Key::Space);
-    
+
     sendInputToServer(up, down, left, right, shoot);
 }
 
@@ -91,7 +92,7 @@ void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left
     inputData.push_back(left ? 1 : 0);
     inputData.push_back(right ? 1 : 0);
     inputData.push_back(shoot ? 1 : 0);
-    
+
     // Create EventRecord
     rnp::EventRecord eventRecord;
     eventRecord.entityId = 0;
@@ -106,8 +107,7 @@ void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left
     serializer.serializeEntityEvents(events);
 
     // Publish to event bus to send to server
-    m_eventBus.publish(utl::EventType::SEND_ENTITY_EVENT, serializer.getData(), m_componentId,
-                       utl::NETWORK_CLIENT);
+    m_eventBus.publish(utl::EventType::SEND_ENTITY_EVENT, serializer.getData(), m_componentId, utl::NETWORK_CLIENT);
 }
 
 void gme::PlayerControllerMulti::update(ecs::Registry &registry, float dt)
@@ -121,37 +121,41 @@ void gme::PlayerControllerMulti::update(ecs::Registry &registry, float dt)
             const float SPEED = 500.0f;
             velocity->x = 0.0f;
             velocity->y = 0.0f;
-            
-            auto checkKey = [this](eng::Key key) -> bool {
+
+            auto checkKey = [this](eng::Key key) -> bool
+            {
                 auto it = m_keysPressed.find(key);
                 return it != m_keysPressed.end() && it->second;
             };
-            
+
             bool up = checkKey(eng::Key::Up);
             bool down = checkKey(eng::Key::Down);
             bool left = checkKey(eng::Key::Left);
             bool right = checkKey(eng::Key::Right);
-            
-            if (up) velocity->y = -SPEED;
-            if (down) velocity->y = SPEED;
-            if (left) velocity->x = -SPEED;
-            if (right) velocity->x = SPEED;
-            
+
+            if (up)
+                velocity->y = -SPEED;
+            if (down)
+                velocity->y = SPEED;
+            if (left)
+                velocity->x = -SPEED;
+            if (right)
+                velocity->x = SPEED;
+
             // Normalize diagonal movement
             if (velocity->x != 0.0f && velocity->y != 0.0f)
             {
                 velocity->x *= 0.707f;
                 velocity->y *= 0.707f;
             }
-            
+
             // Apply velocity
             transform->x += velocity->x * dt;
             transform->y += velocity->y * dt;
-            
+
             // Clamp to screen bounds
             transform->x = std::max(0.0f, std::min(1920.0f, transform->x));
             transform->y = std::max(0.0f, std::min(1080.0f, transform->y));
         }
     }
 }
-

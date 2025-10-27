@@ -35,11 +35,15 @@ namespace gme
 
             void setLobbyId(std::uint32_t lobbyId);
             void setLobbyInfo(const rnp::LobbyInfo &lobbyInfo);
+            void setIsHost(bool isHost) { m_isHost = isHost; }
+            [[nodiscard]] bool isHost() const { return m_isHost; }
+            std::uint32_t getLobbyId() { return m_lobbyId; };
 
             bool &playMusic() { return m_playMusic; }
 
             std::function<void()> onLeaveLobby;
             std::function<void()> onGameStart;
+            void startGame();
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
@@ -52,7 +56,8 @@ namespace gme
             int m_selectedButton = 0;
             static constexpr int BUTTON_LEAVE = 0;
             static constexpr int BUTTON_READY = 1;
-            static constexpr int BUTTON_COUNT = 2;
+            static constexpr int BUTTON_START = 2;
+            static constexpr int BUTTON_COUNT = 3;
 
             // UI Entities
             ecs::Entity m_titleEntity = 0;
@@ -60,8 +65,11 @@ namespace gme
             ecs::Entity m_playerCountEntity = 0;
             ecs::Entity m_statusEntity = 0;
             ecs::Entity m_leaveButtonEntity = 0;
+            ecs::Entity m_startButtonEntity = 0;
             ecs::Entity m_readyButtonEntity = 0;
             std::vector<ecs::Entity> m_playerEntities;
+
+            bool m_isHost = false;
             bool m_playMusic = false;
             void setupEventSubscriptions() const;
             void processEventBus();

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cmath>
+#include <ranges>
 #include <vector>
 
 #include "ECS/Component.hpp"
