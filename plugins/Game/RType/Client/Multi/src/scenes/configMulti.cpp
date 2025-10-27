@@ -74,7 +74,8 @@ gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
+                              utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("title", std::string("MULTIPLAYER"), 72U)
             .build();
 
@@ -83,8 +84,9 @@ gme::ConfigMulti::ConfigMulti(const eng::id assignedId, const std::shared_ptr<en
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu_" + std::to_string(i), 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
+            .with<ecs::Color>("color_menu_" + std::to_string(i), utl::Config::Color::GRAY_BLUE_SUBTLE.r,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }
@@ -126,7 +128,7 @@ void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
 
             if (i == m_selectedIndex)
             {
-                float glowIntensity = std::sin(m_animationTime * 2.5f);
+                const float glowIntensity = std::sin(m_animationTime * 2.5f);
                 color.r = 0U;
                 color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
                 color.b = 255U;

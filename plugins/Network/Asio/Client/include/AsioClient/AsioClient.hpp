@@ -356,7 +356,8 @@ namespace eng
             /// @param context Packet context
             /// @return Handler result
             ///
-            rnp::HandlerResult handleGameStart(const rnp::PacketGameStart &packet, const rnp::PacketContext &context) const;
+            rnp::HandlerResult handleGameStart(const rnp::PacketGameStart &packet,
+                                               const rnp::PacketContext &context) const;
 
             ///
             /// @brief Send CONNECT packet

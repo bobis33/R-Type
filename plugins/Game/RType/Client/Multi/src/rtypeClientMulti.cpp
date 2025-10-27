@@ -4,7 +4,7 @@
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
 #include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
-#include "RTypeClientMulti/Systems/Systems.hpp"
+#include "RTypeShared/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 
 void gme::RTypeClientMulti::update(float deltaTime, unsigned int width, unsigned int height) {}
@@ -30,14 +30,16 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     auto createRoomScene =
         std::make_unique<CreateRoomScene>(createRoomId, m_engine->getRenderer(), m_engine->getAudio());
     createRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume));
-    createRoomScene->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), createRoomScene->getRegistry()));
+    createRoomScene->addSystem(
+        std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), createRoomScene->getRegistry()));
     createRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     createRoomScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     createRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto joinRoomId = m_engine->getSceneManager()->generateNextId();
     auto joinRoomScene = std::make_unique<JoinRoomScene>(joinRoomId, m_engine->getRenderer(), m_engine->getAudio());
     joinRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume));
-    joinRoomScene->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), joinRoomScene->getRegistry()));
+    joinRoomScene->addSystem(
+        std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), joinRoomScene->getRegistry()));
     joinRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     joinRoomScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     joinRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
@@ -45,11 +47,13 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     auto waitingRoomId = m_engine->getSceneManager()->generateNextId();
     auto waitingRoomScene =
         std::make_unique<WaitingRoomScene>(waitingRoomId, m_engine->getRenderer(), m_engine->getAudio());
-    waitingRoomScene->addSystem(std::make_unique<AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
-    waitingRoomScene->addSystem(std::make_unique<PixelSystem>(m_engine->getRenderer()));
-    waitingRoomScene->addSystem(std::make_unique<SpriteSystem>(m_engine->getRenderer()));
-    waitingRoomScene->addSystem(std::make_unique<TextSystem>(m_engine->getRenderer()));
-    waitingRoomScene->addSystem(std::make_unique<DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    waitingRoomScene->addSystem(
+        std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), static_cast<float>(m_audioVolume)));
+    waitingRoomScene->addSystem(
+        std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), waitingRoomScene->getRegistry()));
+    waitingRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    waitingRoomScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    waitingRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     WaitingRoomScene *waitingRoomScenePtr = waitingRoomScene.get();
 
     serverScene->onConnect =

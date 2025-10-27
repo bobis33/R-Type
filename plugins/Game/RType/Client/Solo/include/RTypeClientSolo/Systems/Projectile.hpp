@@ -41,7 +41,8 @@ namespace gme
                     }
                     auto *transform = registry.getComponent<ecs::Transform>(entity);
 
-                    if (auto *velocity = registry.getComponent<ecs::Velocity>(entity); (transform != nullptr) && (velocity != nullptr))
+                    if (auto *velocity = registry.getComponent<ecs::Velocity>(entity);
+                        (transform != nullptr) && (velocity != nullptr))
                     {
                         transform->x += velocity->x * dt;
                         transform->y += velocity->y * dt;

@@ -1,4 +1,4 @@
-#include <ranges>
+#include <cmath>
 
 #include "Client/Scenes/Menu.hpp"
 #include "ECS/Component.hpp"
@@ -82,7 +82,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
+                              utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("id", std::string("RTYPE"), 72U)
             .build();
 
@@ -91,7 +92,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+            .with<ecs::Color>("color_menu", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
                               utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 32U)
             .build();
@@ -111,7 +113,8 @@ cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_contributors", renderer->getWindowSize().width * 0.9F,
                                   renderer->getWindowSize().height * 0.9F)
-            .with<ecs::Color>("color_contributors", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+            .with<ecs::Color>("color_contributors", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
                               utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("contributors_text", contributorsText, 24U)
             .build();

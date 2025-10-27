@@ -35,7 +35,7 @@ namespace gme
             void event(const eng::Event &event) override;
 
             void setRooms(const std::vector<rnp::LobbyInfo> &rooms);
-            void refreshRoomList();
+            void refreshRoomList() const;
 
             std::function<void(int roomId, const rnp::LobbyInfo *lobbyInfo)> onJoin;
             std::function<void()> onBackToMulti;
@@ -57,8 +57,8 @@ namespace gme
             void updateRoomDisplay();
             void clearRoomEntities();
             void processEventBus();
-            void setupEventSubscriptions();
+            void setupEventSubscriptions() const;
             void handleLobbyListResponse(const utl::Event &event);
-            void handleLobbyJoinResponse(const utl::Event &event);
+            void handleLobbyJoinResponse(const utl::Event &event) const;
     }; // class JoinRoomScene
 } // namespace gme

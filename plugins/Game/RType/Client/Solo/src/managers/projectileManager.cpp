@@ -1,12 +1,12 @@
 #include "RTypeClientSolo/Managers/ProjectileManager.hpp"
-#include "RTypeShared/GameConfig.hpp"
 #include "RTypeClientSolo/Utils/HitboxUtils.hpp"
+#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
 
 namespace gme
 {
-    ecs::Entity ProjectileManager::createBasicProjectile(ecs::Registry &registry, const float x, const float y, const float velocityX,
-                                                         const float velocityY)
+    ecs::Entity ProjectileManager::createBasicProjectile(ecs::Registry &registry, const float x, const float y,
+                                                         const float velocityX, const float velocityY)
     {
         return createProjectile(registry, ecs::Projectile::BASIC, x, y, velocityX, velocityY);
     }

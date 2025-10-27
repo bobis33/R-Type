@@ -8,6 +8,6 @@
 
 #include "ECS/Systems/Audio.hpp"
 #include "ECS/Systems/Debug.hpp"
-#include "ECS/Systems/Starfield.hpp"
 #include "ECS/Systems/Sprite.hpp"
+#include "ECS/Systems/Starfield.hpp"
 #include "ECS/Systems/Text.hpp"

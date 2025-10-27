@@ -33,9 +33,10 @@ namespace gme
                     auto *rect = registry.getComponent<ecs::Rect>(entity);
                     const auto *texture = registry.getComponent<ecs::Texture>(entity);
 
-                    if (!transform || !rect || !texture) {
+                    if (!transform || !rect || !texture)
+                    {
                         continue;
-}
+                    }
 
                     animation.current_time += dt;
                     if (animation.current_time >= animation.frame_duration)

@@ -64,13 +64,13 @@ namespace gme
             ecs::Entity m_readyButtonEntity = 0;
             std::vector<ecs::Entity> m_playerEntities;
 
-            void setupEventSubscriptions();
+            void setupEventSubscriptions() const;
             void processEventBus();
             void handleLobbyUpdate(const utl::Event &event);
-            void handleGameStart(const utl::Event &event);
+            void handleGameStart(const utl::Event &event) const;
             void updatePlayerDisplay();
             void clearPlayerEntities();
-            void leaveLobby();
+            void leaveLobby() const;
 
     }; // class WaitingRoomScene
 } // namespace gme

@@ -42,8 +42,7 @@ namespace ecs
                     int layerValue = (layer != nullptr) ? layer->layer : 0;
                     spritesWithLayers.emplace_back(entity, layerValue);
                 }
-                std::ranges::sort(spritesWithLayers,
-                          [](const auto &a, const auto &b) { return a.second < b.second; });
+                std::ranges::sort(spritesWithLayers, [](const auto &a, const auto &b) { return a.second < b.second; });
                 for (const auto &entity : spritesWithLayers | std::views::keys)
                 {
                     const auto *sprite = registry.getComponent<Texture>(entity);

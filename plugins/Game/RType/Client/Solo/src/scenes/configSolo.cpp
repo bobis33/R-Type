@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "ECS/Component.hpp"
 #include "RTypeClientSolo/Scenes/ConfigSolo.hpp"
 #include "Utils/Common.hpp"
@@ -71,7 +73,8 @@ gme::ConfigSolo::ConfigSolo(const eng::id assignedId, const std::shared_ptr<eng:
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
+                              utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
             .with<ecs::Text>("id", std::string("SOLO"), 80U)
             .build();
 
@@ -80,7 +83,8 @@ gme::ConfigSolo::ConfigSolo(const eng::id assignedId, const std::shared_ptr<eng:
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("transform_menu", 100.F, 200.F + i * 60.F, 0.F)
-            .with<ecs::Color>("color_menu", utl::Config::Color::WHITE.r, utl::Config::Color::WHITE.g, utl::Config::Color::WHITE.b, utl::Config::Color::WHITE.a)
+            .with<ecs::Color>("color_menu", utl::Config::Color::WHITE.r, utl::Config::Color::WHITE.g,
+                              utl::Config::Color::WHITE.b, utl::Config::Color::WHITE.a)
             .with<ecs::Text>("menu_" + m_menuOptions[i], m_menuOptions[i], 40U)
             .build();
     }

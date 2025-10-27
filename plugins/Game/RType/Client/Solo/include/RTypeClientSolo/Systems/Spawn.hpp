@@ -10,8 +10,8 @@
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "RTypeShared/GameConfig.hpp"
 #include "RTypeClientSolo/Utils/HitboxUtils.hpp"
+#include "RTypeShared/GameConfig.hpp"
 
 namespace gme
 {

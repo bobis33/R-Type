@@ -7,9 +7,9 @@
 #pragma once
 
 #include "ECS/Component.hpp"
+#include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "ECS/Interfaces/ISystems.hpp"
 
 namespace gme
 {
@@ -39,7 +39,11 @@ namespace gme
             ///
             /// @brief Reset weapon state
             ///
-            void reset() { m_fireCooldown = 0.0f; m_isCharging = false; }
+            void reset()
+            {
+                m_fireCooldown = 0.0f;
+                m_isCharging = false;
+            }
 
         private:
             float m_fireCooldown = 0.0f;
@@ -70,7 +74,7 @@ namespace gme
             /// @param playerTransform The player transform
             ///
             static void showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
-                                      const ecs::Transform *playerTransform);
+                                             const ecs::Transform *playerTransform);
 
             ///
             /// @brief Hide loading animation

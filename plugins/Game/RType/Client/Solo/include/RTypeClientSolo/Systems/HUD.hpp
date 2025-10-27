@@ -16,7 +16,11 @@ namespace gme
     class HUDSystem final : public ecs::ASystem
     {
         public:
-            explicit HUDSystem(const std::shared_ptr<eng::IRenderer> &renderer, ecs::Registry &registry) : m_renderer(renderer), m_registry(registry) { createScoreHUD(m_registry, 10.0F, 10.0F); }
+            explicit HUDSystem(const std::shared_ptr<eng::IRenderer> &renderer, ecs::Registry &registry)
+                : m_renderer(renderer), m_registry(registry)
+            {
+                createScoreHUD(m_registry, 10.0F, 10.0F);
+            }
             ~HUDSystem() override = default;
 
             HUDSystem(const HUDSystem &) = delete;

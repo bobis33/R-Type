@@ -45,9 +45,11 @@ namespace gme
                     const auto *scale = registry.getComponent<ecs::Scale>(entity);
                     auto *animation = registry.getComponent<ecs::Animation>(entity);
 
-                    if ((transform == nullptr) || (velocity == nullptr) || (rect == nullptr) || (texture == nullptr) || (scale == nullptr)) {
+                    if ((transform == nullptr) || (velocity == nullptr) || (rect == nullptr) || (texture == nullptr) ||
+                        (scale == nullptr))
+                    {
                         continue;
-}
+                    }
 
                     transform->x += velocity->x * dt;
                     transform->y += velocity->y * dt;
@@ -83,30 +85,38 @@ namespace gme
 
                 for (const ecs::Entity entity : enemiesToRemove)
                 {
-                    if (registry.hasComponent<ecs::Enemy>(entity)) {
+                    if (registry.hasComponent<ecs::Enemy>(entity))
+                    {
                         registry.removeComponent<ecs::Enemy>(entity);
-}
-                    if (registry.hasComponent<ecs::Transform>(entity)) {
+                    }
+                    if (registry.hasComponent<ecs::Transform>(entity))
+                    {
                         registry.removeComponent<ecs::Transform>(entity);
-}
-                    if (registry.hasComponent<ecs::Velocity>(entity)) {
+                    }
+                    if (registry.hasComponent<ecs::Velocity>(entity))
+                    {
                         registry.removeComponent<ecs::Velocity>(entity);
-}
-                    if (registry.hasComponent<ecs::Rect>(entity)) {
+                    }
+                    if (registry.hasComponent<ecs::Rect>(entity))
+                    {
                         registry.removeComponent<ecs::Rect>(entity);
-}
-                    if (registry.hasComponent<ecs::Texture>(entity)) {
+                    }
+                    if (registry.hasComponent<ecs::Texture>(entity))
+                    {
                         registry.removeComponent<ecs::Texture>(entity);
-}
-                    if (registry.hasComponent<ecs::Scale>(entity)) {
+                    }
+                    if (registry.hasComponent<ecs::Scale>(entity))
+                    {
                         registry.removeComponent<ecs::Scale>(entity);
-}
-                    if (registry.hasComponent<ecs::Animation>(entity)) {
+                    }
+                    if (registry.hasComponent<ecs::Animation>(entity))
+                    {
                         registry.removeComponent<ecs::Animation>(entity);
-}
-                    if (registry.hasComponent<ecs::Hitbox>(entity)) {
+                    }
+                    if (registry.hasComponent<ecs::Hitbox>(entity))
+                    {
                         registry.removeComponent<ecs::Hitbox>(entity);
-}
+                    }
                 }
             }
 
