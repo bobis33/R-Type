@@ -32,8 +32,7 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
-            bool& playMusic() { return m_playMusic; }
-
+            bool &playMusic() { return m_playMusic; }
 
             void setRooms(const std::vector<rnp::LobbyInfo> &rooms);
             void refreshRoomList() const;

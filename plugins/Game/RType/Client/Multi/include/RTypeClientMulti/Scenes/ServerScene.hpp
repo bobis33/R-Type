@@ -29,7 +29,7 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
-            bool& playMusic() { return m_playMusic; }
+            bool &playMusic() { return m_playMusic; }
 
             std::function<void(const std::string &playerName, const std::string &serverIP,
                                const std::string &serverPort)>

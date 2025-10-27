@@ -14,22 +14,24 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     auto serverSceneId = m_engine->getSceneManager()->generateNextId();
     auto serverScene = std::make_unique<ServerScene>(serverSceneId, m_engine->getRenderer());
     m_mainSceneId = serverSceneId;
-    serverScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume, serverScene->getRegistry(), serverScene->playMusic()));
+    serverScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume,
+                                                              serverScene->getRegistry(), serverScene->playMusic()));
     serverScene->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), serverScene->getRegistry()));
     serverScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     serverScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     serverScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto configMultiId = m_engine->getSceneManager()->generateNextId();
     auto configMulti = std::make_unique<ConfigMulti>(configMultiId, m_engine->getRenderer());
-    configMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume, configMulti->getRegistry(), configMulti->playMusic()));
+    configMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume,
+                                                              configMulti->getRegistry(), configMulti->playMusic()));
     configMulti->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), configMulti->getRegistry()));
     configMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     configMulti->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     configMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto createRoomId = m_engine->getSceneManager()->generateNextId();
-    auto createRoomScene =
-        std::make_unique<CreateRoomScene>(createRoomId, m_engine->getRenderer());
-    createRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume, createRoomScene->getRegistry(), createRoomScene->playMusic()));
+    auto createRoomScene = std::make_unique<CreateRoomScene>(createRoomId, m_engine->getRenderer());
+    createRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(
+        m_engine->getAudio(), m_audioVolume, createRoomScene->getRegistry(), createRoomScene->playMusic()));
     createRoomScene->addSystem(
         std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), createRoomScene->getRegistry()));
     createRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
@@ -37,7 +39,8 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     createRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto joinRoomId = m_engine->getSceneManager()->generateNextId();
     auto joinRoomScene = std::make_unique<JoinRoomScene>(joinRoomId, m_engine->getRenderer());
-    joinRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume, joinRoomScene->getRegistry(), joinRoomScene->playMusic()));
+    joinRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(
+        m_engine->getAudio(), m_audioVolume, joinRoomScene->getRegistry(), joinRoomScene->playMusic()));
     joinRoomScene->addSystem(
         std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), joinRoomScene->getRegistry()));
     joinRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
@@ -45,10 +48,9 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     joinRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     JoinRoomScene *joinRoomScenePtr = joinRoomScene.get();
     auto waitingRoomId = m_engine->getSceneManager()->generateNextId();
-    auto waitingRoomScene =
-        std::make_unique<WaitingRoomScene>(waitingRoomId, m_engine->getRenderer());
-    waitingRoomScene->addSystem(
-        std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume, waitingRoomScene->getRegistry(), waitingRoomScene->playMusic()));
+    auto waitingRoomScene = std::make_unique<WaitingRoomScene>(waitingRoomId, m_engine->getRenderer());
+    waitingRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(
+        m_engine->getAudio(), m_audioVolume, waitingRoomScene->getRegistry(), waitingRoomScene->playMusic()));
     waitingRoomScene->addSystem(
         std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), waitingRoomScene->getRegistry()));
     waitingRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));

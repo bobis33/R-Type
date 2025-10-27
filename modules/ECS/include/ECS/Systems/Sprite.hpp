@@ -49,6 +49,7 @@ namespace ecs
                     const auto *transform = registry.getComponent<Transform>(entity);
                     const auto *rect = registry.getComponent<Rect>(entity);
                     const auto *scale = registry.getComponent<Scale>(entity);
+                    const auto *color = registry.getComponent<Color>(entity);
                     const bool hasScrolling = registry.hasComponent<Scrolling>(entity);
 
                     const float x = (transform != nullptr) ? transform->x : 0.F;
@@ -64,6 +65,11 @@ namespace ecs
                     {
                         m_renderer->setSpriteFrame(sprite->id + std::to_string(entity), static_cast<int>(rect->pos_x),
                                                    static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
+                    }
+                    if (color != nullptr)
+                    {
+                        m_renderer->setSpriteColor(sprite->id + std::to_string(entity),
+                                                   {color->r, color->g, color->b, color->a});
                     }
                     m_renderer->drawSprite(sprite->id + std::to_string(entity));
                 }

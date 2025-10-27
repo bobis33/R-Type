@@ -4,8 +4,8 @@
 #include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
 
-gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
-    const int skinIndex, bool &showDebug)
+gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                        const std::shared_ptr<eng::IAudio> &audio, const int skinIndex, bool &showDebug)
     : AScene(assignedId), m_renderer(renderer), m_audio(audio), m_skinIndex(skinIndex), m_showDebug(showDebug)
 {
     auto &registry = AScene::getRegistry();
@@ -75,7 +75,7 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
                 if (audioComp)
                 {
                     audio->createAudio(audioComp->path, audioComp->volume, audioComp->loop,
-                                          audioComp->id + std::to_string(e));
+                                       audioComp->id + std::to_string(e));
                 }
             }
         });

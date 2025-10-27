@@ -29,7 +29,7 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
             void processEventBus() const;
-            bool& playMusic() { return m_playMusic; }
+            bool &playMusic() { return m_playMusic; }
 
             std::function<void(const std::string &roomName, int maxPlayers)> onCreate;
             std::function<void()> onBackToMulti;
@@ -39,7 +39,7 @@ namespace gme
             size_t m_selectedIndex = 0;
             float m_animationTime = 0.0f;
             const std::vector<std::string> m_options = {"Room Name", "Max Players", "Create", "Back"};
-        bool m_playMusic = false;
+            bool m_playMusic = false;
             std::string m_roomName = "My Room";
             int m_maxPlayers = 4;
 

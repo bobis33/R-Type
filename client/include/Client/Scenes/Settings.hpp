@@ -34,13 +34,13 @@ namespace cli
             void event(const eng::Event &event) override;
             void updateSettingsDisplay();
             void loadFromConfig();
-            bool& playMusic() { return m_playMusic; }
+            bool &playMusic() { return m_playMusic; }
 
             std::function<void()> onLeave;
 
         private:
-        static void applyVideoQuality();
-        static void applySkinChange();
+            static void applyVideoQuality();
+            static void applySkinChange();
 
             std::unordered_map<eng::Key, bool> m_keysPressed;
             const std::shared_ptr<eng::IRenderer> &m_renderer;

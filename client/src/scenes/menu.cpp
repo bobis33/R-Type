@@ -4,8 +4,7 @@
 #include "ECS/Component.hpp"
 #include "Utils/Common.hpp"
 
-cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
-    : AScene(assignedId)
+cli::Menu::Menu(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer) : AScene(assignedId)
 {
     auto &registry = AScene::getRegistry();
 

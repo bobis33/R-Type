@@ -225,9 +225,10 @@ void gme::ServerScene::event(const eng::Event &event)
         case eng::EventType::KeyPressed:
             if (event.key == eng::Key::Escape)
             {
-                if (onBackToMenu) {
+                if (onBackToMenu)
+                {
                     onBackToMenu();
-}
+                }
             }
             else if (event.key == eng::Key::Up)
             {
@@ -246,9 +247,10 @@ void gme::ServerScene::event(const eng::Event &event)
                     connectServer(m_playerName, m_serverIP, m_serverPort);
                     onConnect(m_playerName, m_serverIP, m_serverPort);
                 }
-                else if (m_selectedIndex == 4 && onBackToMenu) {
+                else if (m_selectedIndex == 4 && onBackToMenu)
+                {
                     onBackToMenu();
-}
+                }
             }
             else if (event.key == eng::Key::Delete)
             {
@@ -268,9 +270,10 @@ void gme::ServerScene::event(const eng::Event &event)
                     if (const char c = keyToChar(event.key); c != '\0')
                     {
                         std::string &currentField = getCurrentEditField();
-                        if (c == ' ' && m_selectedIndex != 0) {
+                        if (c == ' ' && m_selectedIndex != 0)
+                        {
                             return;
-}
+                        }
                         if (currentField.length() < 20)
                         {
                             currentField += c;
@@ -289,30 +292,35 @@ void gme::ServerScene::event(const eng::Event &event)
 
 std::string &gme::ServerScene::getCurrentEditField()
 {
-    if (m_selectedIndex == 0) {
+    if (m_selectedIndex == 0)
+    {
         return m_playerName;
-}
-    if (m_selectedIndex == 1) {
+    }
+    if (m_selectedIndex == 1)
+    {
         return m_serverIP;
-}
-            return m_serverPort;
+    }
+    return m_serverPort;
 }
 
 void gme::ServerScene::updateValueDisplay()
 {
     auto &reg = getRegistry();
 
-    if (auto *playerNameText = reg.getComponent<ecs::Text>(m_playerNameValueEntity)) {
+    if (auto *playerNameText = reg.getComponent<ecs::Text>(m_playerNameValueEntity))
+    {
         playerNameText->content = m_playerName;
-}
+    }
 
-    if (auto *serverIPText = reg.getComponent<ecs::Text>(m_serverIPValueEntity)) {
+    if (auto *serverIPText = reg.getComponent<ecs::Text>(m_serverIPValueEntity))
+    {
         serverIPText->content = m_serverIP;
-}
+    }
 
-    if (auto *serverPortText = reg.getComponent<ecs::Text>(m_serverPortValueEntity)) {
+    if (auto *serverPortText = reg.getComponent<ecs::Text>(m_serverPortValueEntity))
+    {
         serverPortText->content = m_serverPort;
-}
+    }
 }
 
 void gme::ServerScene::connectServer(const std::string &playerName, const std::string &serverIP,

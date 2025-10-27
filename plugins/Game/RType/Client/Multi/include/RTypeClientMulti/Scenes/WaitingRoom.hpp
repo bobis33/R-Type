@@ -36,7 +36,7 @@ namespace gme
             void setLobbyId(std::uint32_t lobbyId);
             void setLobbyInfo(const rnp::LobbyInfo &lobbyInfo);
 
-            bool& playMusic() { return m_playMusic; }
+            bool &playMusic() { return m_playMusic; }
 
             std::function<void()> onLeaveLobby;
             std::function<void()> onGameStart;

@@ -69,6 +69,10 @@ namespace utl
     } // namespace Config
     namespace Path
     {
+        namespace Icons
+        {
+            inline constexpr auto ICON_APP = "assets/icons/icon.png";
+        } // namespace Icons
         namespace Audio
         {
             inline constexpr auto AUDIO_TITLE = "assets/audio/title.mp3";
@@ -79,6 +83,7 @@ namespace utl
             inline constexpr auto AUDIO_DEATH_ENEMIES = "assets/audio/deathennemies.wav";
             inline constexpr auto AUDIO_SUPERCHARGED_SHOT = "assets/audio/shoot.wav";
             inline constexpr auto AUDIO_BEGIN = "assets/audio/begin.wav";
+            inline constexpr auto AUDIO_GOOFY = "assets/audio/goofy.wav";
         } // namespace Audio
         namespace Font
         {

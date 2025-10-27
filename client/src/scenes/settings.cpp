@@ -176,9 +176,10 @@ void cli::Settings::updateSettingsDisplay()
 {
     auto &registry = getRegistry();
 
-    if (auto *volumeValueText = registry.getComponent<ecs::Text>(m_volumeValueEntity)) {
+    if (auto *volumeValueText = registry.getComponent<ecs::Text>(m_volumeValueEntity))
+    {
         volumeValueText->content = std::to_string(m_audioVolume);
-}
+    }
     if (auto *qualityValueText = registry.getComponent<ecs::Text>(m_qualityValueEntity))
     {
         const std::vector<std::string> fpsOptions = {"60 FPS", "144 FPS", "240 FPS"};
@@ -222,9 +223,10 @@ void cli::Settings::event(const eng::Event &event)
             else if (event.key == eng::Key::Enter)
             {
                 if (const std::string &selectedOption = m_settingsOptions[m_selectedIndex];
-                    selectedOption == "Back to Menu") {
+                    selectedOption == "Back to Menu")
+                {
                     onLeave();
-}
+                }
             }
             else if (event.key == eng::Key::Left || event.key == eng::Key::Right)
             {
@@ -238,30 +240,39 @@ void cli::Settings::event(const eng::Event &event)
                 }
                 else if (selectedOption == "FPS")
                 {
-                    if (event.key == eng::Key::Left) {
+                    if (event.key == eng::Key::Left)
+                    {
                         m_videoQuality = (m_videoQuality == 0) ? 2 : m_videoQuality - 1;
-                    } else {
+                    }
+                    else
+                    {
                         m_videoQuality = (m_videoQuality == 2) ? 0 : m_videoQuality + 1;
-}
+                    }
                     m_appConfig.videoQuality = m_videoQuality;
                     applyVideoQuality();
                 }
                 else if (selectedOption == "Controls")
                 {
-                    if (event.key == eng::Key::Left) {
+                    if (event.key == eng::Key::Left)
+                    {
                         m_controlScheme = (m_controlScheme == 0) ? 2 : m_controlScheme - 1;
-                    } else {
+                    }
+                    else
+                    {
                         m_controlScheme = (m_controlScheme == 2) ? 0 : m_controlScheme + 1;
-}
+                    }
                     m_appConfig.controlScheme = m_controlScheme;
                 }
                 else if (selectedOption == "Skin")
                 {
-                    if (event.key == eng::Key::Left) {
+                    if (event.key == eng::Key::Left)
+                    {
                         m_skinIndex = (m_skinIndex == 0) ? 4 : m_skinIndex - 1;
-                    } else {
+                    }
+                    else
+                    {
                         m_skinIndex = (m_skinIndex == 4) ? 0 : m_skinIndex + 1;
-}
+                    }
                     m_appConfig.skinIndex = m_skinIndex;
 
                     applySkinChange();

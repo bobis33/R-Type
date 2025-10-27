@@ -138,6 +138,7 @@ namespace eng
             virtual void setTextContent(const std::string &name, const std::string &content) = 0;
             virtual void setTextPosition(const std::string &name, float x, float y) = 0;
             virtual void setTextColor(const std::string &name, Color color) = 0;
+            virtual void setSpriteColor(const std::string &name, Color color) = 0;
 
             virtual void createTexture(const std::string &name, const std::string &path) = 0;
             virtual void createSprite(const std::string &name, const std::string &textureName, float x, float y,

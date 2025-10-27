@@ -22,8 +22,8 @@ namespace gme
     class GameSolo final : public eng::AScene
     {
         public:
-            GameSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, const std::shared_ptr<eng::IAudio> &audio,
-                     int skinIndex, bool &showDebug);
+            GameSolo(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                     const std::shared_ptr<eng::IAudio> &audio, int skinIndex, bool &showDebug);
             ~GameSolo() override = default;
 
             GameSolo(const GameSolo &other) = delete;

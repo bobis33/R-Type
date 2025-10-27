@@ -365,6 +365,18 @@ void eng::SFMLRenderer::setSpriteScale(const std::string &name, const int x, con
     }
 }
 
+void eng::SFMLRenderer::setSpriteColor(const std::string &name, Color color)
+{
+    if (const auto it = sprites.find(name); it != sprites.end())
+    {
+        it->second.setColor({color.r, color.g, color.b, color.a});
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
 void eng::SFMLRenderer::drawPoint(const float x, const float y, const Color color)
 {
     const sf::Vertex point(sf::Vector2f(x, y), sf::Color(color.r, color.g, color.b, color.a));
