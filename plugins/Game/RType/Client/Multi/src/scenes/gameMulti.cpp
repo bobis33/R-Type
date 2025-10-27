@@ -200,38 +200,52 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
             {
+                
                 if (m_projectileEntities.find(entityState.id) == m_projectileEntities.end())
                 {
-                    ecs::Entity projectile =
-                        registry.createEntity()
-                            .with<ecs::Transform>("projectile_" + std::to_string(entityState.id), entityState.x,
-                                                  entityState.y, 0.F)
-                            .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id),
-                                                 entityState.vx, entityState.vy)
-                            .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, 20, 10)
-                            .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
-                            .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id),
-                                                utl::Path::Texture::TEXTURE_PLAYER)
-                            .build();
-
+                    bool isSupercharged = (entityState.vx > 1000.0f || std::abs(entityState.vx) > 1000.0f);
+                    std::string texturePath = isSupercharged ? utl::Path::Texture::TEXTURE_SHOOT_CHARGED : utl::Path::Texture::TEXTURE_SHOOT;
+                    
+                    auto entityBuilder = registry.createEntity()
+                        .with<ecs::Transform>("projectile_" + std::to_string(entityState.id), entityState.x, entityState.y, 0.F)
+                        .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id), entityState.vx, entityState.vy)
+                        .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, isSupercharged ? 29 : 20, isSupercharged ? 24 : 10)
+                        .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), isSupercharged ? 1.5f : 1.0f, isSupercharged ? 1.5f : 1.0f)
+                        .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id), texturePath);
+                    
+                    if (isSupercharged)
+                    {
+                        entityBuilder.with<ecs::Animation>("projectile_animation_" + std::to_string(entityState.id), 
+                                                           0, 4, 0.15f, 0.0f, 29, 24, 4);
+                    }
+                    
+                    ecs::Entity projectile = entityBuilder.build();
+                    
                     m_projectileEntities[entityState.id] = projectile;
-
-                    m_projectileData[entityState.id] = {.targetX = entityState.x,
-                                                        .targetY = entityState.y,
-                                                        .targetVx = entityState.vx,
-                                                        .targetVy = entityState.vy,
-                                                        .currentX = entityState.x,
-                                                        .currentY = entityState.y,
-                                                        .smoothFactor = PROJECTILE_SMOOTH_FACTOR,
-                                                        .targetRotation = 0.0f,
-                                                        .currentRotation = 0.0f};
                 }
                 else
                 {
-                    m_projectileData[entityState.id].targetX = entityState.x;
-                    m_projectileData[entityState.id].targetY = entityState.y;
-                    m_projectileData[entityState.id].targetVx = entityState.vx;
-                    m_projectileData[entityState.id].targetVy = entityState.vy;
+                    if (auto *transform = registry.getComponent<ecs::Transform>(m_projectileEntities[entityState.id]))
+                    {
+                        transform->x = entityState.x;
+                        transform->y = entityState.y;
+                        
+                        if (transform->x > 2000.0f || transform->x < -100.0f)
+                        {
+                            registry.removeComponent<ecs::Transform>(m_projectileEntities[entityState.id]);
+                            registry.removeComponent<ecs::Velocity>(m_projectileEntities[entityState.id]);
+                            registry.removeComponent<ecs::Rect>(m_projectileEntities[entityState.id]);
+                            registry.removeComponent<ecs::Scale>(m_projectileEntities[entityState.id]);
+                            registry.removeComponent<ecs::Texture>(m_projectileEntities[entityState.id]);
+                            registry.removeComponent<ecs::Animation>(m_projectileEntities[entityState.id]);
+                            m_projectileEntities.erase(entityState.id);
+                        }
+                    }
+                    if (auto *velocity = registry.getComponent<ecs::Velocity>(m_projectileEntities[entityState.id]))
+                    {
+                        velocity->x = entityState.vx;
+                        velocity->y = entityState.vy;
+                    }
                 }
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::ENEMY))

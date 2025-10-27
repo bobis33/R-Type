@@ -64,6 +64,7 @@ void gme::RTypeServer::update(const float deltaTime)
                                                       200.F + (i * 200.F), 100.F, 0.F)
                                 .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
                                 .with<ecs::Player>("player_" + std::to_string(sessionId), true)
+                                .with<ecs::BeamCharge>("beam_charge_" + std::to_string(sessionId), 0.0f, 1.0f)
                                 .build();
                         m_playerEntities[sessionId] = playerEntity;
                         utl::Logger::log("RTypeServer: Created player entity for sessionId " +
@@ -76,101 +77,6 @@ void gme::RTypeServer::update(const float deltaTime)
         }
         else if (event.type == utl::EventType::PLAYER_INPUT_RECEIVED)
         {
-            // Process player input directly here
-            try
-            {
-                if (event.data.size() >= 5)
-                {
-                    bool up = event.data[0] != 0;
-                    bool down = event.data[1] != 0;
-                    bool left = event.data[2] != 0;
-                    bool right = event.data[3] != 0;
-                    bool shoot = event.data[4] != 0;
-
-                    std::uint32_t sessionId = event.sourceId;
-
-                    utl::Logger::log("RTypeServer: Received input from sessionId " + std::to_string(sessionId),
-                                     utl::LogLevel::INFO);
-
-                    // Create player entity if it doesn't exist
-                    if (m_playerEntities.find(sessionId) == m_playerEntities.end())
-                    {
-                        ecs::Entity playerEntity =
-                            m_registry.createEntity()
-                                .with<ecs::Transform>("player_transform_" + std::to_string(sessionId),
-                                                      200.F + (sessionId % 1000), 100.F, 0.F)
-                                .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
-                                .with<ecs::Player>("player_" + std::to_string(sessionId), true)
-                                .build();
-                        m_playerEntities[sessionId] = playerEntity;
-                        utl::Logger::log("RTypeServer: Created player entity for sessionId " +
-                                             std::to_string(sessionId),
-                                         utl::LogLevel::INFO);
-                    }
-
-                    // Apply input to player entity
-                    if (sessionId != 0 && m_playerEntities.find(sessionId) != m_playerEntities.end())
-                    {
-                        ecs::Entity playerEntity = m_playerEntities[sessionId];
-                        auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
-                        auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
-
-                        if (velocity && transform)
-                        {
-                            // Calculate velocity based on input
-                            const float SPEED = 500.0f;
-                            velocity->x = 0.0f;
-                            velocity->y = 0.0f;
-
-                            if (up)
-                                velocity->y = -SPEED;
-                            if (down)
-                                velocity->y = SPEED;
-                            if (left)
-                                velocity->x = -SPEED;
-                            if (right)
-                                velocity->x = SPEED;
-
-                            // Normalize diagonal movement
-                            if (velocity->x != 0.0f && velocity->y != 0.0f)
-                            {
-                                velocity->x *= 0.707f; // sqrt(2)/2
-                                velocity->y *= 0.707f;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (const std::exception &e)
-            {
-                utl::Logger::log("RTypeServer: Error processing input: " + std::string(e.what()),
-                                 utl::LogLevel::WARNING);
-            }
-        }
-    }
-
-    utl::Logger::log("RTypeServer: Processed " + std::to_string(events.size()) + " events", utl::LogLevel::INFO);
-
-    updateEntities(deltaTime);
-
-    // Broadcast at 60 Hz
-    if (m_lastBroadcastTime >= BROADCAST_INTERVAL)
-    {
-        broadcastWorldState();
-        m_lastBroadcastTime = 0.0f;
-    }
-}
-
-void gme::RTypeServer::processInputs()
-{
-    auto events = m_eventBus.consumeForTarget(utl::GAME_LOGIC); // Component ID = GAME_LOGIC (ID 3)
-
-    utl::Logger::log("RTypeServer: Processing " + std::to_string(events.size()) + " events", utl::LogLevel::INFO);
-
-    for (const auto &event : events)
-    {
-        if (event.type == utl::EventType::PLAYER_INPUT_RECEIVED)
-        {
             try
             {
                 // Input data comes as: [up, down, left, right, shoot]
@@ -182,11 +88,8 @@ void gme::RTypeServer::processInputs()
                     bool right = event.data[3] != 0;
                     bool shoot = event.data[4] != 0;
 
-                    // Extract sessionId from event data or use sourceId
                     std::uint32_t sessionId = event.sourceId;
 
-                    utl::Logger::log("RTypeServer: Received input from sessionId " + std::to_string(sessionId),
-                                     utl::LogLevel::INFO);
 
                     // Create player entity if it doesn't exist
                     if (m_playerEntities.find(sessionId) == m_playerEntities.end())
@@ -197,11 +100,9 @@ void gme::RTypeServer::processInputs()
                                                       200.F + (sessionId % 1000), 100.F, 0.F)
                                 .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
                                 .with<ecs::Player>("player_" + std::to_string(sessionId), true)
+                                .with<ecs::BeamCharge>("beam_charge_" + std::to_string(sessionId), 0.0f, 1.0f)
                                 .build();
                         m_playerEntities[sessionId] = playerEntity;
-                        utl::Logger::log("RTypeServer: Created player entity for sessionId " +
-                                             std::to_string(sessionId),
-                                         utl::LogLevel::INFO);
                     }
 
                     // Apply input to player entity
@@ -210,6 +111,7 @@ void gme::RTypeServer::processInputs()
                         ecs::Entity playerEntity = m_playerEntities[sessionId];
                         auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
                         auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
+                        auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity);
 
                         if (velocity && transform)
                         {
@@ -252,10 +154,36 @@ void gme::RTypeServer::processInputs()
                                     velocity->x = SPEED;
                             }
 
-                            // Handle shoot
-                            if (shoot)
+                            // Handle shoot charge
+                            if (shoot && beamCharge)
                             {
-                                // TODO: Spawn projectile
+                                // Increment charge
+                                beamCharge->current_charge += 0.05f; // Faster charge rate
+                                if (beamCharge->current_charge > beamCharge->max_charge)
+                                    beamCharge->current_charge = beamCharge->max_charge;
+                            }
+                            else if (beamCharge && beamCharge->current_charge > 0.0f)
+                            {
+                                // Release charge
+                                if (m_lastShotTime.find(sessionId) == m_lastShotTime.end())
+                                {
+                                    m_lastShotTime[sessionId] = 0.0f;
+                                }
+                                
+                                if (m_lastShotTime[sessionId] >= PROJECTILE_COOLDOWN)
+                                {
+                                    const float PLAYER_WIDTH = 64.0f;
+                                    const float PLAYER_HEIGHT = 64.0f;
+                                    float projectileX = transform->x + PLAYER_WIDTH;
+                                    float projectileY = transform->y + PLAYER_HEIGHT / 2.0f;
+                                    
+                                    bool isSupercharged = beamCharge->current_charge >= 0.5f;
+                                    float projectileSpeed = isSupercharged ? 1200.0f : 800.0f;
+                                    
+                                    spawnProjectile(sessionId, projectileX, projectileY, projectileSpeed, 0.0f, isSupercharged);
+                                    m_lastShotTime[sessionId] = 0.0f;
+                                    beamCharge->current_charge = 0.0f;
+                                }
                             }
                         }
                     }
@@ -268,14 +196,21 @@ void gme::RTypeServer::processInputs()
             }
         }
     }
+
+    updateEntities(deltaTime);
+
+    // Broadcast at 60 Hz
+    if (m_lastBroadcastTime >= BROADCAST_INTERVAL)
+    {
+        broadcastWorldState();
+        m_lastBroadcastTime = 0.0f;
+    }
 }
 
 void gme::RTypeServer::updateEntities(float deltaTime)
 {
     // Update all entities based on deltaTime
     auto &players = m_registry.getAll<ecs::Player>();
-    auto &transforms = m_registry.getAll<ecs::Transform>();
-    auto &velocities = m_registry.getAll<ecs::Velocity>();
 
     for (auto &[entity, player] : players)
     {
@@ -294,7 +229,41 @@ void gme::RTypeServer::updateEntities(float deltaTime)
         }
     }
 
-    // TODO: Update enemies, projectiles, collisions, etc.
+    // Update projectile cooldowns
+    for (auto &[sessionId, time] : m_lastShotTime)
+    {
+        time += deltaTime;
+    }
+
+    // Update projectiles
+    for (auto it = m_projectileEntities.begin(); it != m_projectileEntities.end();)
+    {
+        auto &[projId, projEntity] = *it;
+        auto *transform = m_registry.getComponent<ecs::Transform>(projEntity);
+        auto *velocity = m_registry.getComponent<ecs::Velocity>(projEntity);
+
+        if (transform && velocity)
+        {
+            transform->x += velocity->x * deltaTime;
+            transform->y += velocity->y * deltaTime;
+
+            // Remove projectiles that are off-screen
+            if (transform->x > 2000.0f || transform->x < -100.0f)
+            {
+                m_registry.removeComponent<ecs::Transform>(projEntity);
+                m_registry.removeComponent<ecs::Velocity>(projEntity);
+                it = m_projectileEntities.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 void gme::RTypeServer::broadcastWorldState()
@@ -386,13 +355,22 @@ void gme::RTypeServer::broadcastWorldState()
             broadcastEvent.data = eventData;
             m_eventBus.publish(broadcastEvent);
         }
-
-        utl::Logger::log("RTypeServer: Broadcasted world state to " + std::to_string(clientPackets.size()) + " clients",
-                         utl::LogLevel::INFO);
     }
     catch (const std::exception &e)
     {
         utl::Logger::log("RTypeServer: Error broadcasting world state: " + std::string(e.what()),
                          utl::LogLevel::WARNING);
     }
+}
+
+void gme::RTypeServer::spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy, bool isSupercharged)
+{
+    std::uint32_t projectileId = m_nextProjectileId++;
+    
+    ecs::Entity projectile = m_registry.createEntity()
+                                 .with<ecs::Transform>("projectile_transform_" + std::to_string(projectileId), x, y, 0.F)
+                                 .with<ecs::Velocity>("projectile_velocity_" + std::to_string(projectileId), vx, vy)
+                                 .build();
+    
+    m_projectileEntities[projectileId] = projectile;
 }

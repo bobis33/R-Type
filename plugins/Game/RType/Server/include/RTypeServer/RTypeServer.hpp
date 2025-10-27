@@ -51,10 +51,9 @@ namespace gme
             void update(float deltaTime) override;
 
         private:
-            void processInputs();
             void updateEntities(float deltaTime);
             void broadcastWorldState();
-            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy);
+            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy, bool isSupercharged = false);
             void processServerStartEvents();
 
             utl::EventBus &m_eventBus;
