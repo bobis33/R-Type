@@ -47,7 +47,6 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     joinRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     joinRoomScene->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     joinRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
-    JoinRoomScene *joinRoomScenePtr = joinRoomScene.get();
     auto waitingRoomId = m_engine->getSceneManager()->generateNextId();
     auto waitingRoomScene = std::make_unique<WaitingRoomScene>(waitingRoomId, m_engine->getRenderer());
     waitingRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(
@@ -80,14 +79,14 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         }
     };
 
-    createRoomScene->onCreate = [this, configMultiId](const std::string &roomName, int maxPlayers)
+    createRoomScene->onCreate = [this](const std::string &roomName, int maxPlayers)
     {
         // Room creation is handled through event bus
         // Response will be processed in CreateRoomScene::processEventBus()
         // We stay on the create room scene until we get a response
     };
     createRoomScene->onRoomCreated =
-        [this, waitingRoomId, waitingRoomScenePtr](int lobbyId, const rnp::LobbyInfo *lobbyInfo)
+        [this, waitingRoomId, waitingRoomScenePtr](const int lobbyId, const rnp::LobbyInfo *lobbyInfo)
     {
         utl::Logger::log("RTypeClientMulti: Room created with ID " + std::to_string(lobbyId), utl::LogLevel::INFO);
         // Transition to waiting room after successful room creation
@@ -115,7 +114,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     };
     joinRoomScene->onBackToMulti = [this, configMultiId]()
     { m_engine->getSceneManager()->switchToScene(configMultiId); };
-    joinRoomScene->onRefreshRequest = [joinRoomScenePtr]()
+    joinRoomScene->onRefreshRequest = []()
     {
         // Room list refresh is handled through event bus
         // JoinRoomScene::refreshRoomList() publishes LOBBY_LIST_REQUEST
@@ -124,7 +123,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
 
     waitingRoomScene->onLeaveLobby = [this, configMultiId]()
     { m_engine->getSceneManager()->switchToScene(configMultiId); };
-    waitingRoomScene->onGameStart = [this, waitingRoomScenePtr]()
+    waitingRoomScene->onGameStart = [this]()
     {
         utl::Logger::log("RTypeClientMulti: Game starting!", utl::LogLevel::INFO);
 
@@ -135,9 +134,8 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
             utl::Logger::log("RTypeClientMulti: Using sessionId " + std::to_string(sessionId), utl::LogLevel::INFO);
         }
         auto gameMultiId = m_engine->getSceneManager()->generateNextId();
-        auto gameMulti =
-            std::make_unique<GameMulti>(gameMultiId, m_engine->getRenderer(), m_engine->getAudio(), m_skinIndex,
-                                        m_showDebug, waitingRoomScenePtr->getLobbyId(), sessionId);
+        auto gameMulti = std::make_unique<GameMulti>(gameMultiId, m_engine->getRenderer(), m_engine->getAudio(),
+                                                     m_skinIndex, m_showDebug, sessionId);
         gameMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_audioVolume,
                                                                 gameMulti->getRegistry(), gameMulti->playMusic()));
         gameMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));

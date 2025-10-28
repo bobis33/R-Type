@@ -13,8 +13,8 @@
 
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "Utils/EventBus.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
+#include "Utils/EventBus.hpp"
 
 namespace gme
 {
@@ -27,8 +27,7 @@ namespace gme
     {
         public:
             GameMulti(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                      const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
-                      const uint32_t lobbyId, const uint32_t sessionId);
+                      const std::shared_ptr<eng::IAudio> &audio, float skinIndex, bool &showDebug, uint32_t sessionId);
             ~GameMulti() override = default;
 
             GameMulti(const GameMulti &other) = delete;
@@ -43,7 +42,7 @@ namespace gme
             bool &playMusic() { return m_playMusic; }
 
         private:
-            void setupEventSubscriptions();
+            void setupEventSubscriptions() const;
             void processEventBus();
             void handlePlayerInputReceived(const utl::Event &event);
             void handleWorldStateUpdate(const utl::Event &event);

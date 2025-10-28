@@ -122,12 +122,12 @@ gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<en
             }
         });
     registry.createEntity()
-            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
-                              utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
-            .with<ecs::Text>("title", std::string("SERVER"), 72U)
-            .build();
+        .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
+        .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
+                          utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+        .with<ecs::Text>("title", std::string("SERVER"), 72U)
+        .build();
     for (size_t i = 0; i < m_serverOptions.size(); ++i)
     {
         float yPosition = 0.0F;

@@ -1,10 +1,6 @@
-#include <Interfaces/Protocol/Serializer.hpp>
-#include <Utils/Logger.hpp>
 #include <cmath>
-#include <ranges>
 
 #include "ECS/Component.hpp"
-#include "Interfaces/IAudio.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 #include "Utils/Common.hpp"
@@ -41,12 +37,12 @@ gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_pt
         });
 
     registry.createEntity()
-            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
-            .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
-                              utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
-            .with<ecs::Text>("title", std::string("JOIN ROOM"), 72U)
-            .build();
+        .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
+        .with<ecs::Color>("color_title", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
+                          utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+        .with<ecs::Text>("title", std::string("JOIN ROOM"), 72U)
+        .build();
 
     m_noRoomsEntity =
         registry.createEntity()
@@ -59,22 +55,21 @@ gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_pt
             .build();
 
     registry.createEntity()
-            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_refresh", 100.F, 400.F, 0.F)
-            .with<ecs::Color>("color_refresh", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.a)
-            .with<ecs::Text>("refresh_text", std::string("Refresh"), 32U)
-            .build();
+        .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_refresh", 100.F, 400.F, 0.F)
+        .with<ecs::Color>("color_refresh", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
+                          utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+                          utl::Config::Color::GRAY_BLUE_SUBTLE.a)
+        .with<ecs::Text>("refresh_text", std::string("Refresh"), 32U)
+        .build();
 
     registry.createEntity()
-            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-            .with<ecs::Transform>("transform_back", 100.F, 450.F, 0.F)
-            .with<ecs::Color>("color_back", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.a)
-            .with<ecs::Text>("back_text", std::string("Back"), 32U)
-            .build();
+        .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+        .with<ecs::Transform>("transform_back", 100.F, 450.F, 0.F)
+        .with<ecs::Color>("color_back", utl::Config::Color::GRAY_BLUE_SUBTLE.r, utl::Config::Color::GRAY_BLUE_SUBTLE.g,
+                          utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
+        .with<ecs::Text>("back_text", std::string("Back"), 32U)
+        .build();
 
     m_eventComponentId = 7;
     m_eventBus.registerComponent(m_eventComponentId, "Join_Room_Scene");
@@ -181,9 +176,9 @@ void gme::JoinRoomScene::update(const float dt, const eng::WindowSize & /*size*/
             auto &color = colors.at(entity);
             if (m_selectedIndex == m_rooms.size())
             {
-                const float glowIntensity = std::sin(m_animationTime * 2.5f);
+                const float glowIntensity = std::sin(m_animationTime * 2.5F);
                 color.r = 0U;
-                color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
+                color.g = static_cast<unsigned char>(191U + (glowIntensity * 50));
                 color.b = 255U;
             }
             else
@@ -198,9 +193,9 @@ void gme::JoinRoomScene::update(const float dt, const eng::WindowSize & /*size*/
             auto &color = colors.at(entity);
             if (m_selectedIndex == m_rooms.size() + 1)
             {
-                const float glowIntensity = std::sin(m_animationTime * 2.5f);
+                const float glowIntensity = std::sin(m_animationTime * 2.5F);
                 color.r = 0U;
-                color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
+                color.g = static_cast<unsigned char>(191U + (glowIntensity * 50));
                 color.b = 255U;
             }
             else
@@ -218,9 +213,9 @@ void gme::JoinRoomScene::update(const float dt, const eng::WindowSize & /*size*/
         {
             if (i == m_selectedIndex)
             {
-                float glowIntensity = std::sin(m_animationTime * 2.5f);
+                float glowIntensity = std::sin(m_animationTime * 2.5F);
                 color->r = 0U;
-                color->g = static_cast<unsigned char>(191U + glowIntensity * 50);
+                color->g = static_cast<unsigned char>(191U + (glowIntensity * 50));
                 color->b = 255U;
             }
             else
@@ -244,25 +239,31 @@ void gme::JoinRoomScene::event(const eng::Event &event)
             if (event.key == eng::Key::Escape)
             {
                 if (onBackToMulti)
+                {
                     onBackToMulti();
+                }
             }
             else if (event.key == eng::Key::Up)
             {
                 m_playMusic = true;
                 if (totalOptions > 0)
+                {
                     m_selectedIndex = (m_selectedIndex == 0) ? totalOptions - 1 : m_selectedIndex - 1;
+                }
             }
             else if (event.key == eng::Key::Down)
             {
                 m_playMusic = true;
                 if (totalOptions > 0)
+                {
                     m_selectedIndex = (m_selectedIndex == totalOptions - 1) ? 0 : m_selectedIndex + 1;
+                }
             }
             else if (event.key == eng::Key::Enter)
             {
                 if (m_selectedIndex < m_rooms.size())
                 {
-                    rnp::PacketLobbyJoin joinPacket;
+                    rnp::PacketLobbyJoin joinPacket{};
                     joinPacket.lobbyId = m_rooms[m_selectedIndex].lobbyId;
 
                     m_eventBus.publish(utl::EventType::LOBBY_JOIN, joinPacket, m_eventComponentId, utl::NETWORK_CLIENT);
@@ -293,12 +294,13 @@ void gme::JoinRoomScene::setRooms(const std::vector<rnp::LobbyInfo> &rooms)
 
 void gme::JoinRoomScene::refreshRoomList() const
 {
-    // Publish lobby list request event
     m_eventBus.publish(utl::EventType::LOBBY_LIST_REQUEST, std::vector<std::uint8_t>(), m_eventComponentId,
                        utl::NETWORK_CLIENT);
 
     if (onRefreshRequest)
+    {
         onRefreshRequest();
+    }
 }
 
 void gme::JoinRoomScene::updateRoomDisplay()
@@ -356,14 +358,22 @@ void gme::JoinRoomScene::clearRoomEntities()
 
     for (const ecs::Entity entity : m_roomEntities)
     {
-        if (auto *text = registry.getComponent<ecs::Text>(entity))
+        if (registry.getComponent<ecs::Text>(entity) != nullptr)
+        {
             registry.removeComponent<ecs::Text>(entity);
-        if (auto *color = registry.getComponent<ecs::Color>(entity))
+        }
+        if (registry.getComponent<ecs::Color>(entity) != nullptr)
+        {
             registry.removeComponent<ecs::Color>(entity);
-        if (auto *transform = registry.getComponent<ecs::Transform>(entity))
+        }
+        if (registry.getComponent<ecs::Transform>(entity) != nullptr)
+        {
             registry.removeComponent<ecs::Transform>(entity);
-        if (auto *font = registry.getComponent<ecs::Font>(entity))
+        }
+        if (registry.getComponent<ecs::Font>(entity) != nullptr)
+        {
             registry.removeComponent<ecs::Font>(entity);
+        }
     }
 
     m_roomEntities.clear();

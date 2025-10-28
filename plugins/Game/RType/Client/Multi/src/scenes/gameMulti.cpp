@@ -6,10 +6,13 @@
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
 
+#include <ranges>
+
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                           const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
-                          const uint32_t lobbyId, const uint32_t sessionId)
-    : AScene(assignedId), m_audio(audio), m_renderer(renderer), m_skinIndex(skinIndex), m_showDebug(showDebug), m_sessionId(sessionId)
+                          const uint32_t sessionId)
+    : AScene(assignedId), m_audio(audio), m_renderer(renderer), m_skinIndex(skinIndex), m_showDebug(showDebug),
+      m_sessionId(sessionId)
 {
     auto &registry = AScene::getRegistry();
 
@@ -28,13 +31,11 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
 
             if (hitBox && transform)
             {
-                float hitboxX = transform->x + hitBox->offsetX;
-                float hitboxY = transform->y + hitBox->offsetY;
                 renderer->createCircleShape({.name = "hitbox_" + std::to_string(e),
                                              .radius = hitBox->radius,
                                              .color = {.r = 255, .g = 0, .b = 0, .a = 100},
-                                             .x = hitboxX,
-                                             .y = hitboxY,
+                                             .x = transform->x + hitBox->offsetX,
+                                             .y = transform->y + hitBox->offsetY,
                                              .outline_thickness = 1.0f,
                                              .outline_color = {.r = 255, .g = 0, .b = 0, .a = 200}});
             }
@@ -91,18 +92,12 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
 
     m_localPlayerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
 
-    auto beginSoundEntity = registry.createEntity()
-                                .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
-                                .build();
-    if (auto *audioComp = registry.getComponent<ecs::Audio>(beginSoundEntity))
-    {
-        audioComp->play = true;
-    }
+    registry.createEntity().with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, true).build();
 
     setupEventSubscriptions();
 }
 
-void gme::GameMulti::setupEventSubscriptions()
+void gme::GameMulti::setupEventSubscriptions() const
 {
     utl::EventBus &eventBus = utl::EventBus::getInstance();
     eventBus.registerComponent(m_eventComponentId, "GameMulti");
@@ -113,8 +108,7 @@ void gme::GameMulti::setupEventSubscriptions()
 void gme::GameMulti::processEventBus()
 {
     auto &eventBus = utl::EventBus::getInstance();
-    std::vector<utl::Event> events = eventBus.consumeForTarget(m_eventComponentId);
-    for (const auto &event : events)
+    for (std::vector<utl::Event> events = eventBus.consumeForTarget(m_eventComponentId); const auto &event : events)
     {
         switch (event.type)
         {
@@ -155,7 +149,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                 {
                     float deltaX = std::abs(transform->x - entityState.x);
                     float deltaY = std::abs(transform->y - entityState.y);
-                    const float CORRECTION_THRESHOLD = 5.0f; // Only correct if difference is significant
+                    constexpr float CORRECTION_THRESHOLD = 5.0f; // Only correct if difference is significant
 
                     if (deltaX > CORRECTION_THRESHOLD || deltaY > CORRECTION_THRESHOLD)
                     {
@@ -175,10 +169,10 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
             {
                 // Update or create remote player
-                if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
+                if (!m_remotePlayers.contains(entityState.id))
                 {
                     // Create new remote player entity
-                    ecs::Entity remotePlayer =
+                    const ecs::Entity remotePlayer =
                         registry.createEntity()
                             .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
                                                   entityState.y, 0.F)
@@ -198,15 +192,15 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                 else
                 {
                     // Remote player: Apply directly with slight smoothing
-                    ecs::Entity remotePlayer = m_remotePlayers[entityState.id];
-                    if (auto *transform = registry.getComponent<ecs::Transform>(remotePlayer))
+                    const ecs::Entity remotePlayer = m_remotePlayers[entityState.id];
+                    if (const auto *transform = registry.getComponent<ecs::Transform>(remotePlayer))
                     {
                         // Store previous position for interpolation
-                        float prevX = transform->x;
-                        float prevY = transform->y;
+                        const float prevX = transform->x;
+                        const float prevY = transform->y;
 
                         // Store interpolation data
-                        if (m_interpolationData.find(entityState.id) == m_interpolationData.end() ||
+                        if (!m_interpolationData.contains(entityState.id) ||
                             m_interpolationData[entityState.id].interpolationTime >=
                                 m_interpolationData[entityState.id].interpolationDuration)
                         {
@@ -243,44 +237,27 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
 {
     auto &reg = getRegistry();
 
-    // Client-side prediction: Update local player immediately
-    if (m_playerController)
-    {
-        m_playerController->update(reg, dt);
-    }
+    m_playerController->update(reg, dt);
 
-    const auto &audios = reg.getAll<ecs::Audio>();
-
-    for (const auto &audio : audios)
-    {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
-        {
-            m_audio->stopAudio(audio.second.id);
-        }
-    }
-
-    // Update interpolation for remote players ONLY (not local player)
     for (auto &[playerId, interpData] : m_interpolationData)
     {
-        // Skip local player
         if (playerId == m_sessionId)
-            continue;
-
-        if (m_remotePlayers.find(playerId) != m_remotePlayers.end())
         {
-            ecs::Entity remotePlayer = m_remotePlayers[playerId];
+            continue;
+        }
+
+        if (m_remotePlayers.contains(playerId))
+        {
+            const ecs::Entity remotePlayer = m_remotePlayers[playerId];
             if (auto *transform = reg.getComponent<ecs::Transform>(remotePlayer))
             {
                 interpData.interpolationTime += dt;
                 float t = std::min(interpData.interpolationTime / interpData.interpolationDuration, 1.0f);
-
-                // Linear interpolation
                 transform->x = interpData.prevX + (interpData.targetX - interpData.prevX) * t;
                 transform->y = interpData.prevY + (interpData.targetY - interpData.prevY) * t;
             }
         }
     }
-
     processEventBus();
 }
 
@@ -293,11 +270,10 @@ void gme::GameMulti::event(const eng::Event &event)
 void gme::GameMulti::updatePlayerSkin()
 {
     auto &registry = getRegistry();
-    auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity);
 
-    if (playerRect != nullptr)
+    if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity); playerRect != nullptr)
     {
-        const float skinPosY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        const float skinPosY = m_skinIndex * GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }
 }

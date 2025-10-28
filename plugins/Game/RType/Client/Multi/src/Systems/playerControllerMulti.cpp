@@ -62,7 +62,9 @@ void gme::PlayerControllerMulti::sendInputsIfChanged()
     accumulatedTime += 1.0f / 60.0f;
 
     if (accumulatedTime < INPUT_THROTTLE_INTERVAL)
+    {
         return;
+    }
 
     accumulatedTime = 0.0f;
 

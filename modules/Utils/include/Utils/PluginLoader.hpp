@@ -143,18 +143,16 @@ namespace utl
                 {
                     const DWORD errorCode = GetLastError();
                     LPVOID errorMsg;
-                    FormatMessageA(
-                        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                        nullptr,
-                        errorCode,
-                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                        reinterpret_cast<LPSTR>(&errorMsg),
-                        0, nullptr);
+                    FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+                                       FORMAT_MESSAGE_IGNORE_INSERTS,
+                                   nullptr, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                                   reinterpret_cast<LPSTR>(&errorMsg), 0, nullptr);
 
-                    std::cerr << "[ERROR] Failed to load plugin: " << path
-                              << "\n[WinError " << errorCode << "] " << (errorMsg ? static_cast<LPSTR>(errorMsg) : "Unknown error") << std::endl;
+                    std::cerr << "[ERROR] Failed to load plugin: " << path << "\n[WinError " << errorCode << "] "
+                              << (errorMsg ? static_cast<LPSTR>(errorMsg) : "Unknown error") << std::endl;
 
-                    if (errorMsg) LocalFree(errorMsg);
+                    if (errorMsg)
+                        LocalFree(errorMsg);
 
                     throw std::runtime_error("Cannot load library: " + path);
                 }

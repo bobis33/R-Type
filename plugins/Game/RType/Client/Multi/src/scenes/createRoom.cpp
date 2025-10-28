@@ -1,17 +1,13 @@
-#include <Interfaces/Protocol/Protocol.hpp>
-#include <Interfaces/Protocol/Serializer.hpp>
-#include <Utils/Event.hpp>
-#include <Utils/Logger.hpp>
 #include <cmath>
-#include <ranges>
 
-#include "ECS/Component.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
-#include "RTypeClientMulti/Scenes/CreateRoom.hpp"
-#include "Utils/Common.hpp"
 #include "Utils/Event.hpp"
 #include "Utils/Logger.hpp"
+
+#include "ECS/Component.hpp"
+#include "RTypeClientMulti/Scenes/CreateRoom.hpp"
+#include "Utils/Common.hpp"
 
 static char keyToChar(const eng::Key key, bool shift = false)
 {
@@ -194,9 +190,9 @@ void gme::CreateRoomScene::update(const float dt, const eng::WindowSize & /*size
 
                 if (i == m_selectedIndex)
                 {
-                    const float glowIntensity = std::sin(m_animationTime * 2.5f);
+                    const float glowIntensity = std::sin(m_animationTime * 2.5F);
                     color.r = 0U;
-                    color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
+                    color.g = static_cast<unsigned char>(191U + (glowIntensity * 50));
                     color.b = 255U;
                 }
                 else
@@ -219,7 +215,9 @@ void gme::CreateRoomScene::event(const eng::Event &event)
             if (event.key == eng::Key::Escape)
             {
                 if (onBackToMulti)
+                {
                     onBackToMulti();
+                }
             }
             else if (event.key == eng::Key::Up)
             {
@@ -239,7 +237,9 @@ void gme::CreateRoomScene::event(const eng::Event &event)
                     onCreate(m_roomName, m_maxPlayers);
                 }
                 else if (m_selectedIndex == 3 && onBackToMulti)
+                {
                     onBackToMulti();
+                }
             }
             else if (event.key == eng::Key::Left || event.key == eng::Key::Right)
             {
@@ -297,10 +297,14 @@ void gme::CreateRoomScene::updateValueDisplay()
     auto &reg = getRegistry();
 
     if (auto *roomNameText = reg.getComponent<ecs::Text>(m_roomNameValueEntity))
+    {
         roomNameText->content = m_roomName;
+    }
 
     if (auto *maxPlayersText = reg.getComponent<ecs::Text>(m_maxPlayersValueEntity))
+    {
         maxPlayersText->content = std::to_string(m_maxPlayers);
+    }
 }
 
 void gme::CreateRoomScene::createRoom() const
@@ -332,22 +336,19 @@ void gme::CreateRoomScene::processEventBus() const
         if (event.type == utl::EventType::LOBBY_CREATE_RESPONSE)
         {
             rnp::Serializer serializer(event.data);
-            rnp::PacketLobbyCreateResponse packet = serializer.deserializeLobbyCreateResponse();
-            if (packet.success != 0u)
+            if (const auto [lobbyId, success, errorCode] = serializer.deserializeLobbyCreateResponse(); success != 0U)
             {
-                utl::Logger::log("CreateRoomScene: Lobby created successfully with ID " +
-                                     std::to_string(packet.lobbyId),
+                utl::Logger::log("CreateRoomScene: Lobby created successfully with ID " + std::to_string(lobbyId),
                                  utl::LogLevel::INFO);
 
                 if (onRoomCreated)
                 {
-                    onRoomCreated(static_cast<int>(packet.lobbyId), nullptr);
+                    onRoomCreated(static_cast<int>(lobbyId), nullptr);
                 }
             }
             else
             {
-                utl::Logger::log("CreateRoomScene: Failed to create lobby, error code " +
-                                     std::to_string(packet.errorCode),
+                utl::Logger::log("CreateRoomScene: Failed to create lobby, error code " + std::to_string(errorCode),
                                  utl::LogLevel::WARNING);
             }
         }

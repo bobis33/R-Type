@@ -926,17 +926,19 @@ namespace srv
     rnp::HandlerResult AsioServer::handleEntityEvent(const std::vector<rnp::EventRecord> &events,
                                                      const rnp::PacketContext &context) const
     {
-        utl::Logger::log("AsioServer: Received " + std::to_string(events.size()) + " entity events from session " + std::to_string(context.sessionId),
+        utl::Logger::log("AsioServer: Received " + std::to_string(events.size()) + " entity events from session " +
+                             std::to_string(context.sessionId),
                          utl::LogLevel::INFO);
-        
+
         // Filtrer les événements d'input et les publier vers GameServer
         for (const auto &eventRecord : events)
         {
             if (eventRecord.type == rnp::EventType::INPUT)
             {
-                utl::Logger::log("AsioServer: Input event received, data size: " + std::to_string(eventRecord.data.size()),
+                utl::Logger::log("AsioServer: Input event received, data size: " +
+                                     std::to_string(eventRecord.data.size()),
                                  utl::LogLevel::INFO);
-                
+
                 // Create event with sessionId as sourceId so RTypeServer knows which player
                 utl::Event event(utl::EventType::PLAYER_INPUT_RECEIVED, context.sessionId, utl::GAME_LOGIC);
                 event.data = eventRecord.data;
@@ -1495,7 +1497,7 @@ namespace srv
         }
 
         utl::Logger::log("AsioServer: Starting game for lobby " + std::to_string(packet.lobbyId), utl::LogLevel::INFO);
-        
+
         // Get sessionIds of players in lobby
         std::vector<std::uint32_t> playerSessions;
         {
@@ -1508,7 +1510,7 @@ namespace srv
                                  utl::LogLevel::INFO);
             }
         }
-        
+
         // Notify RTypeServer about game start with player sessions
         utl::Event startEvent(utl::EventType::SERVER_START, m_componentId, utl::GAME_LOGIC);
         std::vector<std::uint8_t> sessionsData;
@@ -1519,8 +1521,9 @@ namespace srv
         }
         startEvent.data = sessionsData;
         m_eventBus.publish(startEvent);
-        
-        utl::Logger::log("AsioServer: Sent SERVER_START to RTypeServer with " + std::to_string(playerSessions.size()) + " players",
+
+        utl::Logger::log("AsioServer: Sent SERVER_START to RTypeServer with " + std::to_string(playerSessions.size()) +
+                             " players",
                          utl::LogLevel::INFO);
 
         // Broadcast game start to all players

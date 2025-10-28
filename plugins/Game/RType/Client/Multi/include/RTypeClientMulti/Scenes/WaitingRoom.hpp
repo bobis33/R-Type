@@ -49,7 +49,7 @@ namespace gme
             const std::shared_ptr<eng::IRenderer> &m_renderer;
 
             std::uint32_t m_lobbyId = 0;
-            rnp::LobbyInfo m_currentLobbyInfo;
+            rnp::LobbyInfo m_currentLobbyInfo{};
             bool m_hasLobbyInfo = false;
             float m_animationTime = 0.0f;
 

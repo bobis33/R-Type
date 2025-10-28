@@ -30,15 +30,16 @@ void srv::Server::run() const
 {
     m_network->start();
     m_game->start();
-    
+
     auto startTime = std::chrono::steady_clock::now();
-    
+
     for (;;)
     {
         auto currentTime = std::chrono::steady_clock::now();
-        float deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
+        float deltaTime =
+            std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
         startTime = currentTime;
-        
+
         m_network->update();
         m_game->update(deltaTime);
 

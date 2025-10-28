@@ -3,7 +3,6 @@
 
 #include "Client/Client.hpp"
 #include "Client/Scenes/Settings.hpp"
-#include "Client/Client.hpp"
 #include "ECS/Component.hpp"
 #include "Utils/Common.hpp"
 
