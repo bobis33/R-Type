@@ -7,9 +7,11 @@
 #include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
 #include "RTypeClientMulti/Systems/Animation.hpp"
 #include "RTypeClientMulti/Systems/Beam.hpp"
+#include "RTypeClientMulti/Systems/Collision.hpp"
 #include "RTypeClientMulti/Systems/LoadingAnimation.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 #include "RTypeClientMulti/Systems/Projectile.hpp"
+#include "RTypeClientMulti/Systems/Scrolling.hpp"
 #include "RTypeClientMulti/Systems/Weapon.hpp"
 #include "RTypeShared/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
@@ -152,9 +154,10 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         gameMulti->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), gameMulti->getRegistry()));
         gameMulti->addSystem(std::make_unique<gme::AnimationSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::LoadingAnimationSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<gme::ScrollingSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<gme::CollisionSystem>(m_engine->getRenderer(), m_showDebug));
         gameMulti->addSystem(std::make_unique<gme::BeamSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::ProjectileSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<gme::WeaponSystem>(m_engine->getRenderer()));
 
         m_engine->getSceneManager()->addScene(std::move(gameMulti));
         m_engine->getSceneManager()->switchToScene(gameMultiId);

@@ -30,7 +30,8 @@ namespace gme
             {
                 for (auto &[entity, beamCharge] : registry.getAll<ecs::BeamCharge>())
                 {
-                    if (const auto *player = registry.getComponent<ecs::Player>(entity); player == nullptr)
+                    const auto *player = registry.getComponent<ecs::Player>(entity);
+                    if (player == nullptr || !player->is_cli)
                     {
                         continue;
                     }
