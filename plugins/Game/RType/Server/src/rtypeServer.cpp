@@ -65,8 +65,10 @@ void gme::RTypeServer::update(const float deltaTime)
                                 .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
                                 .with<ecs::Player>("player_" + std::to_string(sessionId), true)
                                 .with<ecs::BeamCharge>("beam_charge_" + std::to_string(sessionId), 0.0f, 1.0f)
+                                .with<ecs::Hitbox>("player_hitbox_" + std::to_string(sessionId), 10.0f, 0.0f, 0.0f)
                                 .build();
                         m_playerEntities[sessionId] = playerEntity;
+                        m_playerShooting[sessionId] = false; // Initialize shooting state
                         utl::Logger::log("RTypeServer: Created player entity for sessionId " +
                                              std::to_string(sessionId) + " at position " +
                                              std::to_string(200.F + (i * 200.F)),
@@ -101,8 +103,10 @@ void gme::RTypeServer::update(const float deltaTime)
                                 .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.F, 0.F)
                                 .with<ecs::Player>("player_" + std::to_string(sessionId), true)
                                 .with<ecs::BeamCharge>("beam_charge_" + std::to_string(sessionId), 0.0f, 1.0f)
+                                .with<ecs::Hitbox>("player_hitbox_" + std::to_string(sessionId), 10.0f, 0.0f, 0.0f)
                                 .build();
                         m_playerEntities[sessionId] = playerEntity;
+                        m_playerShooting[sessionId] = false; // Initialize shooting state
                     }
 
                     // Apply input to player entity
@@ -154,37 +158,8 @@ void gme::RTypeServer::update(const float deltaTime)
                                     velocity->x = SPEED;
                             }
 
-                            // Handle shoot charge
-                            if (shoot && beamCharge)
-                            {
-                                // Increment charge
-                                beamCharge->current_charge += 0.05f; // Faster charge rate
-                                if (beamCharge->current_charge > beamCharge->max_charge)
-                                    beamCharge->current_charge = beamCharge->max_charge;
-                            }
-                            else if (beamCharge && beamCharge->current_charge > 0.0f)
-                            {
-                                // Release charge
-                                if (m_lastShotTime.find(sessionId) == m_lastShotTime.end())
-                                {
-                                    m_lastShotTime[sessionId] = 0.0f;
-                                }
-                                
-                                if (m_lastShotTime[sessionId] >= PROJECTILE_COOLDOWN)
-                                {
-                                    const float PLAYER_WIDTH = 64.0f;
-                                    const float PLAYER_HEIGHT = 64.0f;
-                                    float projectileX = transform->x + PLAYER_WIDTH;
-                                    float projectileY = transform->y + PLAYER_HEIGHT / 2.0f;
-                                    
-                                    bool isSupercharged = beamCharge->current_charge >= 0.5f;
-                                    float projectileSpeed = isSupercharged ? 1200.0f : 800.0f;
-                                    
-                                    spawnProjectile(sessionId, projectileX, projectileY, projectileSpeed, 0.0f, isSupercharged);
-                                    m_lastShotTime[sessionId] = 0.0f;
-                                    beamCharge->current_charge = 0.0f;
-                                }
-                            }
+                            // Track shooting state
+                            m_playerShooting[sessionId] = shoot;
                         }
                     }
                 }
@@ -197,6 +172,53 @@ void gme::RTypeServer::update(const float deltaTime)
         }
     }
 
+    // Update cooldown timers
+    for (auto &[sessionId, time] : m_lastShotTime)
+    {
+        time += deltaTime;
+    }
+    
+    // Update beam charges for all players (continuous charging)
+    for (auto &[sessionId, playerEntity] : m_playerEntities)
+    {
+        auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity);
+        if (beamCharge)
+        {
+            // Check if player is currently pressing shoot
+            bool isShooting = m_playerShooting.find(sessionId) != m_playerShooting.end() && m_playerShooting[sessionId];
+            
+            if (isShooting)
+            {
+                // Continue charging
+                const float CHARGE_RATE = 2.0f;
+                beamCharge->current_charge += CHARGE_RATE * deltaTime;
+                if (beamCharge->current_charge > beamCharge->max_charge)
+                    beamCharge->current_charge = beamCharge->max_charge;
+            }
+            else if (beamCharge->current_charge > 0.01f)
+            {
+                // Release charge and fire
+                auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
+                if (transform)
+                {
+                    const float PLAYER_SPRITE_WIDTH = 33.0f;
+                    const float PLAYER_SPRITE_HEIGHT = 17.0f;
+                    const float PLAYER_SCALE = 2.0f;
+                    const float PLAYER_WIDTH = PLAYER_SPRITE_WIDTH * PLAYER_SCALE;
+                    const float PLAYER_HEIGHT = PLAYER_SPRITE_HEIGHT * PLAYER_SCALE;
+                    float projectileX = transform->x + PLAYER_WIDTH + 10.0f;
+                    float projectileY = transform->y + PLAYER_HEIGHT / 2.0f;
+                    
+                    bool isSupercharged = beamCharge->current_charge >= 0.5f;
+                    float projectileSpeed = isSupercharged ? 1200.0f : 800.0f;
+                    
+                    spawnProjectile(sessionId, projectileX, projectileY, projectileSpeed, 0.0f, isSupercharged);
+                    beamCharge->current_charge = 0.0f;
+                }
+            }
+        }
+    }
+    
     updateEntities(deltaTime);
 
     // Broadcast at 60 Hz
@@ -209,30 +231,42 @@ void gme::RTypeServer::update(const float deltaTime)
 
 void gme::RTypeServer::updateEntities(float deltaTime)
 {
-    // Update all entities based on deltaTime
     auto &players = m_registry.getAll<ecs::Player>();
 
     for (auto &[entity, player] : players)
     {
         auto *transform = m_registry.getComponent<ecs::Transform>(entity);
         auto *velocity = m_registry.getComponent<ecs::Velocity>(entity);
+        auto *hitbox = m_registry.getComponent<ecs::Hitbox>(entity);
 
         if (transform && velocity)
         {
-            // Apply velocity to position
             transform->x += velocity->x * deltaTime;
             transform->y += velocity->y * deltaTime;
 
-            // Clamp to window bounds
-            transform->x = std::max(0.0f, std::min(transform->x, 1920.0f));
-            transform->y = std::max(0.0f, std::min(transform->y, 1080.0f));
-        }
-    }
+            if (hitbox)
+            {
+                const float PLAYER_SPRITE_WIDTH = 33.0f;
+                const float PLAYER_SPRITE_HEIGHT = 17.0f;
+                const float PLAYER_SCALE = 2.0f;
+                const float PLAYER_WIDTH = PLAYER_SPRITE_WIDTH * PLAYER_SCALE;
+                const float PLAYER_HEIGHT = PLAYER_SPRITE_HEIGHT * PLAYER_SCALE;
+                const float PLAYER_HITBOX_RADIUS = hitbox->radius;
 
-    // Update projectile cooldowns
-    for (auto &[sessionId, time] : m_lastShotTime)
-    {
-        time += deltaTime;
+                float minX = PLAYER_HITBOX_RADIUS;
+                float maxX = 1920.0f - (PLAYER_WIDTH - PLAYER_HITBOX_RADIUS);
+                float minY = PLAYER_HITBOX_RADIUS;
+                float maxY = 1080.0f - (PLAYER_HEIGHT - PLAYER_HITBOX_RADIUS);
+
+                transform->x = std::max(minX, std::min(transform->x, maxX));
+                transform->y = std::max(minY, std::min(transform->y, maxY));
+            }
+            else
+            {
+                transform->x = std::max(0.0f, std::min(transform->x, 1920.0f));
+                transform->y = std::max(0.0f, std::min(transform->y, 1080.0f));
+            }
+        }
     }
 
     // Update projectiles
@@ -278,6 +312,7 @@ void gme::RTypeServer::broadcastWorldState()
         {
             auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
             auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
+            auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity);
 
             if (transform && velocity)
             {
@@ -288,7 +323,14 @@ void gme::RTypeServer::broadcastWorldState()
                 entityState.y = transform->y;
                 entityState.vx = velocity->x;
                 entityState.vy = velocity->y;
-                entityState.stateFlags = 0;
+                
+                // Encode beam charge in stateFlags (0-255 for 0.0-1.0)
+                std::uint8_t chargeLevel = 0;
+                if (beamCharge)
+                {
+                    chargeLevel = static_cast<std::uint8_t>(beamCharge->current_charge * 255.0f);
+                }
+                entityState.stateFlags = chargeLevel;
 
                 worldState.entities.push_back(entityState);
             }

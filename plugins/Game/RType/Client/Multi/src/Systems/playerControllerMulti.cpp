@@ -2,11 +2,15 @@
 #include "ECS/Component.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
+#include "RTypeClientMulti/Utils/HitboxUtils.hpp"
 #include "RTypeShared/GameConfig.hpp"
 #include "Utils/Logger.hpp"
 
 ecs::Entity gme::PlayerControllerMulti::createPlayer(ecs::Registry &registry, float x, float y)
 {
+    auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
+        GameConfig::Player::SPRITE_WIDTH, GameConfig::Player::SPRITE_HEIGHT, GameConfig::Player::SCALE);
+
     m_playerEntity = registry.createEntity()
                          .with<ecs::Transform>("player_transform", x, y, 0.F)
                          .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
@@ -16,6 +20,7 @@ ecs::Entity gme::PlayerControllerMulti::createPlayer(ecs::Registry &registry, fl
                          .with<ecs::Texture>("player_texture", utl::Path::Texture::TEXTURE_PLAYER)
                          .with<ecs::Player>("player", true)
                          .with<ecs::BeamCharge>("beam_charge", 0.0f, GameConfig::Beam::MAX_CHARGE)
+                         .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
                          .build();
     return m_playerEntity;
 }
@@ -59,14 +64,8 @@ void gme::PlayerControllerMulti::handleInput(ecs::Registry &registry, const eng:
 
 void gme::PlayerControllerMulti::sendInputsIfChanged()
 {
-    // Throttle inputs to 30 Hz max
-    static float accumulatedTime = 0.0f;
-    accumulatedTime += 1.0f / 60.0f; // Assume 60 FPS (will be adjusted by actual deltaTime later)
-
-    if (accumulatedTime < INPUT_THROTTLE_INTERVAL)
-        return;
-
-    accumulatedTime = 0.0f;
+    // Send inputs immediately for better responsiveness
+    // No throttling for shoot input
 
     auto checkKey = [this](eng::Key key) -> bool
     {
@@ -158,4 +157,10 @@ void gme::PlayerControllerMulti::update(ecs::Registry &registry, float dt)
             transform->y = std::max(0.0f, std::min(1080.0f, transform->y));
         }
     }
+}
+
+bool gme::PlayerControllerMulti::isSpacePressed() const
+{
+    auto it = m_keysPressed.find(eng::Key::Space);
+    return it != m_keysPressed.end() && it->second;
 }

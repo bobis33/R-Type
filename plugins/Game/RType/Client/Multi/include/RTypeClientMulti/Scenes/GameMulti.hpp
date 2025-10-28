@@ -14,6 +14,7 @@
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
+#include "RTypeClientMulti/Managers/StageManager.hpp"
 #include "Utils/EventBus.hpp"
 
 namespace gme
@@ -84,6 +85,7 @@ namespace gme
             uint32_t m_lobbyId;
             uint32_t m_sessionId;
             uint32_t m_eventComponentId = 10;
+            std::unique_ptr<StageManager> m_stageManager;
 
             std::unordered_map<uint32_t, ecs::Entity> m_projectileEntities;
             std::unordered_map<uint32_t, ecs::Entity> m_enemyEntities;
@@ -91,6 +93,7 @@ namespace gme
             std::unordered_map<uint32_t, InterpolationData> m_remotePlayerData;
             std::unordered_map<uint32_t, InterpolationData> m_projectileData;
             std::unordered_map<uint32_t, InterpolationData> m_enemyData;
+            std::unordered_map<uint32_t, uint32_t> m_playerSkinMap;
             struct PendingInput
             {
                     uint32_t seqId;

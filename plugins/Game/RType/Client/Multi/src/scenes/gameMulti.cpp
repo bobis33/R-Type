@@ -6,6 +6,8 @@
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
 #include <algorithm>
+#include <set>
+#include "RTypeClientMulti/Managers/StageManager.hpp"
 
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                           const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
@@ -92,6 +94,17 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     m_playerController = std::make_unique<PlayerControllerMulti>(renderer, m_sessionId);
 
     m_localPlayerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
+    
+    if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity))
+    {
+        uint32_t skinIndex = 0;
+        if (m_playerSkinMap.find(m_sessionId) != m_playerSkinMap.end())
+        {
+            skinIndex = m_playerSkinMap[m_sessionId];
+        }
+        float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        playerRect->pos_y = skinPosY;
+    }
 
     auto beginSoundEntity = registry.createEntity()
                                 .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
@@ -101,6 +114,8 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
         audioComp->play = true;
     }
 
+    m_stageManager = std::make_unique<StageManager>();
+
     setupEventSubscriptions();
 }
 
@@ -108,6 +123,7 @@ void gme::GameMulti::setupEventSubscriptions()
 {
     utl::EventBus &eventBus = utl::EventBus::getInstance();
     eventBus.registerComponent(m_eventComponentId, "GameMulti");
+    eventBus.subscribe(m_eventComponentId, utl::EventType::GAME_START);
     eventBus.subscribe(m_eventComponentId, utl::EventType::PLAYER_INPUT_RECEIVED);
     eventBus.subscribe(m_eventComponentId, utl::EventType::WORLD_STATE_RECEIVED);
 }
@@ -120,6 +136,10 @@ void gme::GameMulti::processEventBus()
     {
         switch (event.type)
         {
+            case utl::EventType::GAME_START:
+            {
+                break;
+            }
             case utl::EventType::PLAYER_INPUT_RECEIVED:
                 handlePlayerInputReceived(event);
                 break;
@@ -145,6 +165,33 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 
         auto &registry = getRegistry();
 
+        static bool firstWorldState = true;
+        if (firstWorldState)
+        {
+            uint32_t playerIndex = 0;
+            std::vector<uint32_t> playerIds;
+            
+            playerIds.push_back(m_sessionId);
+            for (const auto &entityState : worldState.entities)
+            {
+                if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
+                {
+                    if (entityState.id != m_sessionId)
+                    {
+                        playerIds.push_back(entityState.id);
+                    }
+                }
+            }
+            
+            for (uint32_t playerId : playerIds)
+            {
+                m_playerSkinMap[playerId] = playerIndex;
+                playerIndex++;
+            }
+            
+            firstWorldState = false;
+        }
+
         for (const auto &entityState : worldState.entities)
         {
             if (entityState.id == m_sessionId)
@@ -167,17 +214,31 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     velocity->x = entityState.vx;
                     velocity->y = entityState.vy;
                 }
+                
+                // Synchronize beam charge from server
+                if (auto *beamCharge = registry.getComponent<ecs::BeamCharge>(m_localPlayerEntity))
+                {
+                    // Always accept server charge value
+                    beamCharge->current_charge = static_cast<float>(entityState.stateFlags) / 255.0f;
+                }
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
             {
                 if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
                 {
+                    uint32_t skinIndex = 0;
+                    if (m_playerSkinMap.find(entityState.id) != m_playerSkinMap.end())
+                    {
+                        skinIndex = m_playerSkinMap[entityState.id];
+                    }
+                    float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+                    
                     ecs::Entity remotePlayer = registry.createEntity()
                             .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
                                                   entityState.y, 0.F)
                             .with<ecs::Velocity>("remote_velocity_" + std::to_string(entityState.id), entityState.vx,
                                                  entityState.vy)
-                            .with<ecs::Rect>("remote_rect_" + std::to_string(entityState.id), 0.F, 0.F,
+                            .with<ecs::Rect>("remote_rect_" + std::to_string(entityState.id), 0.F, skinPosY,
                                              static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
                                              static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
                             .with<ecs::Scale>("remote_scale_" + std::to_string(entityState.id),
@@ -330,6 +391,8 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
     updateInterpolation(m_remotePlayerData, m_remotePlayers, REMOTE_PLAYER_SMOOTH_FACTOR, dt, reg);
     updateInterpolation(m_projectileData, m_projectileEntities, PROJECTILE_SMOOTH_FACTOR, dt, reg);
     updateInterpolation(m_enemyData, m_enemyEntities, ENEMY_SMOOTH_FACTOR, dt, reg);
+
+    m_stageManager->update(reg, dt, size);
 
     processEventBus();
 }
