@@ -115,7 +115,6 @@ void gme::RTypeServer::update(const float deltaTime)
                         ecs::Entity playerEntity = m_playerEntities[sessionId];
                         auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
                         auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
-                        auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity);
 
                         if (velocity && transform)
                         {

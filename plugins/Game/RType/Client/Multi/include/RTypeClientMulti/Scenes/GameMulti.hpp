@@ -15,6 +15,7 @@
 #include "Interfaces/IAudio.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 #include "RTypeClientMulti/Managers/StageManager.hpp"
+#include "RTypeClientMulti/Systems/Scrolling.hpp"
 #include "Utils/EventBus.hpp"
 
 namespace gme
@@ -55,6 +56,7 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
             void updatePlayerSkin();
+            void setScrollingSystem(gme::ScrollingSystem* scrollingSystem);
 
             bool &playMusic() { return m_playMusic; }
 

@@ -169,7 +169,13 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         gameMulti->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), gameMulti->getRegistry()));
         gameMulti->addSystem(std::make_unique<gme::AnimationSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::LoadingAnimationSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<gme::ScrollingSystem>(m_engine->getRenderer()));
+        
+        auto scrollingSystem = std::make_unique<gme::ScrollingSystem>(m_engine->getRenderer());
+        gme::ScrollingSystem* scrollingSystemPtr = scrollingSystem.get();
+        gameMulti->addSystem(std::move(scrollingSystem));
+        
+        gameMulti->setScrollingSystem(scrollingSystemPtr);
+        
         gameMulti->addSystem(std::make_unique<gme::CollisionSystem>(m_engine->getRenderer(), m_showDebug));
         gameMulti->addSystem(std::make_unique<gme::BeamSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::ProjectileSystem>(m_engine->getRenderer()));

@@ -97,12 +97,12 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     
     if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity))
     {
-        uint32_t skinIndex = 0;
+        uint32_t playerSkinIndex = 0;
         if (m_playerSkinMap.find(m_sessionId) != m_playerSkinMap.end())
         {
-            skinIndex = m_playerSkinMap[m_sessionId];
+            playerSkinIndex = m_playerSkinMap[m_sessionId];
         }
-        float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        float skinPosY = static_cast<float>(playerSkinIndex) * GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }
 
@@ -226,12 +226,12 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             {
                 if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
                 {
-                    uint32_t skinIndex = 0;
+                    uint32_t remoteSkinIndex = 0;
                     if (m_playerSkinMap.find(entityState.id) != m_playerSkinMap.end())
                     {
-                        skinIndex = m_playerSkinMap[entityState.id];
+                        remoteSkinIndex = m_playerSkinMap[entityState.id];
                     }
-                    float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+                    float skinPosY = static_cast<float>(remoteSkinIndex) * GameConfig::Player::SPRITE_HEIGHT;
                     
                     ecs::Entity remotePlayer = registry.createEntity()
                             .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
@@ -447,5 +447,13 @@ void gme::GameMulti::updatePlayerSkin()
     {
         const float skinPosY = static_cast<float>(m_skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
+    }
+}
+
+void gme::GameMulti::setScrollingSystem(gme::ScrollingSystem* scrollingSystem)
+{
+    if (scrollingSystem && m_stageManager)
+    {
+        scrollingSystem->setStageManager(m_stageManager.get());
     }
 }

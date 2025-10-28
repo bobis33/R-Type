@@ -5,10 +5,84 @@
 void gme::StageManager::update(ecs::Registry &registry, const float dt, const eng::WindowSize &size)
 {
     m_stageTimer += dt;
+    
     if (!m_stageSpawned && m_stageTimer >= STAGE_SPAWN_DELAY)
     {
-        spawnStage(registry, size.width);
+        spawnStage(registry, static_cast<int>(size.width));
         m_stageSpawned = true;
+    }
+    
+    switch (m_stageState)
+    {
+        case StageState::SCROLLING:
+            if (m_stageSpawned && m_stageTimer >= STAGE_DURATION)
+            {
+                startBossPhase();
+            }
+            break;
+            
+        case StageState::BOSS_PHASE:
+            m_bossTimer += dt;
+            if (m_bossTimer >= BOSS_PHASE_DURATION)
+            {
+                completeStage();
+            }
+            break;
+            
+        case StageState::COMPLETED:
+            break;
+    }
+}
+
+void gme::StageManager::startBossPhase()
+{
+    m_stageState = StageState::BOSS_PHASE;
+    m_bossTimer = 0.0f;
+}
+
+void gme::StageManager::completeStage()
+{
+    m_stageState = StageState::COMPLETED;
+}
+
+float gme::StageManager::getStageProgress() const
+{
+    if (!m_stageSpawned)
+        return 0.0f;
+    
+    switch (m_stageState)
+    {
+        case StageState::SCROLLING:
+            return std::min(1.0f, m_stageTimer / STAGE_DURATION);
+        case StageState::BOSS_PHASE:
+            return 1.0f;
+        case StageState::COMPLETED:
+            return 1.0f;
+        default:
+            return 0.0f;
+    }
+}
+
+float gme::StageManager::getBossPhaseProgress() const
+{
+    if (m_stageState != StageState::BOSS_PHASE)
+        return 0.0f;
+    
+    return std::min(1.0f, m_bossTimer / BOSS_PHASE_DURATION);
+}
+
+std::string gme::StageManager::getStageStatusText() const
+{
+    switch (m_stageState)
+    {
+        case StageState::SCROLLING:
+            return "Stage 1 - Scrolling";
+        case StageState::BOSS_PHASE:
+            return "Stage 1 - Boss Phase";
+        case StageState::COMPLETED:
+            return "Stage 1 - Completed";
+        default:
+            return "Stage 1 - Loading";
     }
 }
 
