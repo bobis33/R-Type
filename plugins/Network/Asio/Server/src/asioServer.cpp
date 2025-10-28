@@ -204,13 +204,12 @@ namespace srv
 
     void AsioServer::update()
     {
+        processEventBusEvents();
 
         if (!m_running.load())
         {
             return;
         }
-
-        processEventBusEvents();
 
         // Process send queue
         processSendQueue();
