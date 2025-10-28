@@ -185,6 +185,53 @@ void gme::RTypeServer::update(const float deltaTime)
         }
     }
 
+    // Update cooldown timers
+    for (auto &[sessionId, time] : m_lastShotTime)
+    {
+        time += deltaTime;
+    }
+    
+    // Update beam charges for all players (continuous charging)
+    for (auto &[sessionId, playerEntity] : m_playerEntities)
+    {
+        auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity);
+        if (beamCharge)
+        {
+            // Check if player is currently pressing shoot
+            bool isShooting = m_playerShooting.find(sessionId) != m_playerShooting.end() && m_playerShooting[sessionId];
+            
+            if (isShooting)
+            {
+                // Continue charging
+                const float CHARGE_RATE = 2.0f;
+                beamCharge->current_charge += CHARGE_RATE * deltaTime;
+                if (beamCharge->current_charge > beamCharge->max_charge)
+                    beamCharge->current_charge = beamCharge->max_charge;
+            }
+            else if (beamCharge->current_charge > 0.01f)
+            {
+                // Release charge and fire
+                auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
+                if (transform)
+                {
+                    const float PLAYER_SPRITE_WIDTH = 33.0f;
+                    const float PLAYER_SPRITE_HEIGHT = 17.0f;
+                    const float PLAYER_SCALE = 2.0f;
+                    const float PLAYER_WIDTH = PLAYER_SPRITE_WIDTH * PLAYER_SCALE;
+                    const float PLAYER_HEIGHT = PLAYER_SPRITE_HEIGHT * PLAYER_SCALE;
+                    float projectileX = transform->x + PLAYER_WIDTH + 10.0f;
+                    float projectileY = transform->y + PLAYER_HEIGHT / 2.0f;
+                    
+                    bool isSupercharged = beamCharge->current_charge >= 0.5f;
+                    float projectileSpeed = isSupercharged ? 1200.0f : 800.0f;
+                    
+                    spawnProjectile(sessionId, projectileX, projectileY, projectileSpeed, 0.0f, isSupercharged);
+                    beamCharge->current_charge = 0.0f;
+                }
+            }
+        }
+    }
+    
     updateEntities(deltaTime);
 
     if (m_lastBroadcastTime >= BROADCAST_INTERVAL)

@@ -94,6 +94,17 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     m_playerController = std::make_unique<PlayerControllerMulti>(renderer, m_sessionId);
 
     m_localPlayerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
+    
+    if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity))
+    {
+        uint32_t skinIndex = 0;
+        if (m_playerSkinMap.find(m_sessionId) != m_playerSkinMap.end())
+        {
+            skinIndex = m_playerSkinMap[m_sessionId];
+        }
+        float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
+        playerRect->pos_y = skinPosY;
+    }
 
     if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity))
     {
