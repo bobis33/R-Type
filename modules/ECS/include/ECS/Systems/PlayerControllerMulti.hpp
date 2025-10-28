@@ -49,8 +49,7 @@ namespace gme
             utl::EventBus &m_eventBus;
             
             float m_lastInputSendTime = 0.0f;
-            const float INPUT_THROTTLE_INTERVAL = 1.0f / 144.0f; // Send inputs at 144 Hz max
-            
+            const float INPUT_THROTTLE_INTERVAL = 1.0f / 60.0f; // Send inputs at             
             // Input sequence tracking for prediction + reconciliation
             uint32_t m_nextSeqId = 1;
             uint32_t m_lastAckSeqId = 0;
