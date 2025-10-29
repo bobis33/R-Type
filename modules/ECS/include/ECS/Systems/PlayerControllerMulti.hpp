@@ -11,9 +11,9 @@
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
+#include "Interfaces/Protocol/Protocol.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
-#include "Interfaces/Protocol/Protocol.hpp"
 
 namespace gme
 {
@@ -34,11 +34,11 @@ namespace gme
             PlayerControllerMulti &operator=(PlayerControllerMulti &&) = delete;
 
             void update(ecs::Registry &registry, float dt) override;
-    void handleInput(ecs::Registry &registry, const eng::Event &event);
-    ecs::Entity createPlayer(ecs::Registry &registry, float x, float y);
+            void handleInput(ecs::Registry &registry, const eng::Event &event);
+            ecs::Entity createPlayer(ecs::Registry &registry, float x, float y);
 
         private:
-            void sendInputToServer(bool up, bool down, bool left, bool right, bool shoot);
+            void sendInputToServer(bool up, bool down, bool left, bool right, bool shoot, bool die);
             void sendInputsIfChanged();
 
             const std::shared_ptr<eng::IRenderer> &m_renderer;
@@ -47,19 +47,19 @@ namespace gme
             uint32_t m_sessionId;
             uint32_t m_componentId;
             utl::EventBus &m_eventBus;
-            
+
             float m_lastInputSendTime = 0.0f;
-            const float INPUT_THROTTLE_INTERVAL = 1.0f / 60.0f; // Send inputs at             
+            const float INPUT_THROTTLE_INTERVAL = 1.0f / 60.0f; // Send inputs at
             // Input sequence tracking for prediction + reconciliation
             uint32_t m_nextSeqId = 1;
             uint32_t m_lastAckSeqId = 0;
-            
-            struct PendingInput {
-                uint32_t seqId;
-                std::vector<uint8_t> inputData;
-                float dt;
+
+            struct PendingInput
+            {
+                    uint32_t seqId;
+                    std::vector<uint8_t> inputData;
+                    float dt;
             };
             std::deque<PendingInput> m_inputHistory;
     }; // class PlayerControllerMulti
 } // namespace gme
-

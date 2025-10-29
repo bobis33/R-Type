@@ -66,6 +66,7 @@ void gme::RTypeServer::update(const float deltaTime)
                                 .with<ecs::Player>("player_" + std::to_string(sessionId), true)
                                 .with<ecs::BeamCharge>("beam_charge_" + std::to_string(sessionId), 0.0f, 1.0f)
                                 .with<ecs::Hitbox>("player_hitbox_" + std::to_string(sessionId), 10.0f, 0.0f, 0.0f)
+                                .with<ecs::Health>("player_health_" + std::to_string(sessionId), 100.0f, 100.0f, true)
                                 .build();
                         m_playerEntities[sessionId] = playerEntity;
                         m_playerShooting[sessionId] = false; // Initialize shooting state
@@ -81,17 +82,16 @@ void gme::RTypeServer::update(const float deltaTime)
         {
             try
             {
-                // Input data comes as: [up, down, left, right, shoot]
-                if (event.data.size() >= 5)
+                if (event.data.size() >= 6)
                 {
                     bool up = event.data[0] != 0;
                     bool down = event.data[1] != 0;
                     bool left = event.data[2] != 0;
                     bool right = event.data[3] != 0;
                     bool shoot = event.data[4] != 0;
+                    bool die = event.data[5] != 0;
 
                     std::uint32_t sessionId = event.sourceId;
-
 
                     // Create player entity if it doesn't exist
                     if (m_playerEntities.find(sessionId) == m_playerEntities.end())
@@ -104,6 +104,7 @@ void gme::RTypeServer::update(const float deltaTime)
                                 .with<ecs::Player>("player_" + std::to_string(sessionId), true)
                                 .with<ecs::BeamCharge>("beam_charge_" + std::to_string(sessionId), 0.0f, 1.0f)
                                 .with<ecs::Hitbox>("player_hitbox_" + std::to_string(sessionId), 10.0f, 0.0f, 0.0f)
+                                .with<ecs::Health>("player_health_" + std::to_string(sessionId), 100.0f, 100.0f, true)
                                 .build();
                         m_playerEntities[sessionId] = playerEntity;
                         m_playerShooting[sessionId] = false; // Initialize shooting state
@@ -115,8 +116,23 @@ void gme::RTypeServer::update(const float deltaTime)
                         ecs::Entity playerEntity = m_playerEntities[sessionId];
                         auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
                         auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
+                        auto *health = m_registry.getComponent<ecs::Health>(playerEntity);
 
-                        if (velocity && transform)
+                        // Handle death input
+                        if (die && health && health->is_alive)
+                        {
+                            health->current_health = 0.0f;
+                            health->is_alive = false;
+                            // Create explosion at player position
+                            if (transform)
+                            {
+                                spawnExplosion(transform->x, transform->y);
+                            }
+                            utl::Logger::log("RTypeServer: Player " + std::to_string(sessionId) + " died",
+                                             utl::LogLevel::INFO);
+                        }
+
+                        if (velocity && transform && health && health->is_alive)
                         {
                             // Calculate velocity based on input
                             const float SPEED = 500.0f;
@@ -176,7 +192,7 @@ void gme::RTypeServer::update(const float deltaTime)
     {
         time += deltaTime;
     }
-    
+
     // Update beam charges for all players (continuous charging)
     for (auto &[sessionId, playerEntity] : m_playerEntities)
     {
@@ -185,7 +201,7 @@ void gme::RTypeServer::update(const float deltaTime)
         {
             // Check if player is currently pressing shoot
             bool isShooting = m_playerShooting.find(sessionId) != m_playerShooting.end() && m_playerShooting[sessionId];
-            
+
             if (isShooting)
             {
                 // Continue charging
@@ -207,17 +223,15 @@ void gme::RTypeServer::update(const float deltaTime)
                     const float PLAYER_HEIGHT = PLAYER_SPRITE_HEIGHT * PLAYER_SCALE;
                     float projectileX = transform->x + PLAYER_WIDTH + 10.0f;
                     float projectileY = transform->y + PLAYER_HEIGHT / 2.0f;
-                    
                     bool isSupercharged = beamCharge->current_charge >= 0.5f;
                     float projectileSpeed = isSupercharged ? 1200.0f : 800.0f;
-                    
                     spawnProjectile(sessionId, projectileX, projectileY, projectileSpeed, 0.0f, isSupercharged);
                     beamCharge->current_charge = 0.0f;
                 }
             }
         }
     }
-    
+
     updateEntities(deltaTime);
 
     // Broadcast at 60 Hz
@@ -297,6 +311,35 @@ void gme::RTypeServer::updateEntities(float deltaTime)
             ++it;
         }
     }
+
+    // Update explosions
+    for (auto it = m_explosionEntities.begin(); it != m_explosionEntities.end();)
+    {
+        auto &[explosionId, explosionEntity] = *it;
+        auto *explosion = m_registry.getComponent<ecs::Explosion>(explosionEntity);
+
+        if (explosion)
+        {
+            explosion->current_lifetime += deltaTime;
+
+            // Remove explosions that have exceeded their lifetime
+            if (explosion->current_lifetime >= explosion->lifetime)
+            {
+                m_registry.removeComponent<ecs::Transform>(explosionEntity);
+                m_registry.removeComponent<ecs::Explosion>(explosionEntity);
+                it = m_explosionEntities.erase(it);
+                utl::Logger::log("RTypeServer: Removed explosion " + std::to_string(explosionId), utl::LogLevel::INFO);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 void gme::RTypeServer::broadcastWorldState()
@@ -306,9 +349,16 @@ void gme::RTypeServer::broadcastWorldState()
         rnp::PacketWorldState worldState;
         worldState.serverTick = static_cast<std::uint32_t>(m_lastBroadcastTime * 60.0f);
 
-        // Serialize all player entities
         for (auto &[sessionId, playerEntity] : m_playerEntities)
         {
+            auto *health = m_registry.getComponent<ecs::Health>(playerEntity);
+
+            // Skip dead players
+            if (!health || !health->is_alive)
+            {
+                continue;
+            }
+
             auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
             auto *velocity = m_registry.getComponent<ecs::Velocity>(playerEntity);
             auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity);
@@ -322,7 +372,7 @@ void gme::RTypeServer::broadcastWorldState()
                 entityState.y = transform->y;
                 entityState.vx = velocity->x;
                 entityState.vy = velocity->y;
-                
+
                 // Encode beam charge in stateFlags (0-255 for 0.0-1.0)
                 std::uint8_t chargeLevel = 0;
                 if (beamCharge)
@@ -330,6 +380,27 @@ void gme::RTypeServer::broadcastWorldState()
                     chargeLevel = static_cast<std::uint8_t>(beamCharge->current_charge * 255.0f);
                 }
                 entityState.stateFlags = chargeLevel;
+
+                worldState.entities.push_back(entityState);
+            }
+        }
+
+        // Serialize all explosion entities
+        for (auto &[explosionId, explosionEntity] : m_explosionEntities)
+        {
+            auto *transform = m_registry.getComponent<ecs::Transform>(explosionEntity);
+
+            if (transform)
+            {
+                rnp::EntityState entityState;
+                entityState.id = explosionId;
+                entityState.type =
+                    static_cast<std::uint16_t>(rnp::EntityType::BOSS); // Use BOSS type for explosions temporarily
+                entityState.x = transform->x;
+                entityState.y = transform->y;
+                entityState.vx = 0.0f;
+                entityState.vy = 0.0f;
+                entityState.stateFlags = 0xFF; // Special flag to indicate explosion
 
                 worldState.entities.push_back(entityState);
             }
@@ -404,14 +475,32 @@ void gme::RTypeServer::broadcastWorldState()
     }
 }
 
-void gme::RTypeServer::spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy, bool isSupercharged)
+void gme::RTypeServer::spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy,
+                                       bool isSupercharged)
 {
     std::uint32_t projectileId = m_nextProjectileId++;
-    
-    ecs::Entity projectile = m_registry.createEntity()
-                                 .with<ecs::Transform>("projectile_transform_" + std::to_string(projectileId), x, y, 0.F)
-                                 .with<ecs::Velocity>("projectile_velocity_" + std::to_string(projectileId), vx, vy)
-                                 .build();
-    
+
+    ecs::Entity projectile =
+        m_registry.createEntity()
+            .with<ecs::Transform>("projectile_transform_" + std::to_string(projectileId), x, y, 0.F)
+            .with<ecs::Velocity>("projectile_velocity_" + std::to_string(projectileId), vx, vy)
+            .build();
+
     m_projectileEntities[projectileId] = projectile;
+}
+
+void gme::RTypeServer::spawnExplosion(float x, float y)
+{
+    std::uint32_t explosionId = m_nextExplosionId++;
+
+    ecs::Entity explosion = m_registry.createEntity()
+                                .with<ecs::Transform>("explosion_transform_" + std::to_string(explosionId), x, y, 0.F)
+                                .with<ecs::Explosion>("explosion_" + std::to_string(explosionId), 0, 4, 0.1f, 0.0f,
+                                                      32.0f, 32.0f, 4, 0.4f, 0.0f)
+                                .build();
+
+    m_explosionEntities[explosionId] = explosion;
+
+    utl::Logger::log("RTypeServer: Spawned explosion at (" + std::to_string(x) + ", " + std::to_string(y) + ")",
+                     utl::LogLevel::INFO);
 }

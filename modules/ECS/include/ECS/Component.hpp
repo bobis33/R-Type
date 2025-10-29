@@ -99,6 +99,13 @@ namespace ecs
             float max_charge;
     };
 
+    struct Health final : IComponent
+    {
+            float current_health;
+            float max_health;
+            bool is_alive;
+    };
+
     struct LoadingAnimation final : IComponent
     {
             int current_frame;
@@ -147,6 +154,7 @@ namespace ecs
             bool down_pressed{};
             bool left_pressed{};
             bool right_pressed{};
+            bool o_pressed{};
     };
 
     struct Floor final : IComponent

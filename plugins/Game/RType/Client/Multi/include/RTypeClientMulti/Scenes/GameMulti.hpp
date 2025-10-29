@@ -56,7 +56,7 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
             void updatePlayerSkin();
-            void setScrollingSystem(gme::ScrollingSystem* scrollingSystem);
+            void setScrollingSystem(gme::ScrollingSystem *scrollingSystem);
 
             bool &playMusic() { return m_playMusic; }
 
@@ -65,12 +65,10 @@ namespace gme
             void processEventBus();
             void handlePlayerInputReceived(const utl::Event &event);
             void handleWorldStateUpdate(const utl::Event &event);
-            
+
             void updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
-                                    std::unordered_map<uint32_t, ecs::Entity> &entityMap,
-                                    float smoothFactor,
-                                    float dt,
-                                    ecs::Registry &registry);
+                                     std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor, float dt,
+                                     ecs::Registry &registry);
 
             ecs::Entity m_localPlayerEntity;
             std::unordered_map<uint32_t, ecs::Entity> m_remotePlayers;
@@ -91,7 +89,7 @@ namespace gme
 
             std::unordered_map<uint32_t, ecs::Entity> m_projectileEntities;
             std::unordered_map<uint32_t, ecs::Entity> m_enemyEntities;
-
+            std::unordered_map<uint32_t, ecs::Entity> m_explosionEntities;
             std::unordered_map<uint32_t, InterpolationData> m_remotePlayerData;
             std::unordered_map<uint32_t, InterpolationData> m_projectileData;
             std::unordered_map<uint32_t, InterpolationData> m_enemyData;
@@ -105,7 +103,7 @@ namespace gme
             std::deque<PendingInput> m_inputHistory;
             uint32_t m_nextSeqId = 1;
             uint32_t m_lastAckSeqId = 0;
-            
+
             static constexpr float REMOTE_PLAYER_SMOOTH_FACTOR = 0.25f;
             static constexpr float PROJECTILE_SMOOTH_FACTOR = 0.5f;
             static constexpr float ENEMY_SMOOTH_FACTOR = 0.18f;

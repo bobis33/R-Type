@@ -53,7 +53,9 @@ namespace gme
         private:
             void updateEntities(float deltaTime);
             void broadcastWorldState();
-            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy, bool isSupercharged = false);
+            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy,
+                                 bool isSupercharged = false);
+            void spawnExplosion(float x, float y);
             void processServerStartEvents();
 
             utl::EventBus &m_eventBus;
@@ -64,9 +66,11 @@ namespace gme
 
             std::unordered_map<std::uint32_t, ecs::Entity> m_playerEntities;
             std::unordered_map<std::uint32_t, ecs::Entity> m_projectileEntities;
+            std::unordered_map<std::uint32_t, ecs::Entity> m_explosionEntities;
             std::unordered_map<std::uint32_t, float> m_lastShotTime;
             std::unordered_map<std::uint32_t, bool> m_playerShooting; // Track if player is pressing shoot
             std::uint32_t m_nextProjectileId = 1000;
+            std::uint32_t m_nextExplosionId = 2000;
 
             float m_lastBroadcastTime = 0.0f;
             const float BROADCAST_INTERVAL = 1.0f / 60.0f; // 60 Hz

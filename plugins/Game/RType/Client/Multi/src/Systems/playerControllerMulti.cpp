@@ -40,6 +40,8 @@ void gme::PlayerControllerMulti::handleInput(ecs::Registry &registry, const eng:
                 m_keysPressed[eng::Key::Right] = true;
             if (event.key == eng::Key::Space)
                 m_keysPressed[eng::Key::Space] = true;
+            if (event.key == eng::Key::O)
+                m_keysPressed[eng::Key::O] = true;
             break;
 
         case eng::EventType::KeyReleased:
@@ -53,6 +55,8 @@ void gme::PlayerControllerMulti::handleInput(ecs::Registry &registry, const eng:
                 m_keysPressed[eng::Key::Right] = false;
             if (event.key == eng::Key::Space)
                 m_keysPressed[eng::Key::Space] = false;
+            if (event.key == eng::Key::O)
+                m_keysPressed[eng::Key::O] = false;
             break;
 
         default:
@@ -78,11 +82,12 @@ void gme::PlayerControllerMulti::sendInputsIfChanged()
     bool left = checkKey(eng::Key::Left);
     bool right = checkKey(eng::Key::Right);
     bool shoot = checkKey(eng::Key::Space);
+    bool die = checkKey(eng::Key::O);
 
-    sendInputToServer(up, down, left, right, shoot);
+    sendInputToServer(up, down, left, right, shoot, die);
 }
 
-void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left, bool right, bool shoot)
+void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left, bool right, bool shoot, bool die)
 {
     // Create input data
     std::vector<std::uint8_t> inputData;
@@ -91,6 +96,7 @@ void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left
     inputData.push_back(left ? 1 : 0);
     inputData.push_back(right ? 1 : 0);
     inputData.push_back(shoot ? 1 : 0);
+    inputData.push_back(die ? 1 : 0);
 
     // Create EventRecord
     rnp::EventRecord eventRecord;
