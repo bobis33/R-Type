@@ -1,6 +1,6 @@
 ///
-/// @file RTypeClientSolo.hpp
-/// @brief This file contains the RTypeClientSolo class declaration
+/// @file FlappyBirdClientSolo.hpp
+/// @brief This file contains the FlappyBirdClientSolo class declaration
 /// @namespace gme
 ///
 
@@ -12,21 +12,21 @@ namespace gme
 {
 
     ///
-    /// @class RTypeClientSolo
-    /// @brief Class for the RTypeClientSolo plugin
+    /// @class FlappyBirdClientSolo
+    /// @brief Class for the FlappyBirdClientSolo plugin
     /// @namespace gme
     ///
-    class RTypeClientSolo final : public IGameClient
+    class FlappyBirdClientSolo final : public IGameClient
     {
 
         public:
-            RTypeClientSolo() = default;
-            ~RTypeClientSolo() override = default;
+            FlappyBirdClientSolo() = default;
+            ~FlappyBirdClientSolo() override = default;
 
-            RTypeClientSolo(const RTypeClientSolo &) = delete;
-            RTypeClientSolo &operator=(const RTypeClientSolo &) = delete;
-            RTypeClientSolo(RTypeClientSolo &&) = delete;
-            RTypeClientSolo &operator=(RTypeClientSolo &&) = delete;
+            FlappyBirdClientSolo(const FlappyBirdClientSolo &) = delete;
+            FlappyBirdClientSolo &operator=(const FlappyBirdClientSolo &) = delete;
+            FlappyBirdClientSolo(FlappyBirdClientSolo &&) = delete;
+            FlappyBirdClientSolo &operator=(FlappyBirdClientSolo &&) = delete;
 
             [[nodiscard]] const std::string getName() const override { return "RType_Client_Solo"; }
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_CLIENT; }
@@ -48,6 +48,5 @@ namespace gme
             eng::id m_mainSceneId;
 
             void setupScenes(bool &showDebug, eng::id menuSceneId);
-    }; // class RTypeClientSolo
-
+    }; // class FlappyBirdClientSolo
 } // namespace gme

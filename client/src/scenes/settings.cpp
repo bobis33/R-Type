@@ -6,7 +6,8 @@
 #include "ECS/Component.hpp"
 #include "Utils/Common.hpp"
 
-cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, AppConfig &config)
+cli::Settings::Settings(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                        utl::cli::AppConfig &config)
     : AScene(assignedId), m_renderer(renderer), m_appConfig(config)
 {
     auto &registry = AScene::getRegistry();

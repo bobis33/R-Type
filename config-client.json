@@ -5,9 +5,9 @@
     "player_name": "Player"
   },
   "plugins": {
-    "audio": "audio_sfml.dll",
-    "network": "network_asio_client.dll",
-    "renderer": "renderer_sfml.dll"
+    "audio": "cmake-build-release/bin/lib/audio_sfml.so",
+    "network": "cmake-build-release/bin/lib/network_asio_client.so",
+    "renderer": "cmake-build-release/bin/lib/renderer_sfml.so"
   },
   "window": {
     "fullscreen": false,

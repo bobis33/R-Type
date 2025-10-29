@@ -92,8 +92,8 @@ static char keyToChar(const eng::Key key, bool shift = false)
     }
 }
 
-gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer)
-    : AScene(assignedId)
+gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, const std::string &host, const std::string &port)
+    : AScene(assignedId), m_host(host), m_port(port)
 {
     auto &registry = AScene::getRegistry();
 
@@ -165,7 +165,7 @@ gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<en
             .with<ecs::Color>("color_server_ip_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
                               utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b,
                               utl::Config::Color::TEXT_VALUE_COLOR.a)
-            .with<ecs::Text>("server_ip_value", m_serverIP, 24U)
+            .with<ecs::Text>("server_ip_value", m_host, 24U)
             .build();
 
     m_serverPortValueEntity =
@@ -175,7 +175,7 @@ gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<en
             .with<ecs::Color>("color_server_port_value", utl::Config::Color::TEXT_VALUE_COLOR.r,
                               utl::Config::Color::TEXT_VALUE_COLOR.g, utl::Config::Color::TEXT_VALUE_COLOR.b,
                               utl::Config::Color::TEXT_VALUE_COLOR.a)
-            .with<ecs::Text>("server_port_value", m_serverPort, 24U)
+            .with<ecs::Text>("server_port_value", m_port, 24U)
             .build();
 
     m_eventComponentId = 5;
@@ -243,8 +243,8 @@ void gme::ServerScene::event(const eng::Event &event)
             {
                 if (m_selectedIndex == 3 && onConnect)
                 {
-                    connectServer(m_playerName, m_serverIP, m_serverPort);
-                    onConnect(m_playerName, m_serverIP, m_serverPort);
+                    connectServer(m_playerName, m_host, m_port);
+                    onConnect(m_playerName, m_host, m_port);
                 }
                 else if (m_selectedIndex == 4 && onBackToMenu)
                 {
@@ -297,9 +297,9 @@ std::string &gme::ServerScene::getCurrentEditField()
     }
     if (m_selectedIndex == 1)
     {
-        return m_serverIP;
+        return m_host;
     }
-    return m_serverPort;
+    return m_port;
 }
 
 void gme::ServerScene::updateValueDisplay()
@@ -313,12 +313,12 @@ void gme::ServerScene::updateValueDisplay()
 
     if (auto *serverIPText = reg.getComponent<ecs::Text>(m_serverIPValueEntity))
     {
-        serverIPText->content = m_serverIP;
+        serverIPText->content = m_host;
     }
 
     if (auto *serverPortText = reg.getComponent<ecs::Text>(m_serverPortValueEntity))
     {
-        serverPortText->content = m_serverPort;
+        serverPortText->content = m_port;
     }
 }
 

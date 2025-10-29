@@ -36,7 +36,7 @@ void srv::Server::run() const
     for (;;)
     {
         auto currentTime = std::chrono::steady_clock::now();
-        float deltaTime =
+        const float deltaTime =
             std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
         startTime = currentTime;
 
@@ -49,18 +49,19 @@ void srv::Server::run() const
         for (size_t i = 0; i < sessions.size(); ++i)
         {
             std::cout << sessions[i];
-            if (i < sessions.size() - 1)
+            if (i < sessions.size() - 1) {
                 std::cout << ", ";
+}
         }
-        std::cout << std::endl;
+        std::cout << '\n';
 
         std::this_thread::sleep_for(std::chrono::milliseconds(16)); // ~60 FPS
     }
 }
 
-srv::AppConfig srv::Server::setupConfig(const ArgsConfig &cfg)
+utl::srv::AppConfig srv::Server::setupConfig(const ArgsConfig &cfg)
 {
-    AppConfig config;
+    utl::srv::AppConfig config;
 
     config.host = cfg.host;
     config.port = cfg.port;

@@ -18,7 +18,7 @@ namespace gme
     class ServerScene final : public eng::AScene
     {
         public:
-            ServerScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer);
+            ServerScene(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, const std::string &host, const std::string &port);
             ~ServerScene() override = default;
 
             ServerScene(const ServerScene &other) = delete;
@@ -46,8 +46,8 @@ namespace gme
                                const std::string &serverPort) const;
 
             std::string m_playerName = "Player";
-            std::string m_serverIP = "0.0.0.0";
-            std::string m_serverPort = "2560";
+            std::string m_host;
+            std::string m_port;
 
             ecs::Entity m_playerNameValueEntity = 0;
             ecs::Entity m_serverIPValueEntity = 0;

@@ -31,12 +31,11 @@ namespace gme
             [[nodiscard]] const std::string getName() const override { return "RType_Client_Multi"; }
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_CLIENT; }
 
-            void init(eng::Engine &engine, float &audioVolume, const int skinIndex, bool &showDebug,
+            void init(eng::Engine &engine, utl::cli::AppConfig &appConfig, bool &showDebug,
                       const eng::id menuSceneId) override
             {
                 m_engine = &engine;
-                m_audioVolume = audioVolume;
-                m_skinIndex = skinIndex;
+                m_appConfig = &appConfig;
                 m_showDebug = showDebug;
                 setupScenes(showDebug, menuSceneId);
             }
@@ -47,8 +46,7 @@ namespace gme
             void setupScenes(bool &showDebug, eng::id menuSceneId);
 
             eng::Engine *m_engine = nullptr;
-            float m_audioVolume{};
-            int m_skinIndex{};
+            utl::cli::AppConfig *m_appConfig = nullptr;
             bool m_showDebug = false;
             eng::id m_mainSceneId = 1;
 

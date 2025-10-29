@@ -5,9 +5,10 @@
 ///
 
 #pragma once
-#include "Interfaces/IRenderer.hpp"
 
 #include <filesystem>
+
+#include "Interfaces/IRenderer.hpp"
 
 #ifdef _WIN32
 #define NOMINMAX
