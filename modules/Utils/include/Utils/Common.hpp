@@ -23,6 +23,10 @@ namespace utl
 {
     namespace Config
     {
+        namespace Player
+        {
+            inline constexpr auto DEFAULT_PLAYER_NAME = "player";
+        } // namespace Player
         namespace Audio
         {
             inline constexpr auto DEFAULT_AUDIO_VOLUME = 0.5F; // unused

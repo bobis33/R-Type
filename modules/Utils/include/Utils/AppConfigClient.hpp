@@ -20,6 +20,7 @@ namespace utl
                 bool fullscreen = Config::Window::DEFAULT_WINDOW_FULLSCREEN;
                 std::string host = Config::Network::DEFAULT_NETWORK_HOST;
                 unsigned int port = Config::Network::DEFAULT_NETWORK_PORT;
+                std::string player_name = Config::Player::DEFAULT_PLAYER_NAME;
                 float audioVolume = Config::Audio::DEFAULT_AUDIO_VOLUME;
                 int videoQuality = Config::Game::DEFAULT_VIDEO_QUALITY;
                 int controlScheme = Config::Game::DEFAULT_CONTROL_SCHEME;

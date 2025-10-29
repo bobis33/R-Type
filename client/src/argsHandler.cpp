@@ -76,6 +76,9 @@ cli::ArgsConfig cli::ArgsConfig::fromFile(const std::string &path)
         {
             cfg.port = c["port"];
         }
+        if (c.contains("player_name")) {
+            cfg.player_name = c["player_name"];
+        }
     }
     return cfg;
 }

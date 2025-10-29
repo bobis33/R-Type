@@ -17,6 +17,7 @@ utl::cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
     appConfig.width = cfg.width;
     appConfig.host = cfg.host;
     appConfig.port = cfg.port;
+    appConfig.player_name = cfg.player_name;
 
     appConfig.audioVolume = utl::Config::Audio::DEFAULT_AUDIO_VOLUME;
     appConfig.videoQuality = utl::Config::Game::DEFAULT_VIDEO_QUALITY;

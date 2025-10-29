@@ -24,6 +24,7 @@ namespace cli
             bool fullscreen = utl::Config::Window::DEFAULT_WINDOW_FULLSCREEN;
             std::string host = utl::Config::Network::DEFAULT_NETWORK_HOST;
             unsigned int port = utl::Config::Network::DEFAULT_NETWORK_PORT;
+            std::string player_name = utl::Config::Player::DEFAULT_PLAYER_NAME;
             std::string audio_lib_path = utl::Path::Plugin::PLUGIN_AUDIO_SFML.string();
             std::string network_lib_path = utl::Path::Plugin::PLUGIN_NETWORK_ASIO_CLIENT.string();
             std::string renderer_lib_path = utl::Path::Plugin::PLUGIN_RENDERER_SFML.string();

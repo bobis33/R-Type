@@ -13,7 +13,7 @@ void gme::RTypeClientMulti::update(float deltaTime, unsigned int width, unsigned
 void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
 {
     auto serverSceneId = m_engine->getSceneManager()->generateNextId();
-    auto serverScene = std::make_unique<ServerScene>(serverSceneId, m_engine->getRenderer(), m_appConfig->host, std::to_string(m_appConfig->port));
+    auto serverScene = std::make_unique<ServerScene>(serverSceneId, m_engine->getRenderer(), m_appConfig->host, std::to_string(m_appConfig->port), m_appConfig->player_name);
     m_mainSceneId = serverSceneId;
     serverScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_appConfig->audioVolume,
                                                               serverScene->getRegistry(), serverScene->playMusic()));
