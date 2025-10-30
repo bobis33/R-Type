@@ -12,6 +12,14 @@ void gme::StageManager::update(ecs::Registry &registry, const float dt, const en
     }
 }
 
+void gme::StageManager::stopScrolling(ecs::Registry &registry)
+{
+    for (auto &[entity, scrolling] : registry.getAll<ecs::Scrolling>())
+    {
+        scrolling.speed_x = 0.0f;
+    }
+}
+
 void gme::StageManager::spawnStage(ecs::Registry &registry, const int screenWidth)
 {
     (void) registry.createEntity()

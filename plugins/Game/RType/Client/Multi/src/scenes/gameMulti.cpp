@@ -106,7 +106,14 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
         playerRect->pos_y = skinPosY;
     }
 
-    registry.createEntity().with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, true).build();
+    auto beginSoundEntity = registry.createEntity()
+                                .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
+                                .build();
+    if (auto *audioComp = registry.getComponent<ecs::Audio>(beginSoundEntity))
+    {
+        audioComp->play = true;
+    }
+    m_beginSoundEntity = beginSoundEntity;
 
     m_stageManager = std::make_unique<StageManager>();
 
@@ -205,11 +212,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     velocity->x = entityState.vx;
                     velocity->y = entityState.vy;
                 }
-                
-                // Synchronize beam charge from server
                 if (auto *beamCharge = registry.getComponent<ecs::BeamCharge>(m_localPlayerEntity))
                 {
-                    // Always accept server charge value
                     beamCharge->current_charge = static_cast<float>(entityState.stateFlags) / 255.0f;
                 }
             }
@@ -368,14 +372,59 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
     {
         m_playerController->update(reg, dt);
     }
-
     const auto &audios = reg.getAll<ecs::Audio>();
-
     for (const auto &audio : audios)
     {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
+        if (!audio.second.play && audio.second.loop && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
         {
             m_audio->stopAudio(audio.second.id);
+        }
+    }
+    if (m_beginSoundEntity != ecs::Entity{} && m_stageManager && !m_bossMusicStarted)
+    {
+        std::string beginName = std::string("game_begin") + std::to_string(m_beginSoundEntity);
+        if (m_audio->isPlaying(beginName) != eng::Status::Playing)
+        {
+            for (auto &[entity, audio] : reg.getAll<ecs::Audio>())
+            {
+                if (audio.id == std::string("game_begin"))
+                {
+                    audio.play = false;
+                }
+            }
+            m_stageManager->stopScrolling(reg);
+            m_bossMusicEntity = reg.createEntity()
+                                    .with<ecs::Audio>("boss_music", utl::Path::Audio::AUDIO_BOSS, 1.0F, true, false)
+                                    .build();
+            if (auto *bossAudio = reg.getComponent<ecs::Audio>(m_bossMusicEntity))
+            {
+                bossAudio->loop = true;
+                bossAudio->play = true;
+            }
+            m_bossMusicStarted = true;
+            m_bossMusicTimer = 0.0f;
+            m_beginSoundEntity = {};
+        }
+    }
+    if (m_bossMusicStarted)
+    {
+        m_bossMusicTimer += dt;
+        if (m_bossMusicTimer >= BOSS_MUSIC_DURATION)
+        {
+            if (auto *bossAudio = reg.getComponent<ecs::Audio>(m_bossMusicEntity))
+            {
+                bossAudio->loop = false;
+                bossAudio->play = false;
+            }
+            m_bossMusicStarted = false;
+        }
+        else
+        {
+            if (auto *bossAudio = reg.getComponent<ecs::Audio>(m_bossMusicEntity))
+            {
+                bossAudio->loop = true;
+                bossAudio->play = true;
+            }
         }
     }
 

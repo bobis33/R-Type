@@ -103,5 +103,10 @@ namespace gme
             static constexpr float ENEMY_SMOOTH_FACTOR = 0.18f;
 
             bool m_starfieldCreated = false;
+            ecs::Entity m_beginSoundEntity{};
+            ecs::Entity m_bossMusicEntity{};
+            float m_bossMusicTimer = 0.0f;
+            bool m_bossMusicStarted = false;
+            static constexpr float BOSS_MUSIC_DURATION = 40.0f;
     }; // class GameMulti
 } // namespace gme
