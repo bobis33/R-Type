@@ -116,6 +116,10 @@ namespace utl
             inline constexpr auto TEXTURE_SHOOT_CHARGED = "assets/sprites/shootcharged.gif";
             inline constexpr auto TEXTURE_SHOOT_LOADING = "assets/sprites/shootchargedloading.gif";
             inline constexpr auto TEXTURE_ENEMY_EASY = "assets/sprites/r-typesheet5.gif";
+            inline constexpr auto TEXTURE_ENEMY_BASIC = "assets/sprites/r-typesheet5.gif";
+            inline constexpr auto TEXTURE_ENEMY_ADVANCED = "assets/sprites/r-typesheet30.gif";
+            inline constexpr auto TEXTURE_BOSS = "assets/sprites/r-typesheet14.gif";
+            inline constexpr auto TEXTURE_ENEMY_PROJECTILE = "assets/sprites/r-typesheet20.gif";
             inline constexpr auto TEXTURE_EXPLOSION = "assets/sprites/r-typesheet44.gif";
             inline constexpr auto TEXTURE_STAGE1_FLOOR = "assets/sprites/floorstage1.png";
             inline constexpr auto TEXTURE_STAGE1_CEILING = "assets/sprites/ceillingstage1.png";

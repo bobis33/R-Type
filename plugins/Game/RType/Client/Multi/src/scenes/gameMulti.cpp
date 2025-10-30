@@ -5,11 +5,11 @@
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "RTypeClientMulti/Managers/StageManager.hpp"
-#include "RTypeClientMulti/Scenes/GameMulti.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
-#include "Utils/RTypeShared/GameConfig.hpp"
+#include <algorithm>
+#include <set>
 
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                           const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
@@ -94,7 +94,7 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     m_playerController = std::make_unique<PlayerControllerMulti>(renderer, m_sessionId);
 
     m_localPlayerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
-    
+
     if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity))
     {
         uint32_t skinIndex = 0;
@@ -109,17 +109,17 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity))
     {
         uint32_t skinIndex = 0;
-        if (m_playerSkinMap.contains(m_sessionId))
+        if (m_playerSkinMap.find(m_sessionId) != m_playerSkinMap.end())
         {
             skinIndex = m_playerSkinMap[m_sessionId];
         }
-        const float skinPosY = static_cast<float>(skinIndex) * utl::GameConfig::Player::SPRITE_HEIGHT;
+        float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }
 
-    const auto beginSoundEntity = registry.createEntity()
-                                      .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
-                                      .build();
+    auto beginSoundEntity = registry.createEntity()
+                                .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
+                                .build();
     if (auto *audioComp = registry.getComponent<ecs::Audio>(beginSoundEntity))
     {
         audioComp->play = true;
@@ -162,6 +162,8 @@ void gme::GameMulti::processEventBus()
         }
     }
 }
+
+void gme::GameMulti::handlePlayerInputReceived(const utl::Event &event) {}
 
 void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 {
@@ -221,6 +223,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     velocity->x = vx;
                     velocity->y = vy;
                 }
+
+                // Synchronize beam charge from server
                 if (auto *beamCharge = registry.getComponent<ecs::BeamCharge>(m_localPlayerEntity))
                 {
                     beamCharge->current_charge = static_cast<float>(stateFlags) / 255.0f;
@@ -235,32 +239,34 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     {
                         skinIndex = skinIt->second;
                     }
-                    float skinPosY = static_cast<float>(skinIndex) * utl::GameConfig::Player::SPRITE_HEIGHT;
+                    float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
 
-                    const ecs::Entity remotePlayer =
+                    ecs::Entity remotePlayer =
                         registry.createEntity()
-                            .with<ecs::Transform>("remote_player_" + std::to_string(id), x, y, 0.F)
-                            .with<ecs::Velocity>("remote_velocity_" + std::to_string(id), vx, vy)
-                            .with<ecs::Rect>("remote_rect_" + std::to_string(id), 0.F, skinPosY,
-                                             static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH),
-                                             static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT))
-                            .with<ecs::Scale>("remote_scale_" + std::to_string(id), utl::GameConfig::Player::SCALE,
-                                              utl::GameConfig::Player::SCALE)
-                            .with<ecs::Texture>("remote_texture_" + std::to_string(id),
+                            .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
+                                                  entityState.y, 0.F)
+                            .with<ecs::Velocity>("remote_velocity_" + std::to_string(entityState.id), entityState.vx,
+                                                 entityState.vy)
+                            .with<ecs::Rect>("remote_rect_" + std::to_string(entityState.id), 0.F, skinPosY,
+                                             static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
+                                             static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
+                            .with<ecs::Scale>("remote_scale_" + std::to_string(entityState.id),
+                                              GameConfig::Player::SCALE, GameConfig::Player::SCALE)
+                            .with<ecs::Texture>("remote_texture_" + std::to_string(entityState.id),
                                                 utl::Path::Texture::TEXTURE_PLAYER)
                             .with<ecs::Player>("remote_player_comp_" + std::to_string(id), false)
                             .build();
-                    m_remotePlayers[id] = remotePlayer;
+                    m_remotePlayers[entityState.id] = remotePlayer;
 
-                    m_remotePlayerData[id] = {.targetX = x,
-                                              .targetY = y,
-                                              .targetVx = vx,
-                                              .targetVy = vy,
-                                              .currentX = x,
-                                              .currentY = y,
-                                              .smoothFactor = REMOTE_PLAYER_SMOOTH_FACTOR,
-                                              .targetRotation = 0.0f,
-                                              .currentRotation = 0.0f};
+                    m_remotePlayerData[entityState.id] = {.targetX = entityState.x,
+                                                          .targetY = entityState.y,
+                                                          .targetVx = entityState.vx,
+                                                          .targetVy = entityState.vy,
+                                                          .currentX = entityState.x,
+                                                          .currentY = entityState.y,
+                                                          .smoothFactor = REMOTE_PLAYER_SMOOTH_FACTOR,
+                                                          .targetRotation = 0.0f,
+                                                          .currentRotation = 0.0f};
                 }
                 else
                 {
@@ -272,39 +278,69 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             }
             else if (type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
             {
-                if (const auto projectileIt = m_projectileEntities.find(id); projectileIt == m_projectileEntities.end())
+
+                if (m_projectileEntities.find(entityState.id) == m_projectileEntities.end())
                 {
-                    const bool isSupercharged = (vx > 1000.0f || std::abs(vx) > 1000.0f);
-                    std::string texturePath =
-                        isSupercharged ? utl::Path::Texture::TEXTURE_SHOOT_CHARGED : utl::Path::Texture::TEXTURE_SHOOT;
+                    // Use subtype field to determine projectile type
+                    bool isEnemyProjectile =
+                        (entityState.subtype == static_cast<std::uint8_t>(rnp::EntitySubtype::PROJECTILE_ENEMY));
+                    bool isSupercharged =
+                        (entityState.subtype ==
+                         static_cast<std::uint8_t>(rnp::EntitySubtype::PROJECTILE_PLAYER_SUPERCHARGED));
+
+                    std::string texturePath;
+                    float width, height, scale;
+
+                    if (isEnemyProjectile)
+                    {
+                        // Enemy projectile
+                        texturePath = utl::Path::Texture::TEXTURE_ENEMY_PROJECTILE;
+                        width = 16.0f;
+                        height = 16.0f;
+                        scale = 1.0f;
+                    }
+                    else
+                    {
+                        // Player projectile
+                        texturePath = isSupercharged ? utl::Path::Texture::TEXTURE_SHOOT_CHARGED
+                                                     : utl::Path::Texture::TEXTURE_SHOOT;
+                        width = isSupercharged ? 29.0f : 20.0f;
+                        height = isSupercharged ? 24.0f : 10.0f;
+                        scale = isSupercharged ? 1.5f : 1.0f;
+                    }
 
                     auto entityBuilder =
                         registry.createEntity()
-                            .with<ecs::Transform>("projectile_" + std::to_string(id), x, y, 0.F)
-                            .with<ecs::Velocity>("projectile_velocity_" + std::to_string(id), vx, vy)
-                            .with<ecs::Rect>("projectile_rect_" + std::to_string(id), 0.F, 0.F,
-                                             isSupercharged ? 29 : 20, isSupercharged ? 24 : 10)
-                            .with<ecs::Scale>("projectile_scale_" + std::to_string(id), isSupercharged ? 1.5f : 1.0f,
-                                              isSupercharged ? 1.5f : 1.0f)
-                            .with<ecs::Texture>("projectile_texture_" + std::to_string(id), texturePath);
+                            .with<ecs::Transform>("projectile_" + std::to_string(entityState.id), entityState.x,
+                                                  entityState.y, 0.F)
+                            .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id),
+                                                 entityState.vx, entityState.vy)
+                            .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, width,
+                                             height)
+                            .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), scale, scale)
+                            .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id), texturePath);
 
-                    if (isSupercharged)
+                    if (isSupercharged && !isEnemyProjectile)
                     {
-                        entityBuilder.with<ecs::Animation>("projectile_animation_" + std::to_string(id), 0, 4, 0.15f,
-                                                           0.0f, 29, 24, 4);
+                        entityBuilder.with<ecs::Animation>("projectile_animation_" + std::to_string(entityState.id), 0,
+                                                           4, 0.15f, 0.0f, 29, 24, 4);
                     }
 
-                    const ecs::Entity projectile = entityBuilder.build();
-                    m_projectileEntities[id] = projectile;
+                    ecs::Entity projectile = entityBuilder.build();
+                    m_projectileEntities[entityState.id] = projectile;
 
-                    const auto shootSound =
-                        registry.createEntity()
-                            .with<ecs::Audio>("projectile_shoot_" + std::to_string(id),
-                                              utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 1.5F, false, false)
-                            .build();
-                    if (auto *audioComp = registry.getComponent<ecs::Audio>(shootSound))
+                    // Only play sound for player projectiles
+                    if (!isEnemyProjectile)
                     {
-                        audioComp->play = true;
+                        auto shootSound =
+                            registry.createEntity()
+                                .with<ecs::Audio>("projectile_shoot_" + std::to_string(entityState.id),
+                                                  utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 1.5F, false, false)
+                                .build();
+                        if (auto *audioComp = registry.getComponent<ecs::Audio>(shootSound))
+                        {
+                            audioComp->play = true;
+                        }
                     }
                 }
                 else
@@ -315,8 +351,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 
                     if (transform != nullptr)
                     {
-                        transform->x = x;
-                        transform->y = y;
+                        transform->x = entityState.x;
+                        transform->y = entityState.y;
 
                         if (transform->x > 2000.0f || transform->x < -100.0f)
                         {
@@ -378,27 +414,97 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             {
                 if (m_enemyEntities.find(entityState.id) == m_enemyEntities.end())
                 {
-                    ecs::Entity enemy = registry.createEntity()
-                        .with<ecs::Transform>("enemy_" + std::to_string(entityState.id), entityState.x, entityState.y, 0.F)
-                        .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx, entityState.vy)
-                        .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, 50, 50)
-                        .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
-                        .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id), utl::Path::Texture::TEXTURE_PLAYER)
-                        .build();
-                    
+                    // Use subtype field to determine enemy type
+                    std::string texturePath;
+                    float width, height, scale;
+                    int animFrames = 4;
+
+                    if (entityState.subtype == static_cast<std::uint8_t>(rnp::EntitySubtype::ENEMY_ADVANCED))
+                    {
+                        texturePath = utl::Path::Texture::TEXTURE_ENEMY_ADVANCED;
+                        width = 33.0f;
+                        height = 36.0f;
+                        scale = 2.0f;
+                    }
+                    else // ENEMY_BASIC
+                    {
+                        texturePath = utl::Path::Texture::TEXTURE_ENEMY_BASIC;
+                        width = 32.0f;
+                        height = 32.0f;
+                        scale = 2.0f;
+                    }
+
+                    ecs::Entity enemy =
+                        registry.createEntity()
+                            .with<ecs::Transform>("enemy_" + std::to_string(entityState.id), entityState.x,
+                                                  entityState.y, 0.F)
+                            .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx,
+                                                 entityState.vy)
+                            .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, width, height)
+                            .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), scale, scale)
+                            .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id), texturePath)
+                            .with<ecs::Animation>("enemy_animation_" + std::to_string(entityState.id), 0, animFrames,
+                                                  0.5f, 0.0f, static_cast<int>(width), static_cast<int>(height),
+                                                  animFrames)
+                            .build();
+
                     m_enemyEntities[entityState.id] = enemy;
-                    
-                    m_enemyData[entityState.id] = {
-                        .targetX = entityState.x,
-                        .targetY = entityState.y,
-                        .targetVx = entityState.vx,
-                        .targetVy = entityState.vy,
-                        .currentX = entityState.x,
-                        .currentY = entityState.y,
-                        .smoothFactor = ENEMY_SMOOTH_FACTOR,
-                        .targetRotation = 0.0f,
-                        .currentRotation = 0.0f
-                    };
+
+                    m_enemyData[entityState.id] = {.targetX = entityState.x,
+                                                   .targetY = entityState.y,
+                                                   .targetVx = entityState.vx,
+                                                   .targetVy = entityState.vy,
+                                                   .currentX = entityState.x,
+                                                   .currentY = entityState.y,
+                                                   .smoothFactor = ENEMY_SMOOTH_FACTOR,
+                                                   .targetRotation = 0.0f,
+                                                   .currentRotation = 0.0f};
+                }
+                else
+                {
+                    m_enemyData[entityState.id].targetX = entityState.x;
+                    m_enemyData[entityState.id].targetY = entityState.y;
+                    m_enemyData[entityState.id].targetVx = entityState.vx;
+                    m_enemyData[entityState.id].targetVy = entityState.vy;
+                }
+            }
+            else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::BOSS))
+            {
+                if (m_enemyEntities.find(entityState.id) == m_enemyEntities.end())
+                {
+                    // Boss entity
+                    std::string texturePath = utl::Path::Texture::TEXTURE_BOSS;
+                    float width = 64.0f;
+                    float height = 64.0f;
+                    float scale = 3.0f;
+
+                    ecs::Entity boss =
+                        registry.createEntity()
+                            .with<ecs::Transform>("boss_" + std::to_string(entityState.id), entityState.x,
+                                                  entityState.y, 0.F)
+                            .with<ecs::Velocity>("boss_velocity_" + std::to_string(entityState.id), entityState.vx,
+                                                 entityState.vy)
+                            .with<ecs::Rect>("boss_rect_" + std::to_string(entityState.id), 0.F, 0.F, width, height)
+                            .with<ecs::Scale>("boss_scale_" + std::to_string(entityState.id), scale, scale)
+                            .with<ecs::Texture>("boss_texture_" + std::to_string(entityState.id), texturePath)
+                            .with<ecs::Animation>("boss_animation_" + std::to_string(entityState.id), 0, 2, 0.3f, 0.0f,
+                                                  static_cast<int>(width), static_cast<int>(height), 2)
+                            .build();
+
+                    m_enemyEntities[entityState.id] = boss;
+
+                    m_enemyData[entityState.id] = {.targetX = entityState.x,
+                                                   .targetY = entityState.y,
+                                                   .targetVx = entityState.vx,
+                                                   .targetVy = entityState.vy,
+                                                   .currentX = entityState.x,
+                                                   .currentY = entityState.y,
+                                                   .smoothFactor = ENEMY_SMOOTH_FACTOR,
+                                                   .targetRotation = 0.0f,
+                                                   .currentRotation = 0.0f};
+
+                    utl::Logger::log("GameMulti: Boss spawned with ID " + std::to_string(entityState.id),
+                                     utl::LogLevel::INFO);
                 }
                 else
                 {
@@ -497,16 +603,15 @@ void gme::GameMulti::event(const eng::Event &event)
 
 void gme::GameMulti::updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
                                          std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor,
-                                         float dt, ecs::Registry &registry) const
+                                         float dt, ecs::Registry &registry)
 {
     for (auto &[entityId, interpData] : dataMap)
     {
         if (&dataMap == &m_remotePlayerData && entityId == m_sessionId)
         {
             continue;
-        }
 
-        if (auto entityIt = entityMap.find(entityId); entityIt != entityMap.end())
+        if (entityMap.find(entityId) != entityMap.end())
         {
             const ecs::Entity entity = entityIt->second;
             if (auto *transform = registry.getComponent<ecs::Transform>(entity))

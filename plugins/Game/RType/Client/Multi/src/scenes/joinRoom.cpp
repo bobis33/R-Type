@@ -74,7 +74,6 @@ gme::JoinRoomScene::JoinRoomScene(const eng::id assignedId, const std::shared_pt
     m_eventComponentId = 7;
     m_eventBus.registerComponent(m_eventComponentId, "Join_Room_Scene");
     setupEventSubscriptions();
-    refreshRoomList();
 }
 
 void gme::JoinRoomScene::setupEventSubscriptions() const

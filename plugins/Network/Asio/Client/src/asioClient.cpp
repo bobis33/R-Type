@@ -795,7 +795,7 @@ namespace eng
             return;
         }
 
-        utl::Logger::log("AsioClient: Requesting lobby list", utl::LogLevel::INFO);
+        utl::Logger::log("AsioClient: Requesting lobby list from server", utl::LogLevel::INFO);
 
         rnp::PacketHeader header;
         header.type = static_cast<std::uint8_t>(rnp::PacketType::LOBBY_LIST_REQUEST);
