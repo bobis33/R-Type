@@ -13,6 +13,7 @@
 #include "RTypeClientMulti/Systems/Projectile.hpp"
 #include "RTypeClientMulti/Systems/Scrolling.hpp"
 #include "RTypeClientMulti/Systems/Weapon.hpp"
+#include "RTypeClientMulti/Systems/PlayerDirection.hpp"
 #include "RTypeShared/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 
@@ -158,6 +159,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         gameMulti->addSystem(std::make_unique<gme::CollisionSystem>(m_engine->getRenderer(), m_showDebug));
         gameMulti->addSystem(std::make_unique<gme::BeamSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::ProjectileSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<gme::PlayerDirectionSystem>());
 
         m_engine->getSceneManager()->addScene(std::move(gameMulti));
         m_engine->getSceneManager()->switchToScene(gameMultiId);
