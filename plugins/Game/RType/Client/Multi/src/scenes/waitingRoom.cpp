@@ -48,33 +48,33 @@ namespace gme
         m_titleEntity =
             registry.createEntity()
                 .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                .with<ecs::Transform>("transform_title", 100.F, 60.F, 0.F)
+                .with<ecs::Transform>("transform_title", 100.F, 40.F, 0.F)
                 .with<ecs::Color>("color_title", CYAN_ELECTRIC.r, CYAN_ELECTRIC.g, CYAN_ELECTRIC.b, CYAN_ELECTRIC.a)
-                .with<ecs::Text>("title", std::string("WAITING ROOM"), 72U)
+                .with<ecs::Text>("title", std::string("WAITING ROOM"), 64U)
                 .build();
 
         m_lobbyIdEntity = registry.createEntity()
                               .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                              .with<ecs::Transform>("transform_lobby_id", 100.F, 150.F, 0.F)
+                              .with<ecs::Transform>("transform_lobby_id", 100.F, 120.F, 0.F)
                               .with<ecs::Color>("color_lobby_id", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
                                                 TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
-                              .with<ecs::Text>("lobby_id_text", std::string("Lobby ID: ..."), 36U)
+                              .with<ecs::Text>("lobby_id_text", std::string("Lobby ID"), 32U)
                               .build();
 
         m_playerCountEntity = registry.createEntity()
                                   .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                                  .with<ecs::Transform>("transform_player_count", 100.F, 200.F, 0.F)
+                                  .with<ecs::Transform>("transform_player_count", 100.F, 160.F, 0.F)
                                   .with<ecs::Color>("color_player_count", TEXT_VALUE_COLOR.r, TEXT_VALUE_COLOR.g,
                                                     TEXT_VALUE_COLOR.b, TEXT_VALUE_COLOR.a)
-                                  .with<ecs::Text>("player_count_text", std::string("Players: 0/4"), 36U)
+                                  .with<ecs::Text>("player_count_text", std::string("Players 0 of 4"), 32U)
                                   .build();
 
         m_statusEntity = registry.createEntity()
                              .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                             .with<ecs::Transform>("transform_status", 100.F, 250.F, 0.F)
+                             .with<ecs::Transform>("transform_status", 100.F, 200.F, 0.F)
                              .with<ecs::Color>("color_status", INFO_TEXT_COLOR.r, INFO_TEXT_COLOR.g, INFO_TEXT_COLOR.b,
                                                INFO_TEXT_COLOR.a)
-                             .with<ecs::Text>("status_text", std::string("Waiting for players..."), 32U)
+                             .with<ecs::Text>("status_text", std::string("Waiting for players"), 28U)
                              .build();
 
         m_leaveButtonEntity = registry.createEntity()
@@ -82,12 +82,12 @@ namespace gme
                                   .with<ecs::Transform>("transform_leave", 100.F, 500.F, 0.F)
                                   .with<ecs::Color>("color_leave", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
                                                     GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
-                                  .with<ecs::Text>("leave_text", std::string("> Leave Lobby"), 32U)
+                                  .with<ecs::Text>("leave_text", std::string("  Leave Lobby"), 32U)
                                   .build();
 
         m_readyButtonEntity = registry.createEntity()
                                   .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                                  .with<ecs::Transform>("transform_ready", 100.F, 450.F, 0.F)
+                                  .with<ecs::Transform>("transform_ready", 100.F, 460.F, 0.F)
                                   .with<ecs::Color>("color_ready", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
                                                     GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
                                   .with<ecs::Text>("ready_text", std::string("  Ready"), 32U)
@@ -95,10 +95,10 @@ namespace gme
 
         m_startButtonEntity = registry.createEntity()
                                   .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                                  .with<ecs::Transform>("transform_start", 100.F, 550.F, 0.F)
+                                  .with<ecs::Transform>("transform_start", 100.F, 420.F, 0.F)
                                   .with<ecs::Color>("color_start", GRAY_BLUE_SUBTLE.r, GRAY_BLUE_SUBTLE.g,
                                                     GRAY_BLUE_SUBTLE.b, GRAY_BLUE_SUBTLE.a)
-                                  .with<ecs::Text>("start_text", std::string("> Start Game"), 32U)
+                                  .with<ecs::Text>("start_text", std::string("  Start Game"), 32U)
                                   .build();
 
         m_eventComponentId = 8;
@@ -184,7 +184,7 @@ namespace gme
             readyColor->r = GRAY_BLUE_SUBTLE.r;
             readyColor->g = GRAY_BLUE_SUBTLE.g;
             readyColor->b = GRAY_BLUE_SUBTLE.b;
-            readyText->content = m_isHost ? "> Ready" : "  Ready";
+            readyText->content = "  Ready";
 
             if (m_isHost && startColor && startText)
             {
@@ -200,21 +200,21 @@ namespace gme
                 leaveColor->r = CYAN_ELECTRIC.r;
                 leaveColor->g = CYAN_ELECTRIC.g;
                 leaveColor->b = CYAN_ELECTRIC.b;
-                leaveText->content = "> Leave Lobby";
+                leaveText->content = "  Leave Lobby";
             }
             else if (m_selectedButton == BUTTON_READY)
             {
                 readyColor->r = CYAN_ELECTRIC.r;
                 readyColor->g = CYAN_ELECTRIC.g;
                 readyColor->b = CYAN_ELECTRIC.b;
-                readyText->content = "> Ready";
+                readyText->content = "  Ready";
             }
             else if (m_selectedButton == BUTTON_START && m_isHost && startColor && startText)
             {
                 startColor->r = CYAN_ELECTRIC.r;
                 startColor->g = CYAN_ELECTRIC.g;
                 startColor->b = CYAN_ELECTRIC.b;
-                startText->content = "> Start Game";
+                startText->content = "  Start Game";
             }
         }
 
@@ -239,23 +239,41 @@ namespace gme
                 {
                     if (m_isHost)
                     {
-                        m_selectedButton = (m_selectedButton - 1 + BUTTON_COUNT) % BUTTON_COUNT;
+                        if (m_selectedButton == BUTTON_LEAVE)
+                            m_selectedButton = BUTTON_READY;
+                        else if (m_selectedButton == BUTTON_READY)
+                            m_selectedButton = BUTTON_START;
+                        else if (m_selectedButton == BUTTON_START)
+                            m_selectedButton = BUTTON_LEAVE;
                     }
                     else
                     {
-                        // Host doesn't see START button
-                        m_selectedButton = (m_selectedButton - 1 + 2) % 2;
+                        // Non-host: Ready (top) -> Leave (bottom)
+                        if (m_selectedButton == BUTTON_LEAVE)
+                            m_selectedButton = BUTTON_READY;
+                        else
+                            m_selectedButton = BUTTON_LEAVE;
                     }
                 }
                 else if (event.key == eng::Key::Down)
                 {
                     if (m_isHost)
                     {
-                        m_selectedButton = (m_selectedButton + 1) % BUTTON_COUNT;
+                        // Down should go: Start->Ready, Ready->Leave, Leave->Start
+                        if (m_selectedButton == BUTTON_START)
+                            m_selectedButton = BUTTON_READY;
+                        else if (m_selectedButton == BUTTON_READY)
+                            m_selectedButton = BUTTON_LEAVE;
+                        else if (m_selectedButton == BUTTON_LEAVE)
+                            m_selectedButton = BUTTON_START;
                     }
                     else
                     {
-                        m_selectedButton = (m_selectedButton + 1) % 2;
+                        // Non-host: Ready (top) -> Leave (bottom)
+                        if (m_selectedButton == BUTTON_READY)
+                            m_selectedButton = BUTTON_LEAVE;
+                        else
+                            m_selectedButton = BUTTON_READY;
                     }
                 }
                 else if (event.key == eng::Key::Enter || event.key == eng::Key::Space)
@@ -291,7 +309,7 @@ namespace gme
         auto *lobbyIdText = registry.getComponent<ecs::Text>(m_lobbyIdEntity);
         if (lobbyIdText)
         {
-            lobbyIdText->content = "Lobby ID: " + std::to_string(lobbyId);
+            lobbyIdText->content = "Lobby ID " + std::to_string(lobbyId);
         }
         utl::Logger::log("WaitingRoomScene: Set lobby ID to " + std::to_string(lobbyId), utl::LogLevel::INFO);
     }
@@ -320,14 +338,14 @@ namespace gme
         auto *lobbyIdText = registry.getComponent<ecs::Text>(m_lobbyIdEntity);
         if (lobbyIdText)
         {
-            lobbyIdText->content = "Lobby ID: " + std::to_string(m_currentLobbyInfo.lobbyId);
+            lobbyIdText->content = "Lobby ID " + std::to_string(m_currentLobbyInfo.lobbyId);
         }
 
         // Update player count
         auto *playerCountText = registry.getComponent<ecs::Text>(m_playerCountEntity);
         if (playerCountText)
         {
-            playerCountText->content = "Players: " + std::to_string(m_currentLobbyInfo.currentPlayers) + "/" +
+            playerCountText->content = "Players " + std::to_string(m_currentLobbyInfo.currentPlayers) + " of " +
                                        std::to_string(m_currentLobbyInfo.maxPlayers);
         }
 
@@ -337,13 +355,13 @@ namespace gme
         {
             if (m_currentLobbyInfo.currentPlayers >= m_currentLobbyInfo.maxPlayers)
             {
-                statusText->content = "Lobby is full! Waiting for host to start...";
+                statusText->content = "Lobby is full Waiting for host to start";
             }
             else
             {
                 statusText->content =
                     "Waiting for " + std::to_string(m_currentLobbyInfo.maxPlayers - m_currentLobbyInfo.currentPlayers) +
-                    " more player(s)...";
+                    " more players";
             }
         }
 
@@ -351,8 +369,8 @@ namespace gme
         clearPlayerEntities();
 
         // Create player slot displays
-        float startY = 320.0F;
-        float spacing = 40.0F;
+        float startY = 250.0F;
+        float spacing = 35.0F;
 
         for (std::uint8_t i = 0; i < m_currentLobbyInfo.maxPlayers; ++i)
         {
@@ -361,12 +379,12 @@ namespace gme
 
             if (i < m_currentLobbyInfo.currentPlayers)
             {
-                playerText = "Player " + std::to_string(i + 1) + " - Connected";
+                playerText = "Player " + std::to_string(i + 1) + " Connected";
                 playerColor = GREEN_READY;
             }
             else
             {
-                playerText = "Player " + std::to_string(i + 1) + " - Waiting...";
+                playerText = "Player " + std::to_string(i + 1) + " Waiting";
                 playerColor = INFO_TEXT_COLOR;
             }
 
@@ -376,7 +394,7 @@ namespace gme
                     .with<ecs::Transform>("transform_player_" + std::to_string(i), 120.F, startY + i * spacing, 0.F)
                     .with<ecs::Color>("color_player_" + std::to_string(i), playerColor.r, playerColor.g, playerColor.b,
                                       playerColor.a)
-                    .with<ecs::Text>("player_" + std::to_string(i), playerText, 28U)
+                    .with<ecs::Text>("player_" + std::to_string(i), playerText, 26U)
                     .build();
 
             m_playerEntities.push_back(playerEntity);
