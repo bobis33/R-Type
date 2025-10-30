@@ -33,8 +33,9 @@ namespace gme
                 std::optional<float> ceilingBottomY;
                 std::optional<float> floorTopY;
                 
-                for (const auto &entity : registry.getAll<ecs::Ceiling>() | std::views::keys)
+                for (auto &pair : registry.getAll<ecs::Ceiling>())
                 {
+                    const auto entity = pair.first;
                     const auto *t = registry.getComponent<ecs::Transform>(entity);
                     const auto *s = registry.getComponent<ecs::Scale>(entity);
                     const auto *scroll = registry.getComponent<ecs::Scrolling>(entity);
@@ -44,24 +45,27 @@ namespace gme
                     }
                     const float scaledHeight = (s ? s->y : 1.0f) * scroll->original_height;
                     ceilingBottomY = t->y + scaledHeight;
-                    break;
+                    break; // Un seul suffit
                 }
                 
-                for (const auto &entity : registry.getAll<ecs::Floor>() | std::views::keys)
+                for (auto &pair : registry.getAll<ecs::Floor>())
                 {
+                    const auto entity = pair.first;
                     const auto *t = registry.getComponent<ecs::Transform>(entity);
                     if (t == nullptr)
                     {
                         continue;
                     }
                     floorTopY = t->y;
-                    break;
+                    break; // Un seul suffit
                 }
 
                 if (ceilingBottomY.has_value() || floorTopY.has_value())
                 {
-                    for (const auto &playerEntity : registry.getAll<ecs::Player>() | std::views::keys)
+                    // Optimisation: itération directe
+                    for (auto &pair : registry.getAll<ecs::Player>())
                     {
+                        const auto playerEntity = pair.first;
                         auto *t = registry.getComponent<ecs::Transform>(playerEntity);
                         auto *hb = registry.getComponent<ecs::Hitbox>(playerEntity);
                         auto *vel = registry.getComponent<ecs::Velocity>(playerEntity);

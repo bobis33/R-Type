@@ -50,6 +50,9 @@ namespace gme
 
             const float INPUT_THROTTLE_INTERVAL = 1.0f / 144.0f; // Send inputs at 144 Hz max
 
+            uint32_t m_nextSeqId = 1;
+            uint32_t m_lastAckSeqId = 0;
+
             struct PendingInput
             {
                     uint32_t seqId;

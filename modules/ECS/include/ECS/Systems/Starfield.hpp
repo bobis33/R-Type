@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <ranges>
 
 #include "ECS/Component.hpp"
@@ -37,47 +38,88 @@ namespace ecs
                 auto [width, height] = m_renderer->getWindowSize();
                 const float screenWidth = static_cast<float>(width);
                 const float screenHeight = static_cast<float>(height);
+                
+                m_timeAccumulator += dt;
 
-                for (const auto &entity : registry.getAll<Pixel>() | std::views::keys)
+                eng::Color cachedColor{};
+                bool isStar = false;
+                bool isNear = false;
+                bool isMid = false;
+                
+                for (auto &pair : registry.getAll<Pixel>())
                 {
-                    if (auto *transform = registry.getComponent<Transform>(entity))
+                    const auto entity = pair.first;
+                    auto *transform = registry.getComponent<Transform>(entity);
+                    if (!transform) continue;
+                    
+                    const auto *velocity = registry.getComponent<Velocity>(entity);
+                    if (velocity)
                     {
-                        if (const auto *velocity = registry.getComponent<Velocity>(entity))
-                        {
-                            transform->x += velocity->x * dt;
-                            transform->y += velocity->y * dt;
+                        transform->x += velocity->x * dt;
+                        transform->y += velocity->y * dt;
 
-                            if (transform->x < -10.0f || transform->x > screenWidth + 10.0f || transform->y < -10.0f ||
-                                transform->y > screenHeight + 10.0f)
-                            {
-                                transform->x = screenWidth + std::rand() % 200;
-                                transform->y = static_cast<float>(std::rand() % static_cast<int>(screenHeight));
-                            }
-                        }
-                        if (const auto *color = registry.getComponent<Color>(entity))
+                        if (transform->x < -10.0f || transform->x > screenWidth + 10.0f || 
+                            transform->y < -10.0f || transform->y > screenHeight + 10.0f)
                         {
-                            m_renderer->drawPoint(transform->x, transform->y,
-                                                  {.r = color->r, .g = color->g, .b = color->b, .a = color->a});
+                            transform->x = screenWidth + std::rand() % 200;
+                            transform->y = static_cast<float>(std::rand() % static_cast<int>(screenHeight));
                         }
+                    }
+                    
+                    const auto *color = registry.getComponent<Color>(entity);
+                    if (!color) continue;
+                    
+                    const Pixel *pixel = registry.getComponent<Pixel>(entity);
+                    if (!pixel) continue;
+                    
+                    const std::string &pixelId = pixel->id;
+                    isStar = (pixelId == "star_far" || pixelId == "star_mid" || pixelId == "star_near");
+                    isNear = (pixelId == "star_near");
+                    isMid = (pixelId == "star_mid");
+                    
+                    unsigned char finalAlpha = color->a;
+                    if (isStar)
+                    {
+                        float starPhase = (transform->x * 0.1f + transform->y * 0.15f + m_timeAccumulator * 0.8f);
+                        float twinkle = (std::sin(starPhase) + 1.0f) * 0.5f;
+                        finalAlpha = static_cast<unsigned char>(color->a * (0.5f + twinkle * 0.5f));
+                    }
+                    
+                    cachedColor = {.r = color->r, .g = color->g, .b = color->b, .a = finalAlpha};
+                    
+                    m_renderer->drawPoint(transform->x, transform->y, cachedColor);
+                    
+                    if (isNear)
+                    {
+                        cachedColor.a = static_cast<unsigned char>(finalAlpha * 0.8f);
+                        m_renderer->drawPoint(transform->x + 0.8f, transform->y, cachedColor);
+                    }
+                    else if (isMid)
+                    {
+                        cachedColor.a = static_cast<unsigned char>(finalAlpha * 0.7f);
+                        m_renderer->drawPoint(transform->x + 0.5f, transform->y, cachedColor);
                     }
                 }
             }
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
+            float m_timeAccumulator = 0.0f;
 
             static void createStarfield(Registry &registry, const eng::WindowSize &windowSize)
             {
-                createStars(registry, 50, windowSize.width, windowSize.height, utl::Config::Color::WHITE_TRANS, -20.0f,
+                createStars(registry, 60, windowSize.width, windowSize.height, utl::Config::Color::WHITE_TRANS, -20.0f,
                             "star_far");
-                createStars(registry, 30, windowSize.width, windowSize.height, utl::Config::Color::BLUE, -40.0f,
+                createStars(registry, 35, windowSize.width, windowSize.height, utl::Config::Color::BLUE, -40.0f,
                             "star_mid");
-                createStars(registry, 20, windowSize.width, windowSize.height, utl::Config::Color::YELLOW, -80.0f,
+                createStars(registry, 25, windowSize.width, windowSize.height, utl::Config::Color::YELLOW, -80.0f,
                             "star_near");
-                createShootingStars(registry, 10, windowSize.width, windowSize.height);
-                createPlanets(registry, 5, windowSize.width, windowSize.height);
+                createStarsVaried(registry, 15, windowSize.width, windowSize.height, -25.0f, "star_far");
+                createStarsVaried(registry, 12, windowSize.width, windowSize.height, -50.0f, "star_mid");
+                createShootingStars(registry, 8, windowSize.width, windowSize.height);
+                createPlanets(registry, 4, windowSize.width, windowSize.height);
                 createNebulae(registry, 3, windowSize.width, windowSize.height);
-                createComets(registry, 8, windowSize.width, windowSize.height);
+                createComets(registry, 6, windowSize.width, windowSize.height);
             }
             static void createStars(Registry &registry, const int count, const unsigned int screenWidth,
                                     const unsigned int screenHeight, const eng::Color &color, float velocity,
@@ -152,6 +194,40 @@ namespace ecs
                         .with<Color>("comet_color", utl::Config::Color::GREEN.r, utl::Config::Color::GREEN.g,
                                      utl::Config::Color::GREEN.b, utl::Config::Color::GREEN.a)
                         .with<Velocity>("comet_vel", -60.0f, static_cast<float>((std::rand() % 40) - 20))
+                        .build();
+                }
+            }
+            
+            static void createStarsVaried(Registry &registry, const int count, const unsigned int screenWidth,
+                                          const unsigned int screenHeight, float velocity, const std::string &baseId)
+            {
+                for (int i = 0; i < count; ++i)
+                {
+                    int colorType = std::rand() % 4;
+                    unsigned char r, g, b, a;
+                    
+                    switch (colorType)
+                    {
+                        case 0: // Blanc froid
+                            r = 200; g = 220; b = 255; a = 180;
+                            break;
+                        case 1: // Cyan
+                            r = 150; g = 230; b = 255; a = 200;
+                            break;
+                        case 2: // Bleu doux
+                            r = 100; g = 150; b = 255; a = 160;
+                            break;
+                        default: // Jaune pâle
+                            r = 255; g = 250; b = 200; a = 170;
+                            break;
+                    }
+                    
+                    registry.createEntity()
+                        .with<Pixel>(baseId)
+                        .with<Transform>(baseId + "_transform", static_cast<float>(std::rand() % screenWidth),
+                                         static_cast<float>(std::rand() % screenHeight), 0.0f)
+                        .with<Color>(baseId + "_color", r, g, b, a)
+                        .with<Velocity>(baseId + "_vel", velocity, 0.0f)
                         .build();
                 }
             }

@@ -382,12 +382,17 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
     }
     if (m_beginSoundEntity != ecs::Entity{} && m_stageManager && !m_bossMusicStarted)
     {
-        std::string beginName = std::string("game_begin") + std::to_string(m_beginSoundEntity);
-        if (m_audio->isPlaying(beginName) != eng::Status::Playing)
+        static thread_local std::string beginNameCache;
+        beginNameCache.clear();
+        beginNameCache = "game_begin";
+        beginNameCache += std::to_string(m_beginSoundEntity);
+        
+        if (m_audio->isPlaying(beginNameCache) != eng::Status::Playing)
         {
+            constexpr const char* GAME_BEGIN_ID = "game_begin";
             for (auto &[entity, audio] : reg.getAll<ecs::Audio>())
             {
-                if (audio.id == std::string("game_begin"))
+                if (audio.id == GAME_BEGIN_ID)
                 {
                     audio.play = false;
                 }

@@ -21,6 +21,9 @@ namespace gme
 
             void update(ecs::Registry &registry, float dt) override
             {
+                std::string spriteName;
+                spriteName.reserve(64);
+                
                 for (auto &[entity, animation] : registry.getAll<ecs::LoadingAnimation>())
                 {
                     const auto *transform = registry.getComponent<ecs::Transform>(entity);
@@ -47,11 +50,15 @@ namespace gme
                         rect->pos_y = static_cast<float>(frame_y);
                     }
 
-                    m_renderer->setSpriteTexture(texture->id + std::to_string(entity), texture->path);
-                    m_renderer->setSpritePosition(texture->id + std::to_string(entity), transform->x, transform->y);
-                    m_renderer->setSpriteFrame(texture->id + std::to_string(entity), static_cast<int>(rect->pos_x),
+                    spriteName.clear();
+                    spriteName = texture->id;
+                    spriteName += std::to_string(entity);
+
+                    m_renderer->setSpriteTexture(spriteName, texture->path);
+                    m_renderer->setSpritePosition(spriteName, transform->x, transform->y);
+                    m_renderer->setSpriteFrame(spriteName, static_cast<int>(rect->pos_x),
                                                static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
-                    m_renderer->drawSprite(texture->id + std::to_string(entity));
+                    m_renderer->drawSprite(spriteName);
                 }
             }
 

@@ -78,8 +78,6 @@ namespace gme
                         const int frame_x = (frame % frames_per_row) * frame_width;
                         int frame_y = (frame / frames_per_row) * frame_height; // généralement 0
 
-                        // Déterminer l’offset de skin depuis la position Y actuelle
-                        // Les skins sont empilés verticalement par bandes de SPRITE_HEIGHT
                         const int current_row = static_cast<int>(rect->pos_y / static_cast<float>(frame_height));
                         const int skin_offset = current_row * frame_height;
                         frame_y = skin_offset + frame_y;

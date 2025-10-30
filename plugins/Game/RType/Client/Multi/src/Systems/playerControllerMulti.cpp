@@ -110,6 +110,36 @@ void gme::PlayerControllerMulti::sendInputToServer(bool up, bool down, bool left
 
 void gme::PlayerControllerMulti::update(ecs::Registry &registry, float dt)
 {
+    // Mettre à jour ou créer le composant KeyboardInput pour que WeaponSystem puisse le lire
+    auto keyboardEntities = registry.getAll<ecs::KeyboardInput>();
+    ecs::Entity keyboardEntity = ecs::INVALID_ENTITY;
+    if (!keyboardEntities.empty())
+    {
+        keyboardEntity = keyboardEntities.begin()->first;
+    }
+    else
+    {
+        keyboardEntity = registry.createEntity()
+                             .with<ecs::KeyboardInput>("keyboard_input")
+                             .build();
+    }
+
+    auto *keyboardInput = registry.getComponent<ecs::KeyboardInput>(keyboardEntity);
+    if (keyboardInput)
+    {
+        auto checkKey = [this](eng::Key key) -> bool
+        {
+            auto it = m_keysPressed.find(key);
+            return it != m_keysPressed.end() && it->second;
+        };
+
+        keyboardInput->space_pressed = checkKey(eng::Key::Space);
+        keyboardInput->up_pressed = checkKey(eng::Key::Up);
+        keyboardInput->down_pressed = checkKey(eng::Key::Down);
+        keyboardInput->left_pressed = checkKey(eng::Key::Left);
+        keyboardInput->right_pressed = checkKey(eng::Key::Right);
+    }
+
     // Client-side prediction: Apply inputs immediately to local player
     if (auto *transform = registry.getComponent<ecs::Transform>(m_playerEntity))
     {
