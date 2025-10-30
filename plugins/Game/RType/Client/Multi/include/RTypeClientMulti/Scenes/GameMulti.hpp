@@ -111,5 +111,6 @@ namespace gme
             static constexpr float ENEMY_SMOOTH_FACTOR = 0.18f;
 
             bool m_starfieldCreated = false;
+            bool m_localPlayerDied = false;
     }; // class GameMulti
 } // namespace gme

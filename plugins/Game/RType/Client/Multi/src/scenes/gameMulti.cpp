@@ -161,6 +161,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
         rnp::Serializer deserializer(event.data);
         rnp::PacketWorldState worldState = deserializer.deserializeWorldState();
 
+        auto &registry = getRegistry();
+
         if (worldState.gameOver)
         {
             utl::Logger::log("GameMulti: Game Over received from server!", utl::LogLevel::INFO);
@@ -170,8 +172,6 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             }
             return;
         }
-
-        auto &registry = getRegistry();
 
         static bool firstWorldState = true;
         if (firstWorldState)
@@ -444,12 +444,41 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             utl::Logger::log("GameMulti: Removed dead remote player " + std::to_string(playerId), utl::LogLevel::INFO);
         }
 
-        if (currentPlayers.find(m_sessionId) == currentPlayers.end())
+        if (currentPlayers.find(m_sessionId) == currentPlayers.end() && !m_localPlayerDied)
         {
+            m_localPlayerDied = true;
+            utl::Logger::log("GameMulti: Local player died!", utl::LogLevel::INFO);
+
             if (auto *texture = registry.getComponent<ecs::Texture>(m_localPlayerEntity))
             {
                 registry.removeComponent<ecs::Texture>(m_localPlayerEntity);
-                utl::Logger::log("GameMulti: Local player died - removed texture", utl::LogLevel::INFO);
+                utl::Logger::log("GameMulti: Removed local player texture", utl::LogLevel::INFO);
+            }
+
+            // Remove BeamCharge component to stop beam bar from rendering
+            if (registry.hasComponent<ecs::BeamCharge>(m_localPlayerEntity))
+            {
+                registry.removeComponent<ecs::BeamCharge>(m_localPlayerEntity);
+                utl::Logger::log("GameMulti: Removed BeamCharge - beam bar will no longer render", utl::LogLevel::INFO);
+            }
+
+            auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
+            if (!loadingEntities.empty())
+            {
+                std::vector<ecs::Entity> loadingToRemove;
+                for (const auto &[entity, animation] : loadingEntities)
+                {
+                    loadingToRemove.push_back(entity);
+                }
+                for (const auto entity : loadingToRemove)
+                {
+                    registry.removeComponent<ecs::Transform>(entity);
+                    registry.removeComponent<ecs::Rect>(entity);
+                    registry.removeComponent<ecs::Scale>(entity);
+                    registry.removeComponent<ecs::Texture>(entity);
+                    registry.removeComponent<ecs::LoadingAnimation>(entity);
+                }
+                utl::Logger::log("GameMulti: Removed LoadingAnimation entities", utl::LogLevel::INFO);
             }
         }
     }
