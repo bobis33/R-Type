@@ -179,6 +179,7 @@ namespace rnp
             std::uint32_t serverTick;
             std::uint16_t entityCount;
             std::vector<EntityState> entities;
+            bool gameOver = false;
     };
 
     ///

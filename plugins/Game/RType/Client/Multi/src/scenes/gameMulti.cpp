@@ -161,6 +161,16 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
         rnp::Serializer deserializer(event.data);
         rnp::PacketWorldState worldState = deserializer.deserializeWorldState();
 
+        if (worldState.gameOver)
+        {
+            utl::Logger::log("GameMulti: Game Over received from server!", utl::LogLevel::INFO);
+            if (onGameOver)
+            {
+                onGameOver();
+            }
+            return;
+        }
+
         auto &registry = getRegistry();
 
         static bool firstWorldState = true;

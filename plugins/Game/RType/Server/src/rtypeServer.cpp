@@ -349,6 +349,22 @@ void gme::RTypeServer::broadcastWorldState()
         rnp::PacketWorldState worldState;
         worldState.serverTick = static_cast<std::uint32_t>(m_lastBroadcastTime * 60.0f);
 
+        // Check if all players are dead
+        bool allPlayersDead = true;
+        if (!m_playerEntities.empty())
+        {
+            for (const auto &[sessionId, playerEntity] : m_playerEntities)
+            {
+                auto *health = m_registry.getComponent<ecs::Health>(playerEntity);
+                if (health && health->is_alive)
+                {
+                    allPlayersDead = false;
+                    break;
+                }
+            }
+        }
+        worldState.gameOver = allPlayersDead;
+
         for (auto &[sessionId, playerEntity] : m_playerEntities)
         {
             auto *health = m_registry.getComponent<ecs::Health>(playerEntity);

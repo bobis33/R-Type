@@ -409,6 +409,8 @@ namespace rnp
                 {
                     serializeEntityState(entity);
                 }
+
+                writeByte(packet.gameOver ? 1 : 0);
             }
 
             ///
@@ -426,6 +428,8 @@ namespace rnp
                 {
                     packet.entities.push_back(deserializeEntityState());
                 }
+
+                packet.gameOver = readByte() != 0;
 
                 return packet;
             }

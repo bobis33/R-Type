@@ -60,6 +60,8 @@ namespace gme
 
             bool &playMusic() { return m_playMusic; }
 
+            std::function<void()> onGameOver;
+
         private:
             void setupEventSubscriptions();
             void processEventBus();
