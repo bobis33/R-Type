@@ -5,9 +5,11 @@
     "player_name": "Bobss"
   },
   "plugins": {
-    "audio": "cmake-build-release/bin/lib/audio_sfml.so",
-    "network": "cmake-build-release/bin/lib/network_asio_client.so",
-    "renderer": "cmake-build-release/bin/lib/renderer_sfml.so"
+    "audio": "audio_sfml.dll",
+    "network": "network_asio_client.dll",
+    "renderer": "renderer_sfml.dll",
+    "game_solo": "game_flappybird_client_solo.dll",
+    "game_multi": "game_rtype_client_multi.dll"
   },
   "window": {
     "fullscreen": false,

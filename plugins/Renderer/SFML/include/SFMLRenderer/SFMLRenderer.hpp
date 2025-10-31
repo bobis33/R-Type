@@ -64,6 +64,9 @@ namespace eng
             void setSpriteScale(const std::string &name, int x, int y) override;
             void setSpriteColor(const std::string &name, Color color) override;
             void drawSprite(const std::string &name) override;
+            void setSpriteRotation(const std::string &name, float rotation) override;
+            void rotateSprite(const std::string &name, float rotation) override;
+            void setSpriteOrigin(const std::string & name) override;
 
             void createCircleShape(CircleShape circleShape) override;
             void setCircleShapePosition(const std::string &name, float x, float y) override;

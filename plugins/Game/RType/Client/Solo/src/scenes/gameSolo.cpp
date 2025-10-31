@@ -1,9 +1,9 @@
 #include "RTypeClientSolo/Scenes/GameSolo.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "RTypeClientSolo/Utils/HitboxUtils.hpp"
 #include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
+#include "Utils/HitboxUtils.hpp"
 
 gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                         const std::shared_ptr<eng::IAudio> &audio, const int skinIndex, bool &showDebug)
@@ -220,7 +220,7 @@ void gme::GameSolo::updatePlayerSkin()
 
 ecs::Entity gme::GameSolo::createPlayer(ecs::Registry &registry)
 {
-    auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
+    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(
         GameConfig::Player::SPRITE_WIDTH, GameConfig::Player::SPRITE_HEIGHT, GameConfig::Player::SCALE);
 
     return registry.createEntity()

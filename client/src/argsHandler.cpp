@@ -67,6 +67,14 @@ cli::ArgsConfig cli::ArgsConfig::fromFile(const std::string &path)
         {
             cfg.renderer_lib_path = p["renderer"];
         }
+        if (p.contains("game_solo"))
+        {
+            cfg.game_solo_lib_path = p["game_solo"];
+        }
+        if (p.contains("game_multi"))
+        {
+            cfg.game_multi_lib_path = p["game_multi"];
+        }
         const auto &c = j["client"];
         if (c.contains("host"))
         {
