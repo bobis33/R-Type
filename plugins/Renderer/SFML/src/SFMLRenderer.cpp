@@ -377,6 +377,43 @@ void eng::SFMLRenderer::setSpriteColor(const std::string &name, Color color)
     }
 }
 
+void eng::SFMLRenderer::setSpriteRotation(const std::string &name, const float rotation)
+{
+    if (const auto it = sprites.find(name); it != sprites.end())
+    {
+        it->second.setRotation(sf::degrees(rotation));
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::rotateSprite(const std::string &name, const float rotation)
+{
+    if (const auto it = sprites.find(name); it != sprites.end())
+    {
+        it->second.rotate(sf::degrees(rotation));
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+void eng::SFMLRenderer::setSpriteOrigin(const std::string &name)
+{
+    if (const auto it = sprites.find(name); it != sprites.end())
+    {
+        it->second.setOrigin({it->second.getLocalBounds().size.x / 2.f, it->second.getLocalBounds().size.y / 2.f});
+    }
+    else
+    {
+        throw std::runtime_error("Sprite not found: " + name);
+    }
+}
+
+
 void eng::SFMLRenderer::drawPoint(const float x, const float y, const Color color)
 {
     const sf::Vertex point(sf::Vector2f(x, y), sf::Color(color.r, color.g, color.b, color.a));

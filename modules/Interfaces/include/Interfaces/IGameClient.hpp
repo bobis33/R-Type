@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Utils/AppConfigClient.hpp"
+
 #include "Engine/Engine.hpp"
 #include "Utils/Interfaces/IPlugin.hpp"
 
@@ -20,7 +22,7 @@ namespace gme
     class IGameClient : public utl::IPlugin
     {
         public:
-            virtual void init(eng::Engine &engine, float &audioVolume, int skinIndex, bool &showDebug,
+            virtual void init(eng::Engine &engine, utl::cli::AppConfig &appConfig, bool &showDebug,
                               unsigned int menuSceneId) = 0;
             virtual void update(float deltaTime, unsigned int width, unsigned int height) = 0;
             virtual unsigned int getMainSceneId() const = 0;

@@ -1,7 +1,7 @@
 #include "RTypeClientSolo/Managers/ProjectileManager.hpp"
-#include "RTypeClientSolo/Utils/HitboxUtils.hpp"
 #include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
+#include "Utils/HitboxUtils.hpp"
 
 namespace gme
 {
@@ -25,7 +25,7 @@ namespace gme
         if (type == ecs::Projectile::BASIC)
         {
             auto [offsetX, offsetY] =
-                Utils::calculateHitboxOffsets(Basic::SPRITE_WIDTH, Basic::SPRITE_HEIGHT, Basic::SCALE);
+                utl::calculateHitboxOffsets(Basic::SPRITE_WIDTH, Basic::SPRITE_HEIGHT, Basic::SCALE);
 
             return registry.createEntity()
                 .with<ecs::Transform>("projectile_transform", x, y, 0.F)
@@ -40,7 +40,7 @@ namespace gme
         }
         else
         {
-            auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(Supercharged::SPRITE_WIDTH,
+            auto [offsetX, offsetY] = utl::calculateHitboxOffsets(Supercharged::SPRITE_WIDTH,
                                                                     Supercharged::SPRITE_HEIGHT, Supercharged::SCALE);
 
             return registry.createEntity()

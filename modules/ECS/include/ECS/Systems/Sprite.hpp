@@ -69,7 +69,7 @@ namespace ecs
                     if (color != nullptr)
                     {
                         m_renderer->setSpriteColor(sprite->id + std::to_string(entity),
-                                                   {color->r, color->g, color->b, color->a});
+                                                   {.r=color->r, .g=color->g, .b=color->b, .a=color->a});
                     }
                     m_renderer->drawSprite(sprite->id + std::to_string(entity));
                 }

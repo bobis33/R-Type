@@ -11,7 +11,6 @@ void eng::SFMLRenderer::updateFrame(Profiler &profiler, const WindowSize &window
 {
     profiler.start("frame");
 
-    ImGui::SFML::Update(window, deltaClock.restart());
     ImGui::SetNextWindowPos(ImVec2(windowSize.width - 10.0F, 10.0F), ImGuiCond_Always, ImVec2(1.0F, 0.0F));
     ImGui::SetNextWindowBgAlpha(0.35F);
     constexpr ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
@@ -44,13 +43,6 @@ void eng::SFMLRenderer::renderGui(const WindowSize &windowSize)
     ImGui::SetNextWindowPos(ImVec2(windowSize.width - 10.0F, 10.0F), ImGuiCond_Always, ImVec2(1.0F, 0.0F));
     ImGui::SetNextWindowBgAlpha(0.35F);
 
-    constexpr ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-                                              ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
-                                              ImGuiWindowFlags_NoNav;
-    ImGui::Begin("FPS Overlay", nullptr, window_flags);
-    const float fps = ImGui::GetIO().Framerate;
-    ImGui::Text("FPS: %.1f (%.3f ms/frame)", fps, 1000.0F / fps);
-    ImGui::End();
     // ImGui::Text("Active entities: %zu", m_engine ?
     // m_engine->getSceneManager()->getCurrentScene().getRegistry().size() : 0);
 

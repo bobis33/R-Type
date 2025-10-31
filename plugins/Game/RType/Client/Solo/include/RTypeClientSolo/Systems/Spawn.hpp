@@ -10,9 +10,9 @@
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "RTypeClientSolo/Utils/HitboxUtils.hpp"
 #include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
+#include "Utils/HitboxUtils.hpp"
 
 namespace gme
 {
@@ -60,7 +60,7 @@ namespace gme
                 float y = GameConfig::Screen::MIN_Y +
                           (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y));
 
-                auto [offsetX, offsetY] = Utils::calculateHitboxOffsetsRelative(
+                auto [offsetX, offsetY] = utl::calculateHitboxOffsetsRelative(
                     x, y, GameConfig::Enemy::Easy::SPRITE_WIDTH, GameConfig::Enemy::Easy::SPRITE_HEIGHT,
                     GameConfig::Enemy::Easy::SCALE);
 
@@ -92,7 +92,7 @@ namespace gme
                     float x = GameConfig::Screen::SPAWN_X + (i * 100.0f);
                     float y = GameConfig::Screen::MIN_Y +
                               (std::rand() % static_cast<int>(GameConfig::Screen::MAX_Y - GameConfig::Screen::MIN_Y));
-                    auto [offsetX, offsetY] = Utils::calculateHitboxOffsetsRelative(
+                    auto [offsetX, offsetY] = utl::calculateHitboxOffsetsRelative(
                         x, y, GameConfig::Enemy::Easy::SPRITE_WIDTH, GameConfig::Enemy::Easy::SPRITE_HEIGHT,
                         GameConfig::Enemy::Easy::SCALE);
 

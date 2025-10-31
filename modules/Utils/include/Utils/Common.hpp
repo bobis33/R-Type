@@ -5,9 +5,10 @@
 ///
 
 #pragma once
-#include "Interfaces/IRenderer.hpp"
 
 #include <filesystem>
+
+#include "Interfaces/IRenderer.hpp"
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -22,6 +23,10 @@ namespace utl
 {
     namespace Config
     {
+        namespace Player
+        {
+            inline constexpr auto DEFAULT_PLAYER_NAME = "player";
+        } // namespace Player
         namespace Audio
         {
             inline constexpr auto DEFAULT_AUDIO_VOLUME = 0.5F; // unused

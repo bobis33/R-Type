@@ -70,10 +70,7 @@ namespace ecs
                         if (status != eng::Status::Playing)
                         {
                             m_audio->playAudio(audioName);
-                            if (!audio.loop)
-                            {
                                 audio.play = false;
-                            }
                         }
                     }
                     else if (audio.loop)

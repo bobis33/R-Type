@@ -14,15 +14,10 @@
 #include "Server/SceneManager.hpp"
 #include "Utils/Clock.hpp"
 #include "Utils/PluginLoader.hpp"
+#include "Utils/AppConfigServer.hpp"
 
 namespace srv
 {
-
-    struct AppConfig
-    {
-            std::string host;
-            uint16_t port;
-    };
 
     ///
     /// @class Server
@@ -44,9 +39,9 @@ namespace srv
             void run() const;
 
         private:
-            [[nodiscard]] static AppConfig setupConfig(const ArgsConfig &cfg);
+            [[nodiscard]] static utl::srv::AppConfig setupConfig(const ArgsConfig &cfg);
 
-            AppConfig m_config;
+            utl::srv::AppConfig m_config;
 
             std::unique_ptr<utl::PluginLoader> m_pluginLoader;
             std::unique_ptr<utl::Clock> m_clock;

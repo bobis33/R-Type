@@ -2,12 +2,14 @@
   "client": {
     "server_ip": "0.0.0.0",
     "server_port": 2560,
-    "player_name": "Player"
+    "player_name": "Bobss"
   },
   "plugins": {
     "audio": "audio_sfml.dll",
     "network": "network_asio_client.dll",
-    "renderer": "renderer_sfml.dll"
+    "renderer": "renderer_sfml.dll",
+    "game_solo": "game_flappybird_client_solo.dll",
+    "game_multi": "game_rtype_client_multi.dll"
   },
   "window": {
     "fullscreen": false,

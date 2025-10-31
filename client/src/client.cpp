@@ -7,9 +7,9 @@
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
 
-cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
+utl::cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
 {
-    AppConfig appConfig;
+    utl::cli::AppConfig appConfig;
 
     appConfig.frameLimit = cfg.frameLimit;
     appConfig.fullscreen = cfg.fullscreen;
@@ -17,6 +17,7 @@ cli::AppConfig cli::Client::setupConfig(const ArgsConfig &cfg)
     appConfig.width = cfg.width;
     appConfig.host = cfg.host;
     appConfig.port = cfg.port;
+    appConfig.player_name = cfg.player_name;
 
     appConfig.audioVolume = utl::Config::Audio::DEFAULT_AUDIO_VOLUME;
     appConfig.videoQuality = utl::Config::Game::DEFAULT_VIDEO_QUALITY;
@@ -107,8 +108,8 @@ void cli::Client::setupScenes()
     intro->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     intro->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
 
-    m_gameSolo->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
-    m_gameMulti->init(*m_engine, m_config.audioVolume, m_config.skinIndex, m_showDebug, menuId);
+    m_gameSolo->init(*m_engine, m_config, m_showDebug, menuId);
+    m_gameMulti->init(*m_engine, m_config, m_showDebug, menuId);
 
     auto settingsId = m_engine->getSceneManager()->generateNextId();
     auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_config);
