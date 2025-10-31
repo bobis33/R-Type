@@ -125,9 +125,7 @@ void gme::GameMulti::processEventBus()
     }
 }
 
-void gme::GameMulti::handlePlayerInputReceived(const utl::Event &event)
-{
-}
+void gme::GameMulti::handlePlayerInputReceived(const utl::Event &event) {}
 
 void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 {
@@ -165,7 +163,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             {
                 if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
                 {
-                    ecs::Entity remotePlayer = registry.createEntity()
+                    ecs::Entity remotePlayer =
+                        registry.createEntity()
                             .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
                                                   entityState.y, 0.F)
                             .with<ecs::Velocity>("remote_velocity_" + std::to_string(entityState.id), entityState.vx,
@@ -180,18 +179,16 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                             .with<ecs::Player>("remote_player_comp_" + std::to_string(entityState.id), false)
                             .build();
                     m_remotePlayers[entityState.id] = remotePlayer;
-                    
-                    m_remotePlayerData[entityState.id] = {
-                        .targetX = entityState.x,
-                        .targetY = entityState.y,
-                        .targetVx = entityState.vx,
-                        .targetVy = entityState.vy,
-                        .currentX = entityState.x,
-                        .currentY = entityState.y,
-                        .smoothFactor = REMOTE_PLAYER_SMOOTH_FACTOR,
-                        .targetRotation = 0.0f,
-                        .currentRotation = 0.0f
-                    };
+
+                    m_remotePlayerData[entityState.id] = {.targetX = entityState.x,
+                                                          .targetY = entityState.y,
+                                                          .targetVx = entityState.vx,
+                                                          .targetVy = entityState.vy,
+                                                          .currentX = entityState.x,
+                                                          .currentY = entityState.y,
+                                                          .smoothFactor = REMOTE_PLAYER_SMOOTH_FACTOR,
+                                                          .targetRotation = 0.0f,
+                                                          .currentRotation = 0.0f};
                 }
                 else
                 {
@@ -205,27 +202,29 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             {
                 if (m_projectileEntities.find(entityState.id) == m_projectileEntities.end())
                 {
-                    ecs::Entity projectile = registry.createEntity()
-                        .with<ecs::Transform>("projectile_" + std::to_string(entityState.id), entityState.x, entityState.y, 0.F)
-                        .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id), entityState.vx, entityState.vy)
-                        .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, 20, 10)
-                        .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
-                        .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id), utl::Path::Texture::TEXTURE_PLAYER)
-                        .build();
-                    
+                    ecs::Entity projectile =
+                        registry.createEntity()
+                            .with<ecs::Transform>("projectile_" + std::to_string(entityState.id), entityState.x,
+                                                  entityState.y, 0.F)
+                            .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id),
+                                                 entityState.vx, entityState.vy)
+                            .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, 20, 10)
+                            .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
+                            .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id),
+                                                utl::Path::Texture::TEXTURE_PLAYER)
+                            .build();
+
                     m_projectileEntities[entityState.id] = projectile;
-                    
-                    m_projectileData[entityState.id] = {
-                        .targetX = entityState.x,
-                        .targetY = entityState.y,
-                        .targetVx = entityState.vx,
-                        .targetVy = entityState.vy,
-                        .currentX = entityState.x,
-                        .currentY = entityState.y,
-                        .smoothFactor = PROJECTILE_SMOOTH_FACTOR,
-                        .targetRotation = 0.0f,
-                        .currentRotation = 0.0f
-                    };
+
+                    m_projectileData[entityState.id] = {.targetX = entityState.x,
+                                                        .targetY = entityState.y,
+                                                        .targetVx = entityState.vx,
+                                                        .targetVy = entityState.vy,
+                                                        .currentX = entityState.x,
+                                                        .currentY = entityState.y,
+                                                        .smoothFactor = PROJECTILE_SMOOTH_FACTOR,
+                                                        .targetRotation = 0.0f,
+                                                        .currentRotation = 0.0f};
                 }
                 else
                 {
@@ -239,27 +238,29 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             {
                 if (m_enemyEntities.find(entityState.id) == m_enemyEntities.end())
                 {
-                    ecs::Entity enemy = registry.createEntity()
-                        .with<ecs::Transform>("enemy_" + std::to_string(entityState.id), entityState.x, entityState.y, 0.F)
-                        .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx, entityState.vy)
-                        .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, 50, 50)
-                        .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
-                        .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id), utl::Path::Texture::TEXTURE_PLAYER)
-                        .build();
-                    
+                    ecs::Entity enemy =
+                        registry.createEntity()
+                            .with<ecs::Transform>("enemy_" + std::to_string(entityState.id), entityState.x,
+                                                  entityState.y, 0.F)
+                            .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx,
+                                                 entityState.vy)
+                            .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, 50, 50)
+                            .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
+                            .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id),
+                                                utl::Path::Texture::TEXTURE_PLAYER)
+                            .build();
+
                     m_enemyEntities[entityState.id] = enemy;
-                    
-                    m_enemyData[entityState.id] = {
-                        .targetX = entityState.x,
-                        .targetY = entityState.y,
-                        .targetVx = entityState.vx,
-                        .targetVy = entityState.vy,
-                        .currentX = entityState.x,
-                        .currentY = entityState.y,
-                        .smoothFactor = ENEMY_SMOOTH_FACTOR,
-                        .targetRotation = 0.0f,
-                        .currentRotation = 0.0f
-                    };
+
+                    m_enemyData[entityState.id] = {.targetX = entityState.x,
+                                                   .targetY = entityState.y,
+                                                   .targetVx = entityState.vx,
+                                                   .targetVy = entityState.vy,
+                                                   .currentX = entityState.x,
+                                                   .currentY = entityState.y,
+                                                   .smoothFactor = ENEMY_SMOOTH_FACTOR,
+                                                   .targetRotation = 0.0f,
+                                                   .currentRotation = 0.0f};
                 }
                 else
                 {
@@ -310,16 +311,14 @@ void gme::GameMulti::event(const eng::Event &event)
 }
 
 void gme::GameMulti::updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
-                                         std::unordered_map<uint32_t, ecs::Entity> &entityMap,
-                                         float smoothFactor,
-                                         float dt,
-                                         ecs::Registry &registry)
+                                         std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor,
+                                         float dt, ecs::Registry &registry)
 {
     for (auto &[entityId, interpData] : dataMap)
     {
         if (&dataMap == &m_remotePlayerData && entityId == m_sessionId)
             continue;
-        
+
         if (entityMap.find(entityId) != entityMap.end())
         {
             ecs::Entity entity = entityMap[entityId];
@@ -327,17 +326,18 @@ void gme::GameMulti::updateInterpolation(std::unordered_map<uint32_t, Interpolat
             {
                 interpData.currentX += (interpData.targetX - interpData.currentX) * interpData.smoothFactor;
                 interpData.currentY += (interpData.targetY - interpData.currentY) * interpData.smoothFactor;
-                
+
                 transform->x = interpData.currentX;
                 transform->y = interpData.currentY;
-                
+
                 if (auto *velocity = registry.getComponent<ecs::Velocity>(entity))
                 {
                     velocity->x = interpData.targetVx;
                     velocity->y = interpData.targetVy;
                 }
-                
-                interpData.currentRotation += (interpData.targetRotation - interpData.currentRotation) * interpData.smoothFactor;
+
+                interpData.currentRotation +=
+                    (interpData.targetRotation - interpData.currentRotation) * interpData.smoothFactor;
                 transform->rotation = interpData.currentRotation;
             }
         }

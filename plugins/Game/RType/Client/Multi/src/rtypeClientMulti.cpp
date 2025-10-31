@@ -13,7 +13,8 @@ void gme::RTypeClientMulti::update(float deltaTime, unsigned int width, unsigned
 void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
 {
     auto serverSceneId = m_engine->getSceneManager()->generateNextId();
-    auto serverScene = std::make_unique<ServerScene>(serverSceneId, m_engine->getRenderer(), m_appConfig->host, std::to_string(m_appConfig->port), m_appConfig->player_name);
+    auto serverScene = std::make_unique<ServerScene>(serverSceneId, m_engine->getRenderer(), m_appConfig->host,
+                                                     std::to_string(m_appConfig->port), m_appConfig->player_name);
     m_mainSceneId = serverSceneId;
     serverScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_appConfig->audioVolume,
                                                               serverScene->getRegistry(), serverScene->playMusic()));
@@ -49,8 +50,9 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
     joinRoomScene->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     auto waitingRoomId = m_engine->getSceneManager()->generateNextId();
     auto waitingRoomScene = std::make_unique<WaitingRoomScene>(waitingRoomId, m_engine->getRenderer());
-    waitingRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(
-        m_engine->getAudio(), m_appConfig->audioVolume, waitingRoomScene->getRegistry(), waitingRoomScene->playMusic()));
+    waitingRoomScene->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_appConfig->audioVolume,
+                                                                   waitingRoomScene->getRegistry(),
+                                                                   waitingRoomScene->playMusic()));
     waitingRoomScene->addSystem(
         std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), waitingRoomScene->getRegistry()));
     waitingRoomScene->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));

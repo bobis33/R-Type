@@ -14,8 +14,8 @@ namespace utl
     {
         struct AppConfig
         {
-            std::string host;
-            uint16_t port;
+                std::string host;
+                uint16_t port;
         };
     } // namespace srv
 } // namespace utl

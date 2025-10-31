@@ -220,8 +220,8 @@ void gme::GameSolo::updatePlayerSkin()
 
 ecs::Entity gme::GameSolo::createPlayer(ecs::Registry &registry)
 {
-    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(
-        GameConfig::Player::SPRITE_WIDTH, GameConfig::Player::SPRITE_HEIGHT, GameConfig::Player::SCALE);
+    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(GameConfig::Player::SPRITE_WIDTH,
+                                                          GameConfig::Player::SPRITE_HEIGHT, GameConfig::Player::SCALE);
 
     return registry.createEntity()
         .with<ecs::Transform>("player_transform", 200.0F, 100.0F, 0.F)

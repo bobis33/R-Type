@@ -12,9 +12,9 @@
 #include "Interfaces/INetworkServer.hpp"
 #include "Server/ArgsHandler.hpp"
 #include "Server/SceneManager.hpp"
+#include "Utils/AppConfigServer.hpp"
 #include "Utils/Clock.hpp"
 #include "Utils/PluginLoader.hpp"
-#include "Utils/AppConfigServer.hpp"
 
 namespace srv
 {

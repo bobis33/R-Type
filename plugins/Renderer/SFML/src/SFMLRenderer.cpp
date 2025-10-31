@@ -413,7 +413,6 @@ void eng::SFMLRenderer::setSpriteOrigin(const std::string &name)
     }
 }
 
-
 void eng::SFMLRenderer::drawPoint(const float x, const float y, const Color color)
 {
     const sf::Vertex point(sf::Vector2f(x, y), sf::Color(color.r, color.g, color.b, color.a));

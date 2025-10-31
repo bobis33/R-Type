@@ -92,7 +92,8 @@ static char keyToChar(const eng::Key key, bool shift = false)
     }
 }
 
-gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer, const std::string &host, const std::string &port, const std::string &playerName)
+gme::ServerScene::ServerScene(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
+                              const std::string &host, const std::string &port, const std::string &playerName)
     : AScene(assignedId), m_playerName(playerName), m_host(host), m_port(port)
 {
     auto &registry = AScene::getRegistry();

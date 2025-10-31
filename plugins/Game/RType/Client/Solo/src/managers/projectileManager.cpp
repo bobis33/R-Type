@@ -41,7 +41,7 @@ namespace gme
         else
         {
             auto [offsetX, offsetY] = utl::calculateHitboxOffsets(Supercharged::SPRITE_WIDTH,
-                                                                    Supercharged::SPRITE_HEIGHT, Supercharged::SCALE);
+                                                                  Supercharged::SPRITE_HEIGHT, Supercharged::SCALE);
 
             return registry.createEntity()
                 .with<ecs::Transform>("projectile_transform", x, y, 0.F)

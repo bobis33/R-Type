@@ -23,7 +23,7 @@ namespace gme
     {
         public:
             Game(eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                     const std::shared_ptr<eng::IAudio> &audio, bool &showDebug);
+                 const std::shared_ptr<eng::IAudio> &audio, bool &showDebug);
             ~Game() override = default;
 
             Game(const Game &other) = delete;
@@ -33,12 +33,12 @@ namespace gme
 
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
+            bool &playMusic() { return m_playMusic; }
 
         private:
             static ecs::Entity createPlayer(ecs::Registry &registry);
             std::pair<ecs::Entity, ecs::Entity> createPipePair(ecs::Registry &registry, float x, float gapY) const;
             void resetGame();
-
 
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             const std::shared_ptr<eng::IAudio> &m_audio;
@@ -49,6 +49,7 @@ namespace gme
             ecs::Entity m_looseSound;
             std::vector<std::pair<ecs::Entity, ecs::Entity>> m_pipes;
             bool &m_showDebug;
+            bool m_playMusic = false;
             bool m_gameOver = false;
             bool m_gameOverShown = false;
     }; // class Game

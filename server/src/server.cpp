@@ -49,9 +49,10 @@ void srv::Server::run() const
         for (size_t i = 0; i < sessions.size(); ++i)
         {
             std::cout << sessions[i];
-            if (i < sessions.size() - 1) {
+            if (i < sessions.size() - 1)
+            {
                 std::cout << ", ";
-}
+            }
         }
         std::cout << '\n';
 

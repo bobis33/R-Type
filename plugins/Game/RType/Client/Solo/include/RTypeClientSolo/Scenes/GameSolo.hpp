@@ -34,6 +34,7 @@ namespace gme
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
+            bool &playMusic() { return m_playmusic; }
             void updatePlayerSkin();
 
         private:
@@ -47,6 +48,7 @@ namespace gme
             int m_skinIndex;
             int m_lastAppliedSkinIndex = -1;
             bool &m_showDebug;
+            bool m_playmusic = false;
             std::unique_ptr<StageManager> m_stageManager;
     }; // class GameSolo
 } // namespace gme
