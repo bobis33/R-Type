@@ -23,11 +23,9 @@ file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
-        "${CMAKE_SOURCE_DIR}/modules/Utils/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE r-type_modules_client)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON
@@ -78,6 +76,7 @@ namespace eng
             void clearWindow(Color color) override;
             void displayWindow() override;
             WindowSize getWindowSize() override;
+            void setWindowIcon(const std::string &path) override;
 
             bool pollEvent(Event &event) override;
             void setFrameLimit(unsigned int frameLimit) override;
@@ -96,9 +95,18 @@ namespace eng
             void setSpriteTexture(const std::string &name, const std::string &path) override;
             void setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny) override;
             void setSpriteScale(const std::string &name, int x, int y) override;
+            void setSpriteColor(const std::string &name, Color color) override;
             void drawSprite(const std::string &name) override;
+            void setSpriteRotation(const std::string &name, float rotation) override;
+            void rotateSprite(const std::string &name, float rotation) override;
+            void setSpriteOrigin(const std::string &name) override;
+
+            void createCircleShape(CircleShape circleShape) override;
+            void setCircleShapePosition(const std::string &name, float x, float y) override;
+            void drawCircleShape(const std::string &name) override;
 
             void drawPoint(float x, float y, Color color) override;
+            void renderGui(const WindowSize &windowSize) override;
 
     }; // class SDL
 

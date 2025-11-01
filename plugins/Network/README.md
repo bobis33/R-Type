@@ -29,13 +29,9 @@ file(GLOB_RECURSE SOURCES "${SRC_DIR}/*.cpp")
 file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
-target_include_directories(${PROJECT_NAME} PRIVATE
-        ${INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
-        "${CMAKE_SOURCE_DIR}/modules/Utils/include"
-)
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE r-type_modules_client)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON
@@ -76,6 +72,15 @@ namespace eng
             UnixSocketClient(UnixSocketClient &&) = delete;
             UnixSocketClient &operator=(UnixSocketClient &&) = delete;
 
+            [[nodiscard]] bool isConnected() const override;
+            [[nodiscard]] ConnectionState getConnectionState() const override;
+            [[nodiscard]] std::uint32_t getSessionId() const override;
+            [[nodiscard]] std::uint16_t getServerTickRate() const override;
+            [[nodiscard]] std::uint32_t getLatency() const override;
+
+            void setPlayerName(const std::string &playerName) override;
+            void setClientCapabilities(std::uint32_t caps) override;
+
     }; // class UnixSocketClient
 
 } // namespace eng
@@ -111,11 +116,9 @@ file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
-        "${CMAKE_SOURCE_DIR}/modules/Utils/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE r-type_modules_server)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON
@@ -155,6 +158,23 @@ namespace eng
             UnixSocketServer &operator=(const UnixSocketServer &) = delete;
             UnixSocketServer(UnixSocketServer &&) = delete;
             UnixSocketServer &operator=(UnixSocketServer &&) = delete;
+
+            void init(const std::string &host, std::uint16_t port) override;
+            void start() override;
+            void stop() override;
+            void update() override;
+            void sendToClient(std::uint32_t sessionId, const std::vector<std::uint8_t> &data,
+                              bool reliable = false) override;
+            void sendToAllClients(const std::vector<std::uint8_t> &data, bool reliable = false) override;
+            void disconnectClient(std::uint32_t sessionId) override;
+
+            [[nodiscard]] std::size_t getClientCount() const override;
+            [[nodiscard]] std::vector<std::uint32_t> getConnectedSessions() const override;
+            [[nodiscard]] bool isRunning() const override;
+
+            void setTickRate(std::uint16_t tickRate) override;
+            void setServerCapabilities(std::uint32_t caps) override;
+
 
     }; // class UnixSocketServer
 
