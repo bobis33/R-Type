@@ -132,7 +132,8 @@ void gme::GameMulti::setupEventSubscriptions() const
 void gme::GameMulti::processEventBus()
 {
     auto &eventBus = utl::EventBus::getInstance();
-    for (std::vector<utl::Event> events = eventBus.consumeForTarget(m_eventComponentId); const auto &event : events)
+    std::vector<utl::Event> events = eventBus.consumeForTarget(m_eventComponentId);
+    for (const auto &event : events)
     {
         switch (event.type)
         {
@@ -219,12 +220,14 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
             {
-                if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
+                auto remoteIt = m_remotePlayers.find(entityState.id);
+                if (remoteIt == m_remotePlayers.end())
                 {
                     uint32_t skinIndex = 0;
-                    if (m_playerSkinMap.find(entityState.id) != m_playerSkinMap.end())
+                    auto skinIt = m_playerSkinMap.find(entityState.id);
+                    if (skinIt != m_playerSkinMap.end())
                     {
-                        skinIndex = m_playerSkinMap[entityState.id];
+                        skinIndex = skinIt->second;
                     }
                     float skinPosY = static_cast<float>(skinIndex) * GameConfig::Player::SPRITE_HEIGHT;
                     
@@ -264,8 +267,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
             {
-                
-                if (m_projectileEntities.find(entityState.id) == m_projectileEntities.end())
+                auto projectileIt = m_projectileEntities.find(entityState.id);
+                if (projectileIt == m_projectileEntities.end())
                 {
                     bool isSupercharged = (entityState.vx > 1000.0f || std::abs(entityState.vx) > 1000.0f);
                     std::string texturePath = isSupercharged ? utl::Path::Texture::TEXTURE_SHOOT_CHARGED : utl::Path::Texture::TEXTURE_SHOOT;
@@ -297,23 +300,32 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                 }
                 else
                 {
-                    if (auto *transform = registry.getComponent<ecs::Transform>(m_projectileEntities[entityState.id]))
+                    ecs::Entity projectileEntity = projectileIt->second;
+                    auto *transform = registry.getComponent<ecs::Transform>(projectileEntity);
+                    auto *velocity = registry.getComponent<ecs::Velocity>(projectileEntity);
+                    
+                    if (transform)
                     {
                         transform->x = entityState.x;
                         transform->y = entityState.y;
                         
                         if (transform->x > 2000.0f || transform->x < -100.0f)
                         {
-                            registry.removeComponent<ecs::Transform>(m_projectileEntities[entityState.id]);
-                            registry.removeComponent<ecs::Velocity>(m_projectileEntities[entityState.id]);
-                            registry.removeComponent<ecs::Rect>(m_projectileEntities[entityState.id]);
-                            registry.removeComponent<ecs::Scale>(m_projectileEntities[entityState.id]);
-                            registry.removeComponent<ecs::Texture>(m_projectileEntities[entityState.id]);
-                            registry.removeComponent<ecs::Animation>(m_projectileEntities[entityState.id]);
-                            m_projectileEntities.erase(entityState.id);
+                            registry.removeComponent<ecs::Transform>(projectileEntity);
+                            registry.removeComponent<ecs::Velocity>(projectileEntity);
+                            registry.removeComponent<ecs::Rect>(projectileEntity);
+                            registry.removeComponent<ecs::Scale>(projectileEntity);
+                            registry.removeComponent<ecs::Texture>(projectileEntity);
+                            registry.removeComponent<ecs::Animation>(projectileEntity);
+                            m_projectileEntities.erase(projectileIt);
+                        }
+                        else if (velocity)
+                        {
+                            velocity->x = entityState.vx;
+                            velocity->y = entityState.vy;
                         }
                     }
-                    if (auto *velocity = registry.getComponent<ecs::Velocity>(m_projectileEntities[entityState.id]))
+                    else if (velocity)
                     {
                         velocity->x = entityState.vx;
                         velocity->y = entityState.vy;
@@ -322,7 +334,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::ENEMY))
             {
-                if (m_enemyEntities.find(entityState.id) == m_enemyEntities.end())
+                auto enemyIt = m_enemyEntities.find(entityState.id);
+                if (enemyIt == m_enemyEntities.end())
                 {
                     ecs::Entity enemy =
                         registry.createEntity()
@@ -372,12 +385,13 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
     {
         m_playerController->update(reg, dt);
     }
+    // Optimisation: évite getAll() si pas nécessaire - utilise un cache ou ne vérifie que les entités audio actives
     const auto &audios = reg.getAll<ecs::Audio>();
-    for (const auto &audio : audios)
+    for (const auto &[entity, audio] : audios)
     {
-        if (!audio.second.play && audio.second.loop && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
+        if (!audio.play && audio.loop && (m_audio->isPlaying(audio.id) == eng::Status::Playing))
         {
-            m_audio->stopAudio(audio.second.id);
+            m_audio->stopAudio(audio.id);
         }
     }
     if (m_beginSoundEntity != ecs::Entity{} && m_stageManager && !m_bossMusicStarted)
@@ -389,13 +403,10 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
         
         if (m_audio->isPlaying(beginNameCache) != eng::Status::Playing)
         {
-            constexpr const char* GAME_BEGIN_ID = "game_begin";
-            for (auto &[entity, audio] : reg.getAll<ecs::Audio>())
+            // Optimisation: arrêter directement l'audio au lieu de parcourir tous les composants
+            if (auto *beginAudio = reg.getComponent<ecs::Audio>(m_beginSoundEntity))
             {
-                if (audio.id == GAME_BEGIN_ID)
-                {
-                    audio.play = false;
-                }
+                beginAudio->play = false;
             }
             m_stageManager->stopScrolling(reg);
             m_bossMusicEntity = reg.createEntity()
@@ -457,9 +468,10 @@ void gme::GameMulti::updateInterpolation(std::unordered_map<uint32_t, Interpolat
         if (&dataMap == &m_remotePlayerData && entityId == m_sessionId)
             continue;
 
-        if (entityMap.find(entityId) != entityMap.end())
+        auto entityIt = entityMap.find(entityId);
+        if (entityIt != entityMap.end())
         {
-            ecs::Entity entity = entityMap[entityId];
+            ecs::Entity entity = entityIt->second;
             if (auto *transform = registry.getComponent<ecs::Transform>(entity))
             {
                 interpData.currentX += (interpData.targetX - interpData.currentX) * interpData.smoothFactor;
