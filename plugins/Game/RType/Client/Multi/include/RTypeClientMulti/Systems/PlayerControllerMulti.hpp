@@ -35,11 +35,11 @@ namespace gme
             void update(ecs::Registry &registry, float dt) override;
             void handleInput(ecs::Registry &registry, const eng::Event &event);
             ecs::Entity createPlayer(ecs::Registry &registry, float x, float y);
-            
+
             bool isSpacePressed() const;
 
         private:
-            void sendInputToServer(bool up, bool down, bool left, bool right, bool shoot);
+            void sendInputToServer(bool up, bool down, bool left, bool right, bool shoot) const;
             void sendInputsIfChanged();
 
             const std::shared_ptr<eng::IRenderer> &m_renderer;

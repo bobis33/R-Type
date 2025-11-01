@@ -1,12 +1,12 @@
 ///
 /// @file GameConfig.hpp
-/// @brief Configuration constants for the game
-/// @namespace cli
+/// @brief Configuration constants for the multiplayer game
+/// @namespace gme
 ///
 
 #pragma once
 
-namespace cli
+namespace utl
 {
     namespace GameConfig
     {
@@ -25,9 +25,10 @@ namespace cli
             inline constexpr float DIAGONAL_SPEED_MULTIPLIER = 0.707f;
             inline constexpr float SPRITE_WIDTH = 33.0f;
             inline constexpr float SPRITE_HEIGHT = 17.0f;
+            inline constexpr float WIDTH = 66.0f;
+            inline constexpr float HEIGHT = 17.0f;
             inline constexpr float SCALE = 2.0f;
             inline constexpr int FRAMES_PER_ROW = 5;
-            inline constexpr int TOTAL_FRAMES = 5;
         } // namespace Player
         namespace Projectile
         {
@@ -80,8 +81,8 @@ namespace cli
         } // namespace LoadingAnimation
         namespace Stage
         {
-            inline constexpr float FLOOR_OFFSET_Y = 16.0f;   // remonte le sol par rapport au bas
-            inline constexpr float CEILING_OFFSET_Y = -1.0f; // descend le plafond depuis le haut
+            inline constexpr float FLOOR_OFFSET_Y = 16.0f;
+            inline constexpr float CEILING_OFFSET_Y = -1.0f;
         } // namespace Stage
         namespace Enemy
         {
@@ -118,4 +119,4 @@ namespace cli
             inline constexpr float PROJECTILE_SUPERCHARGED_RADIUS = 8.0f;
         } // namespace Hitbox
     } // namespace GameConfig
-} // namespace cli
+} // namespace utl

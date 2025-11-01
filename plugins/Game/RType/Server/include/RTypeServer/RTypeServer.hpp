@@ -10,7 +10,6 @@
 
 #include "ECS/Registry.hpp"
 #include "Interfaces/IGameServer.hpp"
-#include "Interfaces/Protocol/Protocol.hpp"
 #include "Utils/EventBus.hpp"
 
 namespace gme
@@ -53,8 +52,8 @@ namespace gme
         private:
             void updateEntities(float deltaTime);
             void broadcastWorldState();
-            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy, bool isSupercharged = false);
-            void processServerStartEvents();
+            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy,
+                                 bool isSupercharged = false);
 
             utl::EventBus &m_eventBus;
             ecs::Registry m_registry;
@@ -70,8 +69,6 @@ namespace gme
 
             float m_lastBroadcastTime = 0.0f;
             const float BROADCAST_INTERVAL = 1.0f / 60.0f; // 60 Hz
-            const float PROJECTILE_COOLDOWN = 0.3f;
-            const float PROJECTILE_SPEED = 800.0f;
 
     }; // class RTypeServer
 } // namespace gme

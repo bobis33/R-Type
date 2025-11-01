@@ -6,7 +6,9 @@
 
 #pragma once
 
+#include "ECS/Systems/Animation.hpp"
 #include "ECS/Systems/Audio.hpp"
+#include "ECS/Systems/Beam.hpp"
 #include "ECS/Systems/Debug.hpp"
 #include "ECS/Systems/Sprite.hpp"
 #include "ECS/Systems/Starfield.hpp"

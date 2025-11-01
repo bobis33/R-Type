@@ -13,7 +13,6 @@
 
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "Interfaces/Protocol/Protocol.hpp"
 #include "RTypeClientMulti/Managers/StageManager.hpp"
 #include "Utils/EventBus.hpp"
 
@@ -60,12 +59,11 @@ namespace gme
         private:
             void setupEventSubscriptions() const;
             void processEventBus();
-            void handlePlayerInputReceived(const utl::Event &event);
             void handleWorldStateUpdate(const utl::Event &event);
 
             void updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
                                      std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor, float dt,
-                                     ecs::Registry &registry);
+                                     ecs::Registry &registry) const;
 
             ecs::Entity m_localPlayerEntity;
             std::unordered_map<uint32_t, ecs::Entity> m_remotePlayers;

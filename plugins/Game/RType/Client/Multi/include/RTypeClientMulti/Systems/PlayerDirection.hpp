@@ -6,7 +6,7 @@
 #include "ECS/Component.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
-#include "RTypeShared/GameConfig.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -71,21 +71,20 @@ namespace gme
                             }
                         }
 
-                        const int frame_width = static_cast<int>(GameConfig::Player::SPRITE_WIDTH);
-                        const int frame_height = static_cast<int>(GameConfig::Player::SPRITE_HEIGHT);
-                        const int frames_per_row = GameConfig::Player::FRAMES_PER_ROW;
+                        const int frame_x = (frame % utl::GameConfig::Player::FRAMES_PER_ROW) *
+                                            static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH);
+                        int frame_y = (frame / utl::GameConfig::Player::FRAMES_PER_ROW) *
+                                      static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
 
-                        const int frame_x = (frame % frames_per_row) * frame_width;
-                        int frame_y = (frame / frames_per_row) * frame_height; // généralement 0
-
-                        const int current_row = static_cast<int>(rect->pos_y / static_cast<float>(frame_height));
-                        const int skin_offset = current_row * frame_height;
+                        const int current_row = static_cast<int>(
+                            rect->pos_y / static_cast<float>(static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT)));
+                        const int skin_offset = current_row * static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
                         frame_y = skin_offset + frame_y;
 
                         rect->pos_x = static_cast<float>(frame_x);
                         rect->pos_y = static_cast<float>(frame_y);
-                        rect->size_x = frame_width;
-                        rect->size_y = frame_height;
+                        rect->size_x = static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH);
+                        rect->size_y = static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
                     }
                 }
             }

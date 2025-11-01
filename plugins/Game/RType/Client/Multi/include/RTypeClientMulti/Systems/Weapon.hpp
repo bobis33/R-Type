@@ -70,4 +70,3 @@ namespace gme
             ecs::Entity m_superShotAudioEntity = ecs::INVALID_ENTITY;
     }; // class WeaponSystem
 } // namespace gme
-

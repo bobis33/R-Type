@@ -1,8 +1,6 @@
 #pragma once
 
 #include <cmath>
-#include <ranges>
-#include <vector>
 
 #include "ECS/Component.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
@@ -32,7 +30,7 @@ namespace gme
             {
                 std::optional<float> ceilingBottomY;
                 std::optional<float> floorTopY;
-                
+
                 for (auto &pair : registry.getAll<ecs::Ceiling>())
                 {
                     const auto entity = pair.first;
@@ -47,7 +45,7 @@ namespace gme
                     ceilingBottomY = t->y + scaledHeight;
                     break; // Un seul suffit
                 }
-                
+
                 for (auto &pair : registry.getAll<ecs::Floor>())
                 {
                     const auto entity = pair.first;
@@ -73,9 +71,9 @@ namespace gme
                         {
                             continue;
                         }
-                        
+
                         float hitboxY = t->y + hb->offsetY;
-                        
+
                         if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
                             t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
@@ -84,7 +82,7 @@ namespace gme
                                 vel->y = std::max(0.0f, vel->y);
                             }
                         }
-                        
+
                         if (floorTopY.has_value() && (hitboxY + hb->radius > floorTopY.value()))
                         {
                             t->y = floorTopY.value() - hb->radius - hb->offsetY;
@@ -102,4 +100,3 @@ namespace gme
             bool &m_showDebug;
     };
 } // namespace gme
-

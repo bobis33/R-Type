@@ -113,7 +113,7 @@ void gme::ConfigSolo::update(const float dt, const eng::WindowSize & /*size*/)
             {
                 const float glowIntensity = std::sin(m_animationTime * 2.5f);
                 color.r = 0U;
-                color.g = static_cast<unsigned char>(191U + glowIntensity * 50);
+                color.g = static_cast<unsigned char>(191U + (glowIntensity * 50));
                 color.b = 255U;
             }
             else

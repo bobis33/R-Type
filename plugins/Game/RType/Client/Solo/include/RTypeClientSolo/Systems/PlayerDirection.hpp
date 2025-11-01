@@ -13,8 +13,8 @@
 #include "ECS/Component.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
-#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -77,13 +77,13 @@ namespace gme
                                 frame = 4;
                             }
                         }
-                        int frame_width = static_cast<int>(GameConfig::Player::SPRITE_WIDTH);
-                        int frame_height = static_cast<int>(GameConfig::Player::SPRITE_HEIGHT);
-                        int frames_per_row = GameConfig::Player::FRAMES_PER_ROW;
+                        int frame_width = static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH);
+                        int frame_height = static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
+                        int frames_per_row = utl::GameConfig::Player::FRAMES_PER_ROW;
                         int frame_x = (frame % frames_per_row) * frame_width;
                         int frame_y = (frame / frames_per_row) * frame_height;
 
-                        const int skin_offset = m_skinIndex * static_cast<int>(GameConfig::Player::SPRITE_HEIGHT);
+                        const int skin_offset = m_skinIndex * static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
                         frame_y += skin_offset;
 
                         rect->pos_x = static_cast<float>(frame_x);

@@ -118,7 +118,7 @@ void gme::ConfigMulti::update(const float dt, const eng::WindowSize & /*size*/)
     }
     if (auto *titleColor = reg.getComponent<ecs::Color>(m_titleEntity))
     {
-        float pulsation = std::sin(m_titlePulseTime * 2.0f) * 0.4f + 0.6f;
+        const float pulsation = (std::sin(m_titlePulseTime * 2.0f) * 0.4f) + 0.6f;
         titleColor->r = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.r * pulsation);
         titleColor->g = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.g * pulsation);
         titleColor->b = static_cast<unsigned char>(utl::Config::Color::CYAN_ELECTRIC.b * pulsation);

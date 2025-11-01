@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include <vector>
-
-#include "ECS/Component.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
@@ -31,4 +28,3 @@ namespace gme
 
     }; // class ProjectileSystem
 } // namespace gme
-

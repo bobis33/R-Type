@@ -38,45 +38,48 @@ namespace ecs
                 auto [width, height] = m_renderer->getWindowSize();
                 const float screenWidth = static_cast<float>(width);
                 const float screenHeight = static_cast<float>(height);
-                
+
                 m_timeAccumulator += dt;
 
                 eng::Color cachedColor{};
                 bool isStar = false;
                 bool isNear = false;
                 bool isMid = false;
-                
+
                 for (auto &pair : registry.getAll<Pixel>())
                 {
                     const auto entity = pair.first;
                     auto *transform = registry.getComponent<Transform>(entity);
-                    if (!transform) continue;
-                    
+                    if (!transform)
+                        continue;
+
                     const auto *velocity = registry.getComponent<Velocity>(entity);
                     if (velocity)
                     {
                         transform->x += velocity->x * dt;
                         transform->y += velocity->y * dt;
 
-                        if (transform->x < -10.0f || transform->x > screenWidth + 10.0f || 
-                            transform->y < -10.0f || transform->y > screenHeight + 10.0f)
+                        if (transform->x < -10.0f || transform->x > screenWidth + 10.0f || transform->y < -10.0f ||
+                            transform->y > screenHeight + 10.0f)
                         {
                             transform->x = screenWidth + std::rand() % 200;
                             transform->y = static_cast<float>(std::rand() % static_cast<int>(screenHeight));
                         }
                     }
-                    
+
                     const auto *color = registry.getComponent<Color>(entity);
-                    if (!color) continue;
-                    
+                    if (!color)
+                        continue;
+
                     const Pixel *pixel = registry.getComponent<Pixel>(entity);
-                    if (!pixel) continue;
-                    
+                    if (!pixel)
+                        continue;
+
                     const std::string &pixelId = pixel->id;
                     isStar = (pixelId == "star_far" || pixelId == "star_mid" || pixelId == "star_near");
                     isNear = (pixelId == "star_near");
                     isMid = (pixelId == "star_mid");
-                    
+
                     unsigned char finalAlpha = color->a;
                     if (isStar)
                     {
@@ -84,11 +87,11 @@ namespace ecs
                         float twinkle = (std::sin(starPhase) + 1.0f) * 0.5f;
                         finalAlpha = static_cast<unsigned char>(color->a * (0.5f + twinkle * 0.5f));
                     }
-                    
+
                     cachedColor = {.r = color->r, .g = color->g, .b = color->b, .a = finalAlpha};
-                    
+
                     m_renderer->drawPoint(transform->x, transform->y, cachedColor);
-                    
+
                     if (isNear)
                     {
                         cachedColor.a = static_cast<unsigned char>(finalAlpha * 0.8f);
@@ -197,7 +200,7 @@ namespace ecs
                         .build();
                 }
             }
-            
+
             static void createStarsVaried(Registry &registry, const int count, const unsigned int screenWidth,
                                           const unsigned int screenHeight, float velocity, const std::string &baseId)
             {
@@ -205,23 +208,35 @@ namespace ecs
                 {
                     int colorType = std::rand() % 4;
                     unsigned char r, g, b, a;
-                    
+
                     switch (colorType)
                     {
                         case 0: // Blanc froid
-                            r = 200; g = 220; b = 255; a = 180;
+                            r = 200;
+                            g = 220;
+                            b = 255;
+                            a = 180;
                             break;
                         case 1: // Cyan
-                            r = 150; g = 230; b = 255; a = 200;
+                            r = 150;
+                            g = 230;
+                            b = 255;
+                            a = 200;
                             break;
                         case 2: // Bleu doux
-                            r = 100; g = 150; b = 255; a = 160;
+                            r = 100;
+                            g = 150;
+                            b = 255;
+                            a = 160;
                             break;
                         default: // Jaune pâle
-                            r = 255; g = 250; b = 200; a = 170;
+                            r = 255;
+                            g = 250;
+                            b = 200;
+                            a = 170;
                             break;
                     }
-                    
+
                     registry.createEntity()
                         .with<Pixel>(baseId)
                         .with<Transform>(baseId + "_transform", static_cast<float>(std::rand() % screenWidth),

@@ -6,8 +6,11 @@
 
 #pragma once
 
-#include "RTypeClientMulti/Systems/Audio.hpp"
-#include "RTypeClientMulti/Systems/Debug.hpp"
-#include "RTypeClientMulti/Systems/Pixel.hpp"
-#include "RTypeClientMulti/Systems/Sprite.hpp"
-#include "RTypeClientMulti/Systems/Text.hpp"
+#include "ECS/Systems/Systems.hpp"
+#include "RTypeClientMulti/Systems/Collision.hpp"
+#include "RTypeClientMulti/Systems/LoadingAnimation.hpp"
+#include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
+#include "RTypeClientMulti/Systems/PlayerDirection.hpp"
+#include "RTypeClientMulti/Systems/Projectile.hpp"
+#include "RTypeClientMulti/Systems/Scrolling.hpp"
+#include "RTypeClientMulti/Systems/Weapon.hpp"

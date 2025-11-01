@@ -10,7 +10,7 @@
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "RTypeShared/GameConfig.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 namespace gme
 {
@@ -53,11 +53,12 @@ namespace gme
                     const float scaledHeight = ((scale != nullptr) ? scale->y : 1.0f) * scrolling.original_height;
                     if (isCeiling)
                     {
-                        transform->y = GameConfig::Stage::CEILING_OFFSET_Y;
+                        transform->y = utl::GameConfig::Stage::CEILING_OFFSET_Y;
                     }
                     else if (isFloor)
                     {
-                        transform->y = static_cast<float>(height) - scaledHeight - GameConfig::Stage::FLOOR_OFFSET_Y;
+                        transform->y =
+                            static_cast<float>(height) - scaledHeight - utl::GameConfig::Stage::FLOOR_OFFSET_Y;
                     }
 
                     transform->x += scrolling.speed_x * dt;

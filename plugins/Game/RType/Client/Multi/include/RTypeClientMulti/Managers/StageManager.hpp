@@ -20,7 +20,8 @@ namespace gme
             void update(ecs::Registry &registry, float dt, const eng::WindowSize &size);
             static void spawnStage(ecs::Registry &registry, int screenWidth);
             bool isStageSpawned() const { return m_stageSpawned; }
-            void stopScrolling(ecs::Registry &registry);
+
+            static void stopScrolling(ecs::Registry &registry);
 
         private:
             float m_stageTimer = 0.0f;
@@ -31,4 +32,3 @@ namespace gme
             static constexpr float SPRITE_HEIGHT = 208.0f;
     };
 } // namespace gme
-

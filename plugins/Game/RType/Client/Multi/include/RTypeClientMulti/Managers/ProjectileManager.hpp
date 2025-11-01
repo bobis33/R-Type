@@ -28,4 +28,3 @@ namespace gme
             ProjectileManager &operator=(ProjectileManager &&) = delete;
     }; // class ProjectileManager
 } // namespace gme
-
