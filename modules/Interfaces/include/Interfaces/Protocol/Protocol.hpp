@@ -160,15 +160,33 @@ namespace rnp
     };
 
     ///
+    /// @brief Entity subtype enumeration
+    ///
+    enum class EntitySubtype : std::uint8_t
+    {
+        NONE = 0,
+        // Enemy subtypes
+        ENEMY_BASIC = 1,
+        ENEMY_ADVANCED = 2,
+        ENEMY_BOSS = 3,
+        // Projectile subtypes
+        PROJECTILE_PLAYER = 10,
+        PROJECTILE_PLAYER_SUPERCHARGED = 11,
+        PROJECTILE_ENEMY = 12,
+    };
+
+    ///
     /// @brief Entity state for WORLD_STATE packet
     ///
     struct EntityState
     {
             std::uint32_t id;
-            std::uint16_t type; // EntityType
+            std::uint16_t type;   // EntityType
+            std::uint8_t subtype; // EntitySubtype - specific variant of entity
             float x, y;
             float vx, vy;
-            std::uint8_t stateFlags;
+            std::uint8_t healthPercent; // Health as percentage (0-100), 255 = no health bar
+            std::uint8_t stateFlags;    // Additional flags (beam charge for players, etc.)
     };
 
     ///

@@ -35,7 +35,7 @@ namespace gme
             void update(ecs::Registry &registry, float dt) override;
             void handleInput(ecs::Registry &registry, const eng::Event &event);
             ecs::Entity createPlayer(ecs::Registry &registry, float x, float y);
-
+            
             bool isSpacePressed() const;
 
         private:

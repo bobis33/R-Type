@@ -5,10 +5,28 @@
 void gme::StageManager::update(ecs::Registry &registry, const float dt, const eng::WindowSize &size)
 {
     m_stageTimer += dt;
+
+    // Spawn stage after initial delay
     if (!m_stageSpawned && m_stageTimer >= STAGE_SPAWN_DELAY)
     {
         spawnStage(registry, size.width);
         m_stageSpawned = true;
+        m_currentWave = 1; // Start wave 1
+        m_waveTimer = 0.0f;
+    }
+
+    // Track wave progression (synchronized with server WaveManager)
+    if (m_stageSpawned && m_currentWave <= TOTAL_WAVES)
+    {
+        m_totalGameTimer += dt;
+        m_waveTimer += dt;
+
+        // Check if current wave duration is complete
+        if (m_waveTimer >= WAVE_DURATION && m_currentWave < TOTAL_WAVES)
+        {
+            m_currentWave++;
+            m_waveTimer = 0.0f;
+        }
     }
 }
 

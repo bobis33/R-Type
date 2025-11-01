@@ -5,6 +5,7 @@
 #include "FlappyBirdClientSolo/Scenes/Game.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/HitboxUtils.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 enum class PipeType
 {
@@ -237,7 +238,7 @@ void gme::Game::event(const eng::Event &event)
 
 ecs::Entity gme::Game::createPlayer(ecs::Registry &registry)
 {
-    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(33.0F, 17.0F, 2.0F);
+    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(utl::GameConfig::Player::SPRITE_WIDTH, utl::GameConfig::Player::SPRITE_HEIGHT, utl::GameConfig::Player::SCALE);
 
     return registry.createEntity()
         .with<ecs::Transform>("player_transform", 200.0F, 200.0F, 0.F)

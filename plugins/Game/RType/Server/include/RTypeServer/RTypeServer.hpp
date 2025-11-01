@@ -6,11 +6,19 @@
 
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 
 #include "ECS/Registry.hpp"
 #include "Interfaces/IGameServer.hpp"
 #include "Utils/EventBus.hpp"
+
+// New includes for entity management
+#include "RTypeServer/EntityManager.hpp"
+#include "RTypeServer/Systems/CollisionSystem.hpp"
+#include "RTypeServer/Systems/EnemyAISystem.hpp"
+#include "RTypeServer/Systems/EnemySpawnSystem.hpp"
+#include "RTypeServer/WaveManager.hpp"
 
 namespace gme
 {
@@ -50,25 +58,35 @@ namespace gme
             void update(float deltaTime) override;
 
         private:
+            void processServerStartEvent(const utl::Event &event);
+            void processPlayerInputEvent(const utl::Event &event);
+            void processGameStartEvent(const utl::Event &event);
             void updateEntities(float deltaTime);
-            void broadcastWorldState();
-            void spawnProjectile(std::uint32_t playerId, float x, float y, float vx, float vy,
-                                 bool isSupercharged = false);
+            void updateSystems(float deltaTime);
+            void broadcastWorldState() const;
+            void handlePlayerShooting(std::uint32_t sessionId, float deltaTime);
 
             utl::EventBus &m_eventBus;
             ecs::Registry m_registry;
 
+            // NEW: Entity management
+            std::unique_ptr<EntityManager> m_entityManager;
+
+            // NEW: Game systems
+            std::unique_ptr<CollisionSystem> m_collisionSystem;
+            std::unique_ptr<EnemyAISystem> m_enemyAISystem;
+            std::unique_ptr<EnemySpawnSystem> m_enemySpawnSystem;
+            std::unique_ptr<WaveManager> m_waveManager;
+
             State m_gameState = State::PLAYING;
             LevelState m_levelState = LevelState::WAITING_FOR_PLAYERS;
 
-            std::unordered_map<std::uint32_t, ecs::Entity> m_playerEntities;
-            std::unordered_map<std::uint32_t, ecs::Entity> m_projectileEntities;
+            // Player input tracking
+            std::unordered_map<std::uint32_t, bool> m_playerShooting;
             std::unordered_map<std::uint32_t, float> m_lastShotTime;
-            std::unordered_map<std::uint32_t, bool> m_playerShooting; // Track if player is pressing shoot
-            std::uint32_t m_nextProjectileId = 1000;
 
             float m_lastBroadcastTime = 0.0f;
-            const float BROADCAST_INTERVAL = 1.0f / 60.0f; // 60 Hz
+            const float PROJECTILE_COOLDOWN = 0.3f;
 
     }; // class RTypeServer
 } // namespace gme

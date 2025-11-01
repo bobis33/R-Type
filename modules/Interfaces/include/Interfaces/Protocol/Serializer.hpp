@@ -372,10 +372,12 @@ namespace rnp
             {
                 writeUInt32(entity.id);
                 writeUInt16(entity.type);
+                writeByte(entity.subtype);
                 writeFloat(entity.x);
                 writeFloat(entity.y);
                 writeFloat(entity.vx);
                 writeFloat(entity.vy);
+                writeByte(entity.healthPercent);
                 writeByte(entity.stateFlags);
             }
 
@@ -388,10 +390,12 @@ namespace rnp
                 EntityState entity;
                 entity.id = readUInt32();
                 entity.type = readUInt16();
+                entity.subtype = readByte();
                 entity.x = readFloat();
                 entity.y = readFloat();
                 entity.vx = readFloat();
                 entity.vy = readFloat();
+                entity.healthPercent = readByte();
                 entity.stateFlags = readByte();
                 return entity;
             }

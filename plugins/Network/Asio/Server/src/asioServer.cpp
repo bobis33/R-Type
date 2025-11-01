@@ -204,13 +204,12 @@ namespace srv
 
     void AsioServer::update()
     {
+        processEventBusEvents();
 
         if (!m_running.load())
         {
             return;
         }
-
-        processEventBusEvents();
 
         // Process send queue
         processSendQueue();
@@ -997,6 +996,10 @@ namespace srv
                 return rnp::HandlerResult::PROCESSING_ERROR;
             }
 
+            utl::Logger::log("AsioServer: LOBBY_JOIN - Client current lobby ID: " +
+                                 std::to_string(clientIt->second.currentLobbyId),
+                             utl::LogLevel::INFO);
+
             if (clientIt->second.currentLobbyId != 0)
             {
                 sendLobbyCreateResponse(context.sessionId, 0, false, rnp::ErrorCode::ALREADY_IN_LOBBY);
@@ -1049,6 +1052,8 @@ namespace srv
         // Scope for clientsLock to release it before lobbyToLobbyInfo and broadcastLobbyUpdate
         {
             std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+            utl::Logger::log("AsioServer: LOBBY_JOIN - Checking client session " + std::to_string(context.sessionId),
+                             utl::LogLevel::INFO);
             auto clientIt = m_clients.find(context.sessionId);
             if (clientIt == m_clients.end() || !clientIt->second.isConnected)
             {
@@ -1223,27 +1228,37 @@ namespace srv
     {
         std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
 
+        utl::Logger::log("AsioServer: joinLobby - Looking for lobby " + std::to_string(lobbyId), utl::LogLevel::INFO);
+
         auto lobbyIt = m_lobbies.find(lobbyId);
         if (lobbyIt == m_lobbies.end())
         {
-            return LobbyStatus::NOT_FOUND; // Lobby not found
+            utl::Logger::log("AsioServer: joinLobby - Lobby " + std::to_string(lobbyId) + " not found",
+                             utl::LogLevel::WARNING);
+            return LobbyStatus::NOT_FOUND;
         }
 
         Lobby &lobby = lobbyIt->second;
+        utl::Logger::log(
+            "AsioServer: joinLobby - Lobby found, current players: " + std::to_string(lobby.playerSessions.size()) +
+                "/" + std::to_string(lobby.maxPlayers) + ", status: " + std::to_string(static_cast<int>(lobby.status)),
+            utl::LogLevel::INFO);
+
         if (lobby.playerSessions.size() >= lobby.maxPlayers)
         {
-            return LobbyStatus::FULL; // Lobby full
+            utl::Logger::log("AsioServer: joinLobby - Lobby is full", utl::LogLevel::WARNING);
+            return LobbyStatus::FULL;
         }
 
         if (lobby.status != rnp::LobbyStatus::WAITING)
         {
-            return LobbyStatus::IN_GAME; // Game already started
+            utl::Logger::log("AsioServer: joinLobby - Game already started", utl::LogLevel::WARNING);
+            return LobbyStatus::IN_GAME;
         }
 
-        // Check if player already in lobby
         if (auto playerIt = std::ranges::find(lobby.playerSessions, sessionId); playerIt != lobby.playerSessions.end())
         {
-            return LobbyStatus::ALREADY_IN_LOBBY; // Already in lobby
+            return LobbyStatus::ALREADY_IN_LOBBY;
         }
 
         lobby.playerSessions.push_back(sessionId);
@@ -1569,6 +1584,10 @@ namespace srv
 
         utl::Logger::log("AsioServer: Broadcasted game start for lobby " + std::to_string(lobbyId),
                          utl::LogLevel::INFO);
+
+        // Publish GAME_START event to game logic to start waves
+        m_eventBus.publish(utl::EventType::GAME_START, gameStartData, utl::NETWORK_SERVER, utl::GAME_LOGIC);
+        utl::Logger::log("AsioServer: Published GAME_START event to game logic", utl::LogLevel::INFO);
     }
 
 } // namespace srv

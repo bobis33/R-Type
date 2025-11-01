@@ -7,6 +7,8 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
@@ -39,6 +41,7 @@ namespace gme
 
         private:
             void handlePlayerInputs(ecs::Registry &registry, float dt);
+            void preloadCommonTextures();
             static ecs::Entity createPlayer(ecs::Registry &registry);
 
             const std::shared_ptr<eng::IRenderer> &m_renderer;
@@ -50,5 +53,9 @@ namespace gme
             bool &m_showDebug;
             bool m_playmusic = false;
             std::unique_ptr<StageManager> m_stageManager;
+
+            // Cache to avoid recreating textures/fonts
+            std::unordered_set<std::string> m_loadedTextures;
+            std::unordered_set<std::string> m_loadedFonts;
     }; // class GameSolo
 } // namespace gme
