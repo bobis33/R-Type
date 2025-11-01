@@ -7,8 +7,6 @@
 #pragma once
 
 #include "ECS/Systems/Systems.hpp"
-#include "RTypeClientSolo/Systems/Animation.hpp"
-#include "RTypeClientSolo/Systems/Beam.hpp"
 #include "RTypeClientSolo/Systems/Collision.hpp"
 #include "RTypeClientSolo/Systems/Enemy.hpp"
 #include "RTypeClientSolo/Systems/Explosion.hpp"

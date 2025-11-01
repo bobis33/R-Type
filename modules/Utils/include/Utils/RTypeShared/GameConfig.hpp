@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace gme
+namespace utl
 {
     namespace GameConfig
     {
@@ -25,6 +25,8 @@ namespace gme
             inline constexpr float DIAGONAL_SPEED_MULTIPLIER = 0.707f;
             inline constexpr float SPRITE_WIDTH = 33.0f;
             inline constexpr float SPRITE_HEIGHT = 17.0f;
+            inline constexpr float WIDTH = 66.0f;
+            inline constexpr float HEIGHT = 17.0f;
             inline constexpr float SCALE = 2.0f;
             inline constexpr int FRAMES_PER_ROW = 5;
         } // namespace Player
@@ -117,4 +119,4 @@ namespace gme
             inline constexpr float PROJECTILE_SUPERCHARGED_RADIUS = 8.0f;
         } // namespace Hitbox
     } // namespace GameConfig
-} // namespace gme
+} // namespace utl

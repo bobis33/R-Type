@@ -204,18 +204,12 @@ namespace srv
 
     void AsioServer::update()
     {
+
         if (!m_running.load())
         {
-            // static bool loggedNotRunning = false;
-            // if (!loggedNotRunning)
-            // {
-            //     utl::Logger::log("AsioServer: Update called but server not running", utl::LogLevel::WARNING);
-            //     loggedNotRunning = true;
-            // }
             return;
         }
 
-        // Process EventBus events
         processEventBusEvents();
 
         // Process send queue

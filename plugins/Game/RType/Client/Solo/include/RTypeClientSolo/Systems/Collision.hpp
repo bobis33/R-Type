@@ -16,8 +16,8 @@
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 namespace gme
 {
@@ -38,7 +38,7 @@ namespace gme
             CollisionSystem &operator=(CollisionSystem &&) = delete;
 
             bool isEnable() override { return true; }
-            void setEnable(bool enable) override { (void)enable; }
+            void setEnable(const bool enable) override { (void)enable; }
 
             void update(ecs::Registry &registry, float dt) override
             {
@@ -135,11 +135,11 @@ namespace gme
                         auto *t = registry.getComponent<ecs::Transform>(playerEntity);
                         auto *hb = registry.getComponent<ecs::Hitbox>(playerEntity);
                         auto *vel = registry.getComponent<ecs::Velocity>(playerEntity);
-                        if (!t || !hb)
+                        if ((t == nullptr) || (hb == nullptr))
                         {
                             continue;
                         }
-                        float hitboxY = t->y + hb->offsetY;
+                        const float hitboxY = t->y + hb->offsetY;
                         if (ceilingBottomY.has_value() && (hitboxY - hb->radius < ceilingBottomY.value()))
                         {
                             t->y = ceilingBottomY.value() + hb->radius - hb->offsetY;
@@ -203,13 +203,13 @@ namespace gme
             static bool checkCircularCollision(const ecs::Transform &transform1, const ecs::Hitbox &hitbox1,
                                                const ecs::Transform &transform2, const ecs::Hitbox &hitbox2)
             {
-                float x1 = transform1.x + hitbox1.offsetX;
-                float y1 = transform1.y + hitbox1.offsetY;
-                float x2 = transform2.x + hitbox2.offsetX;
-                float y2 = transform2.y + hitbox2.offsetY;
+                const float x1 = transform1.x + hitbox1.offsetX;
+                const float y1 = transform1.y + hitbox1.offsetY;
+                const float x2 = transform2.x + hitbox2.offsetX;
+                const float y2 = transform2.y + hitbox2.offsetY;
 
-                float dx = x1 - x2;
-                float dy = y1 - y2;
+                const float dx = x1 - x2;
+                const float dy = y1 - y2;
                 const float distance = std::sqrt(dx * dx + dy * dy);
                 const float combinedRadius = hitbox1.radius + hitbox2.radius;
 
@@ -218,22 +218,30 @@ namespace gme
 
             static void removeProjectile(ecs::Registry &registry, ecs::Entity entity)
             {
-                if (registry.hasComponent<ecs::Projectile>(entity))
+                if (registry.hasComponent<ecs::Projectile>(entity)) {
                     registry.removeComponent<ecs::Projectile>(entity);
-                if (registry.hasComponent<ecs::Transform>(entity))
+}
+                if (registry.hasComponent<ecs::Transform>(entity)) {
                     registry.removeComponent<ecs::Transform>(entity);
-                if (registry.hasComponent<ecs::Velocity>(entity))
+}
+                if (registry.hasComponent<ecs::Velocity>(entity)) {
                     registry.removeComponent<ecs::Velocity>(entity);
-                if (registry.hasComponent<ecs::Rect>(entity))
+}
+                if (registry.hasComponent<ecs::Rect>(entity)) {
                     registry.removeComponent<ecs::Rect>(entity);
-                if (registry.hasComponent<ecs::Texture>(entity))
+}
+                if (registry.hasComponent<ecs::Texture>(entity)) {
                     registry.removeComponent<ecs::Texture>(entity);
-                if (registry.hasComponent<ecs::Scale>(entity))
+}
+                if (registry.hasComponent<ecs::Scale>(entity)) {
                     registry.removeComponent<ecs::Scale>(entity);
-                if (registry.hasComponent<ecs::Animation>(entity))
+}
+                if (registry.hasComponent<ecs::Animation>(entity)) {
                     registry.removeComponent<ecs::Animation>(entity);
-                if (registry.hasComponent<ecs::Hitbox>(entity))
+}
+                if (registry.hasComponent<ecs::Hitbox>(entity)) {
                     registry.removeComponent<ecs::Hitbox>(entity);
+}
             }
 
             static void removeEnemy(ecs::Registry &registry, ecs::Entity entity)
@@ -242,22 +250,30 @@ namespace gme
                 {
                     registry.removeComponent<ecs::Enemy>(entity);
                 }
-                if (registry.hasComponent<ecs::Transform>(entity))
+                if (registry.hasComponent<ecs::Transform>(entity)) {
                     registry.removeComponent<ecs::Transform>(entity);
-                if (registry.hasComponent<ecs::Velocity>(entity))
+}
+                if (registry.hasComponent<ecs::Velocity>(entity)) {
                     registry.removeComponent<ecs::Velocity>(entity);
-                if (registry.hasComponent<ecs::Rect>(entity))
+}
+                if (registry.hasComponent<ecs::Rect>(entity)) {
                     registry.removeComponent<ecs::Rect>(entity);
-                if (registry.hasComponent<ecs::Texture>(entity))
+}
+                if (registry.hasComponent<ecs::Texture>(entity)) {
                     registry.removeComponent<ecs::Texture>(entity);
-                if (registry.hasComponent<ecs::Scale>(entity))
+}
+                if (registry.hasComponent<ecs::Scale>(entity)) {
                     registry.removeComponent<ecs::Scale>(entity);
-                if (registry.hasComponent<ecs::Animation>(entity))
+}
+                if (registry.hasComponent<ecs::Animation>(entity)) {
                     registry.removeComponent<ecs::Animation>(entity);
-                if (registry.hasComponent<ecs::Hitbox>(entity))
+}
+                if (registry.hasComponent<ecs::Hitbox>(entity)) {
                     registry.removeComponent<ecs::Hitbox>(entity);
-                if (registry.hasComponent<ecs::Projectile>(entity))
+}
+                if (registry.hasComponent<ecs::Projectile>(entity)) {
                     registry.removeComponent<ecs::Projectile>(entity);
+}
             }
 
             static void createExplosion(ecs::Registry &registry, float x, float y)
@@ -265,18 +281,20 @@ namespace gme
                 registry.createEntity()
                     .with<ecs::Transform>("explosion_transform", x, y, 0.0f)
                     .with<ecs::Rect>("explosion_rect", 0.0f, 0.0f,
-                                     static_cast<int>(GameConfig::Explosion::SPRITE_WIDTH),
-                                     static_cast<int>(GameConfig::Explosion::SPRITE_HEIGHT))
-                    .with<ecs::Scale>("explosion_scale", GameConfig::Explosion::SCALE, GameConfig::Explosion::SCALE)
+                                     static_cast<int>(utl::GameConfig::Explosion::SPRITE_WIDTH),
+                                     static_cast<int>(utl::GameConfig::Explosion::SPRITE_HEIGHT))
+                    .with<ecs::Scale>("explosion_scale", utl::GameConfig::Explosion::SCALE,
+                                      utl::GameConfig::Explosion::SCALE)
                     .with<ecs::Texture>("explosion_texture", utl::Path::Texture::TEXTURE_EXPLOSION)
-                    .with<ecs::Explosion>("explosion", 0, GameConfig::Explosion::ANIMATION_FRAMES,
-                                          GameConfig::Explosion::ANIMATION_DURATION, 0.0f,
-                                          GameConfig::Explosion::SPRITE_WIDTH, GameConfig::Explosion::SPRITE_HEIGHT,
-                                          GameConfig::Explosion::FRAMES_PER_ROW, GameConfig::Explosion::LIFETIME, 0.0f)
+                    .with<ecs::Explosion>(
+                        "explosion", 0, utl::GameConfig::Explosion::ANIMATION_FRAMES,
+                        utl::GameConfig::Explosion::ANIMATION_DURATION, 0.0f, utl::GameConfig::Explosion::SPRITE_WIDTH,
+                        utl::GameConfig::Explosion::SPRITE_HEIGHT, utl::GameConfig::Explosion::FRAMES_PER_ROW,
+                        utl::GameConfig::Explosion::LIFETIME, 0.0f)
                     .build();
             }
 
-            void ensureEnemyDeathChannel(ecs::Registry &registry, std::size_t channelIndex)
+            void ensureEnemyDeathChannel(ecs::Registry &registry, const std::size_t channelIndex)
             {
                 if (channelIndex >= m_enemyDeathAudioEntities.size())
                 {

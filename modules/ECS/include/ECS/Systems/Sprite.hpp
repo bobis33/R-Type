@@ -36,16 +36,28 @@ namespace ecs
             void update(Registry &registry, float /* dt */) override
             {
                 std::vector<std::pair<Entity, int>> spritesWithLayers;
-                for (const auto &entity : registry.getAll<Texture>() | std::views::keys)
+                spritesWithLayers.reserve(
+                    registry.getAll<Texture>().size()); // Pré-allocation pour éviter réallocations
+
+                for (auto &pair : registry.getAll<Texture>())
                 {
+                    const auto entity = pair.first;
                     const auto *layer = registry.getComponent<Layer>(entity);
                     int layerValue = (layer != nullptr) ? layer->layer : 0;
                     spritesWithLayers.emplace_back(entity, layerValue);
                 }
-                std::ranges::sort(spritesWithLayers, [](const auto &a, const auto &b) { return a.second < b.second; });
-                for (const auto &entity : spritesWithLayers | std::views::keys)
+                std::sort(spritesWithLayers.begin(), spritesWithLayers.end(),
+                          [](const auto &a, const auto &b) { return a.second < b.second; });
+                std::string spriteName;
+                spriteName.reserve(64); // Taille typique attendue
+
+                for (const auto &pair : spritesWithLayers)
                 {
+                    const auto entity = pair.first;
                     const auto *sprite = registry.getComponent<Texture>(entity);
+                    if (!sprite)
+                        continue;
+
                     const auto *transform = registry.getComponent<Transform>(entity);
                     const auto *rect = registry.getComponent<Rect>(entity);
                     const auto *scale = registry.getComponent<Scale>(entity);
@@ -54,16 +66,20 @@ namespace ecs
 
                     const float x = (transform != nullptr) ? transform->x : 0.F;
                     const float y = (transform != nullptr) ? transform->y : 0.F;
-                    m_renderer->setSpriteTexture(sprite->id + std::to_string(entity), sprite->path);
-                    m_renderer->setSpritePosition(sprite->id + std::to_string(entity), x, y);
+
+                    spriteName.clear();
+                    spriteName = sprite->id;
+                    spriteName += std::to_string(entity);
+
+                    m_renderer->setSpriteTexture(spriteName, sprite->path);
+                    m_renderer->setSpritePosition(spriteName, x, y);
                     if ((scale != nullptr) && !hasScrolling)
                     {
-                        m_renderer->setSpriteScale(sprite->id + std::to_string(entity), static_cast<int>(scale->x),
-                                                   static_cast<int>(scale->y));
+                        m_renderer->setSpriteScale(spriteName, static_cast<int>(scale->x), static_cast<int>(scale->y));
                     }
                     if (rect != nullptr)
                     {
-                        m_renderer->setSpriteFrame(sprite->id + std::to_string(entity), static_cast<int>(rect->pos_x),
+                        m_renderer->setSpriteFrame(spriteName, static_cast<int>(rect->pos_x),
                                                    static_cast<int>(rect->pos_y), rect->size_x, rect->size_y);
                     }
                     if (color != nullptr)
@@ -71,7 +87,7 @@ namespace ecs
                         m_renderer->setSpriteColor(sprite->id + std::to_string(entity),
                                                    {.r = color->r, .g = color->g, .b = color->b, .a = color->a});
                     }
-                    m_renderer->drawSprite(sprite->id + std::to_string(entity));
+                    m_renderer->drawSprite(spriteName);
                 }
             }
 

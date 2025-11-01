@@ -2,14 +2,11 @@
 
 #include "RTypeClientSolo/Managers/ProjectileManager.hpp"
 #include "RTypeClientSolo/Systems/Weapon.hpp"
-#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 void gme::WeaponSystem::update(ecs::Registry &registry, const float dt)
 {
-    using namespace GameConfig::Projectile;
-    using namespace GameConfig::Beam;
-
     if (m_fireCooldown > 0.0f)
     {
         m_fireCooldown -= dt;
@@ -29,15 +26,15 @@ void gme::WeaponSystem::update(ecs::Registry &registry, const float dt)
         auto &[keyboardEntity, keyboardInput] = *keyboardEntities.begin();
         spacePressed = keyboardInput.space_pressed;
     }
-    float projectileX = transform->x + GameConfig::Player::SPRITE_WIDTH;
-    float projectileY = transform->y + GameConfig::Player::SPRITE_HEIGHT / 2.0f;
+    float projectileX = transform->x + utl::GameConfig::Player::SPRITE_WIDTH;
+    float projectileY = transform->y + utl::GameConfig::Player::SPRITE_HEIGHT / 2.0f;
     if (spacePressed)
     {
         if (!m_isCharging)
         {
             m_isCharging = true;
         }
-        beamCharge->current_charge += CHARGE_RATE * dt;
+        beamCharge->current_charge += utl::GameConfig::Beam::CHARGE_RATE * dt;
         if (beamCharge->current_charge > beamCharge->max_charge)
             beamCharge->current_charge = beamCharge->max_charge;
         if (beamCharge->current_charge < beamCharge->max_charge)
@@ -64,7 +61,7 @@ void gme::WeaponSystem::update(ecs::Registry &registry, const float dt)
                     if (tryFireSupercharged(registry, projectileX, projectileY))
                     {
                         beamCharge->current_charge = 0.0f;
-                        m_fireCooldown = Supercharged::FIRE_COOLDOWN;
+                        m_fireCooldown = utl::GameConfig::Projectile::Supercharged::FIRE_COOLDOWN;
                     }
                 }
                 else
@@ -78,21 +75,18 @@ void gme::WeaponSystem::update(ecs::Registry &registry, const float dt)
 
 bool gme::WeaponSystem::tryFireBasic(ecs::Registry &registry, float x, float y)
 {
-    using namespace GameConfig::Projectile;
-
     if (m_fireCooldown > 0.0f)
         return false;
 
-    ProjectileManager::createBasicProjectile(registry, x, y, Basic::SPEED, 0.0f);
-    m_fireCooldown = Basic::FIRE_COOLDOWN;
+    ProjectileManager::createBasicProjectile(registry, x, y, utl::GameConfig::Projectile::Basic::SPEED, 0.0f);
+    m_fireCooldown = utl::GameConfig::Projectile::Basic::FIRE_COOLDOWN;
     return true;
 }
 
 bool gme::WeaponSystem::tryFireSupercharged(ecs::Registry &registry, float x, float y)
 {
-    using namespace GameConfig::Projectile;
-
-    ProjectileManager::createSuperchargedProjectile(registry, x, y, Supercharged::SPEED, 0.0f);
+    ProjectileManager::createSuperchargedProjectile(registry, x, y, utl::GameConfig::Projectile::Supercharged::SPEED,
+                                                    0.0f);
     ensureSuperShotAudio(registry);
     if (m_superShotAudioEntity != ecs::INVALID_ENTITY)
     {
@@ -107,29 +101,32 @@ bool gme::WeaponSystem::tryFireSupercharged(ecs::Registry &registry, float x, fl
 void gme::WeaponSystem::showLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity,
                                              const ecs::Transform *playerTransform)
 {
-    using namespace GameConfig::LoadingAnimation;
-
     for (auto loadingEntities = registry.getAll<ecs::LoadingAnimation>();
          const auto &entity : loadingEntities | std::views::keys)
     {
         if (auto *loadingTransform = registry.getComponent<ecs::Transform>(entity))
         {
-            loadingTransform->x = playerTransform->x + OFFSET_X;
-            loadingTransform->y = playerTransform->y + OFFSET_Y;
+            loadingTransform->x = playerTransform->x + utl::GameConfig::LoadingAnimation::OFFSET_X;
+            loadingTransform->y = playerTransform->y + utl::GameConfig::LoadingAnimation::OFFSET_Y;
             return;
         }
     }
 
-    auto loadingEntity = registry.createEntity()
-                             .with<ecs::Transform>("loading_transform", playerTransform->x + OFFSET_X,
-                                                   playerTransform->y + OFFSET_Y, 0.0f)
-                             .with<ecs::Rect>("loading_rect", 0.0f, 0.0f, static_cast<int>(SPRITE_WIDTH),
-                                              static_cast<int>(SPRITE_HEIGHT))
-                             .with<ecs::Scale>("loading_scale", 1.0f, 1.0f)
-                             .with<ecs::Texture>("loading_texture", utl::Path::Texture::TEXTURE_SHOOT_LOADING)
-                             .with<ecs::LoadingAnimation>("loading_animation", 0, ANIMATION_FRAMES, ANIMATION_DURATION,
-                                                          0.0f, SPRITE_WIDTH, SPRITE_HEIGHT, ANIMATION_FRAMES)
-                             .build();
+    auto loadingEntity =
+        registry.createEntity()
+            .with<ecs::Transform>("loading_transform", playerTransform->x + utl::GameConfig::LoadingAnimation::OFFSET_X,
+                                  playerTransform->y + utl::GameConfig::LoadingAnimation::OFFSET_Y, 0.0f)
+            .with<ecs::Rect>("loading_rect", 0.0f, 0.0f,
+                             static_cast<int>(utl::GameConfig::LoadingAnimation::SPRITE_WIDTH),
+                             static_cast<int>(utl::GameConfig::LoadingAnimation::SPRITE_HEIGHT))
+            .with<ecs::Scale>("loading_scale", 1.0f, 1.0f)
+            .with<ecs::Texture>("loading_texture", utl::Path::Texture::TEXTURE_SHOOT_LOADING)
+            .with<ecs::LoadingAnimation>("loading_animation", 0, utl::GameConfig::LoadingAnimation::ANIMATION_FRAMES,
+                                         utl::GameConfig::LoadingAnimation::ANIMATION_DURATION, 0.0f,
+                                         utl::GameConfig::LoadingAnimation::SPRITE_WIDTH,
+                                         utl::GameConfig::LoadingAnimation::SPRITE_HEIGHT,
+                                         utl::GameConfig::LoadingAnimation::ANIMATION_FRAMES)
+            .build();
 }
 
 void gme::WeaponSystem::hideLoadingAnimation(ecs::Registry &registry, ecs::Entity playerEntity)
@@ -145,15 +142,25 @@ void gme::WeaponSystem::hideLoadingAnimation(ecs::Registry &registry, ecs::Entit
     for (const auto entity : toRemove)
     {
         if (registry.hasComponent<ecs::Transform>(entity))
+        {
             registry.removeComponent<ecs::Transform>(entity);
+        }
         if (registry.hasComponent<ecs::Rect>(entity))
+        {
             registry.removeComponent<ecs::Rect>(entity);
+        }
         if (registry.hasComponent<ecs::Scale>(entity))
+        {
             registry.removeComponent<ecs::Scale>(entity);
+        }
         if (registry.hasComponent<ecs::Texture>(entity))
+        {
             registry.removeComponent<ecs::Texture>(entity);
+        }
         if (registry.hasComponent<ecs::LoadingAnimation>(entity))
+        {
             registry.removeComponent<ecs::LoadingAnimation>(entity);
+        }
     }
 }
 

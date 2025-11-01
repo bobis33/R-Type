@@ -1,7 +1,7 @@
 ///
 /// @file Systems.hpp
 /// @brief This file contains the system definitions
-/// @namespace gme
+/// @namespace ecs
 ///
 
 #pragma once
@@ -11,10 +11,10 @@
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
 
-namespace gme
+namespace ecs
 {
 
-    class AnimationSystem final : public ecs::ASystem
+    class AnimationSystem final : public ASystem
     {
         public:
             explicit AnimationSystem(const std::shared_ptr<eng::IRenderer> & /* renderer */) {}
@@ -25,7 +25,7 @@ namespace gme
             AnimationSystem(AnimationSystem &&) = delete;
             AnimationSystem &operator=(AnimationSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(Registry &registry, const float dt) override
             {
                 for (auto &[entity, animation] : registry.getAll<ecs::Animation>())
                 {
@@ -39,10 +39,10 @@ namespace gme
 
                     if (auto *rect = registry.getComponent<ecs::Rect>(entity))
                     {
-                        // Calculer la position du frame dans la spritesheet
                         const int frame_x =
                             (animation.current_frame % animation.frames_per_row) * animation.frame_width;
-                        if (int frame_y = (animation.current_frame / animation.frames_per_row) * animation.frame_height;
+                        if (const int frame_y =
+                                (animation.current_frame / animation.frames_per_row) * animation.frame_height;
                             rect->pos_x != static_cast<float>(frame_x) || rect->pos_y != static_cast<float>(frame_y))
                         {
                             rect->pos_x = static_cast<float>(frame_x);
@@ -55,4 +55,4 @@ namespace gme
             }
 
     }; // class AnimationSystem
-} // namespace gme
+} // namespace ecs

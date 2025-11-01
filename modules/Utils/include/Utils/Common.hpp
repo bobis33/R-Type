@@ -90,6 +90,7 @@ namespace utl
             inline constexpr auto AUDIO_SUPERCHARGED_SHOT = "assets/audio/shoot.wav";
             inline constexpr auto AUDIO_BEGIN = "assets/audio/begin.wav";
             inline constexpr auto AUDIO_GOOFY = "assets/audio/goofy.wav";
+            inline constexpr auto AUDIO_BOSS = "assets/audio/Bossmusic.mp3";
         } // namespace Audio
         namespace Font
         {

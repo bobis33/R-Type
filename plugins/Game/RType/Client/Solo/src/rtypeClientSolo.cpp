@@ -20,8 +20,8 @@ void gme::RTypeClientSolo::setupScenes(bool &showDebug, eng::id menuSceneId)
                                                            gameSolo->getRegistry(), gameSolo->playMusic()));
     gameSolo->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<AnimationSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<BeamSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<ecs::AnimationSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<ecs::BeamSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer(), showDebug));
     gameSolo->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));

@@ -1,9 +1,9 @@
 #include "RTypeClientSolo/Scenes/GameSolo.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/HitboxUtils.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                         const std::shared_ptr<eng::IAudio> &audio, const int skinIndex, bool &showDebug)
@@ -96,10 +96,12 @@ void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)
     auto *playerTransform = registry.getComponent<ecs::Transform>(m_playerEntity);
     auto *playerVelocity = registry.getComponent<ecs::Velocity>(m_playerEntity);
 
-    if (!playerTransform || !playerVelocity)
+    if ((playerTransform == nullptr) || (playerVelocity == nullptr)) {
         return;
+}
 
-    constexpr float diagonal_speed = GameConfig::Player::SPEED * GameConfig::Player::DIAGONAL_SPEED_MULTIPLIER;
+    constexpr float diagonal_speed =
+        utl::GameConfig::Player::SPEED * utl::GameConfig::Player::DIAGONAL_SPEED_MULTIPLIER;
 
     playerVelocity->x = 0.0f;
     playerVelocity->y = 0.0f;
@@ -107,8 +109,7 @@ void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)
     const bool up = m_keysPressed[eng::Key::Up];
     const bool down = m_keysPressed[eng::Key::Down];
     const bool left = m_keysPressed[eng::Key::Left];
-    const bool right = m_keysPressed[eng::Key::Right];
-    if (up && right)
+    if (const bool right = m_keysPressed[eng::Key::Right]; up && right)
     {
         playerVelocity->x = diagonal_speed;
         playerVelocity->y = -diagonal_speed;
@@ -131,13 +132,13 @@ void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)
     else
     {
         if (up)
-            playerVelocity->y = -GameConfig::Player::SPEED;
+            playerVelocity->y = -utl::GameConfig::Player::SPEED;
         if (down)
-            playerVelocity->y = GameConfig::Player::SPEED;
+            playerVelocity->y = utl::GameConfig::Player::SPEED;
         if (left)
-            playerVelocity->x = -GameConfig::Player::SPEED;
+            playerVelocity->x = -utl::GameConfig::Player::SPEED;
         if (right)
-            playerVelocity->x = GameConfig::Player::SPEED;
+            playerVelocity->x = utl::GameConfig::Player::SPEED;
     }
 
     playerTransform->x += playerVelocity->x * dt;
@@ -146,8 +147,10 @@ void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)
     playerTransform->y = std::max(playerTransform->y, 0.F);
 
     auto [width, height] = m_renderer->getWindowSize();
-    const float maxX = static_cast<float>(width) - GameConfig::Player::SPRITE_WIDTH * GameConfig::Player::SCALE;
-    const float maxY = static_cast<float>(height) - GameConfig::Player::SPRITE_HEIGHT * GameConfig::Player::SCALE;
+    const float maxX =
+        static_cast<float>(width) - utl::GameConfig::Player::SPRITE_WIDTH * utl::GameConfig::Player::SCALE;
+    const float maxY =
+        static_cast<float>(height) - utl::GameConfig::Player::SPRITE_HEIGHT * utl::GameConfig::Player::SCALE;
 
     playerTransform->x = std::min(playerTransform->x, maxX);
     playerTransform->y = std::min(playerTransform->y, maxY);
@@ -213,25 +216,25 @@ void gme::GameSolo::updatePlayerSkin()
 
     if (auto *playerRect = registry.getComponent<ecs::Rect>(m_playerEntity); playerRect != nullptr)
     {
-        const float skinPosY = m_skinIndex * GameConfig::Player::SPRITE_HEIGHT;
+        const float skinPosY = m_skinIndex * utl::GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }
 }
 
 ecs::Entity gme::GameSolo::createPlayer(ecs::Registry &registry)
 {
-    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(GameConfig::Player::SPRITE_WIDTH,
-                                                          GameConfig::Player::SPRITE_HEIGHT, GameConfig::Player::SCALE);
+    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(
+        utl::GameConfig::Player::SPRITE_WIDTH, utl::GameConfig::Player::SPRITE_HEIGHT, utl::GameConfig::Player::SCALE);
 
     return registry.createEntity()
         .with<ecs::Transform>("player_transform", 200.0F, 100.0F, 0.F)
         .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
-        .with<ecs::Rect>("player_rect", 0.F, 0.F, static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
-                         static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
-        .with<ecs::Scale>("player_scale", GameConfig::Player::SCALE, GameConfig::Player::SCALE)
+        .with<ecs::Rect>("player_rect", 0.F, 0.F, static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH),
+                         static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT))
+        .with<ecs::Scale>("player_scale", utl::GameConfig::Player::SCALE, utl::GameConfig::Player::SCALE)
         .with<ecs::Texture>("player_texture", utl::Path::Texture::TEXTURE_PLAYER)
         .with<ecs::Player>("player", true)
-        .with<ecs::BeamCharge>("beam_charge", 0.0f, GameConfig::Beam::MAX_CHARGE)
-        .with<ecs::Hitbox>("player_hitbox", GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
+        .with<ecs::BeamCharge>("beam_charge", 0.0f, utl::GameConfig::Beam::MAX_CHARGE)
+        .with<ecs::Hitbox>("player_hitbox", utl::GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
         .build();
 }

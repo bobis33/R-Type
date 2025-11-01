@@ -50,8 +50,7 @@ void gme::HUDSystem::updateScore(ecs::Registry &registry, int newScore) const
         }
 
         auto *digitTransform = registry.getComponent<ecs::Transform>(m_scoreDigitEntities[i]);
-        auto *digitScale = registry.getComponent<ecs::Scale>(m_scoreDigitEntities[i]);
-        if ((digitTransform != nullptr) && (digitScale != nullptr))
+        if (auto *digitScale = registry.getComponent<ecs::Scale>(m_scoreDigitEntities[i]); (digitTransform != nullptr) && (digitScale != nullptr))
         {
             digitTransform->x = 10.0f + 130.0f + i * 20.0f;
             digitTransform->y = 10.0f + 4.0f;

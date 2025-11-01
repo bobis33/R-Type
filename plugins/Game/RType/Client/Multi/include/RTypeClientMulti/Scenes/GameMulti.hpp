@@ -13,7 +13,7 @@
 
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
+#include "RTypeClientMulti/Managers/StageManager.hpp"
 #include "Utils/EventBus.hpp"
 
 namespace gme
@@ -59,12 +59,11 @@ namespace gme
         private:
             void setupEventSubscriptions() const;
             void processEventBus();
-            void handlePlayerInputReceived(const utl::Event &event);
             void handleWorldStateUpdate(const utl::Event &event);
 
             void updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
                                      std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor, float dt,
-                                     ecs::Registry &registry);
+                                     ecs::Registry &registry) const;
 
             ecs::Entity m_localPlayerEntity;
             std::unordered_map<uint32_t, ecs::Entity> m_remotePlayers;
@@ -79,6 +78,7 @@ namespace gme
 
             uint32_t m_sessionId;
             uint32_t m_eventComponentId = 10;
+            std::unique_ptr<StageManager> m_stageManager;
 
             std::unordered_map<uint32_t, ecs::Entity> m_projectileEntities;
             std::unordered_map<uint32_t, ecs::Entity> m_enemyEntities;
@@ -86,6 +86,7 @@ namespace gme
             std::unordered_map<uint32_t, InterpolationData> m_remotePlayerData;
             std::unordered_map<uint32_t, InterpolationData> m_projectileData;
             std::unordered_map<uint32_t, InterpolationData> m_enemyData;
+            std::unordered_map<uint32_t, uint32_t> m_playerSkinMap;
             struct PendingInput
             {
                     uint32_t seqId;
@@ -100,5 +101,10 @@ namespace gme
             static constexpr float ENEMY_SMOOTH_FACTOR = 0.18f;
 
             bool m_starfieldCreated = false;
+            ecs::Entity m_beginSoundEntity{};
+            ecs::Entity m_bossMusicEntity{};
+            float m_bossMusicTimer = 0.0f;
+            bool m_bossMusicStarted = false;
+            static constexpr float BOSS_MUSIC_DURATION = 40.0f;
     }; // class GameMulti
 } // namespace gme

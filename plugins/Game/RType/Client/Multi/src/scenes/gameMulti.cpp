@@ -1,13 +1,15 @@
-#include "RTypeClientMulti/Scenes/GameMulti.hpp"
+#include <algorithm>
+#include <ranges>
+#include <set>
+
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
+#include "RTypeClientMulti/Managers/StageManager.hpp"
+#include "RTypeClientMulti/Scenes/GameMulti.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
-#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
-#include <algorithm>
-
-#include <ranges>
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                           const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
@@ -93,7 +95,27 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
 
     m_localPlayerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
 
-    registry.createEntity().with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, true).build();
+    if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity))
+    {
+        uint32_t skinIndex = 0;
+        if (m_playerSkinMap.contains(m_sessionId))
+        {
+            skinIndex = m_playerSkinMap[m_sessionId];
+        }
+        const float skinPosY = static_cast<float>(skinIndex) * utl::GameConfig::Player::SPRITE_HEIGHT;
+        playerRect->pos_y = skinPosY;
+    }
+
+    const auto beginSoundEntity = registry.createEntity()
+                                      .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 1.0F, false, false)
+                                      .build();
+    if (auto *audioComp = registry.getComponent<ecs::Audio>(beginSoundEntity))
+    {
+        audioComp->play = true;
+    }
+    m_beginSoundEntity = beginSoundEntity;
+
+    m_stageManager = std::make_unique<StageManager>();
 
     setupEventSubscriptions();
 }
@@ -102,6 +124,7 @@ void gme::GameMulti::setupEventSubscriptions() const
 {
     utl::EventBus &eventBus = utl::EventBus::getInstance();
     eventBus.registerComponent(m_eventComponentId, "GameMulti");
+    eventBus.subscribe(m_eventComponentId, utl::EventType::GAME_START);
     eventBus.subscribe(m_eventComponentId, utl::EventType::PLAYER_INPUT_RECEIVED);
     eventBus.subscribe(m_eventComponentId, utl::EventType::WORLD_STATE_RECEIVED);
 }
@@ -109,12 +132,16 @@ void gme::GameMulti::setupEventSubscriptions() const
 void gme::GameMulti::processEventBus()
 {
     auto &eventBus = utl::EventBus::getInstance();
-    for (std::vector<utl::Event> events = eventBus.consumeForTarget(m_eventComponentId); const auto &event : events)
+    for (const std::vector<utl::Event> events = eventBus.consumeForTarget(m_eventComponentId);
+         const auto &event : events)
     {
         switch (event.type)
         {
+            case utl::EventType::GAME_START:
+            {
+                break;
+            }
             case utl::EventType::PLAYER_INPUT_RECEIVED:
-                handlePlayerInputReceived(event);
                 break;
             case utl::EventType::WORLD_STATE_RECEIVED:
                 handleWorldStateUpdate(event);
@@ -125,8 +152,6 @@ void gme::GameMulti::processEventBus()
     }
 }
 
-void gme::GameMulti::handlePlayerInputReceived(const utl::Event &event) {}
-
 void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 {
     try
@@ -136,138 +161,206 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 
         auto &registry = getRegistry();
 
-        for (const auto &entityState : worldState.entities)
+        static bool firstWorldState = true;
+        if (firstWorldState)
         {
-            if (entityState.id == m_sessionId)
+            uint32_t playerIndex = 0;
+            std::vector<uint32_t> playerIds;
+
+            playerIds.push_back(m_sessionId);
+            for (const auto &entityState : worldState.entities)
+            {
+                if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
+                {
+                    if (entityState.id != m_sessionId)
+                    {
+                        playerIds.push_back(entityState.id);
+                    }
+                }
+            }
+
+            for (uint32_t playerId : playerIds)
+            {
+                m_playerSkinMap[playerId] = playerIndex;
+                playerIndex++;
+            }
+
+            firstWorldState = false;
+        }
+
+        for (const auto &[id, type, x, y, vx, vy, stateFlags] : worldState.entities)
+        {
+            if (id == m_sessionId)
             {
                 if (auto *transform = registry.getComponent<ecs::Transform>(m_localPlayerEntity))
                 {
-                    float deltaX = std::abs(transform->x - entityState.x);
-                    float deltaY = std::abs(transform->y - entityState.y);
-                    const float CORRECTION_THRESHOLD = 5.0f;
+                    const float deltaX = std::abs(transform->x - x);
+                    const float deltaY = std::abs(transform->y - y);
 
-                    if (deltaX > CORRECTION_THRESHOLD || deltaY > CORRECTION_THRESHOLD)
+                    if (constexpr float CORRECTION_THRESHOLD = 5.0f;
+                        deltaX > CORRECTION_THRESHOLD || deltaY > CORRECTION_THRESHOLD)
                     {
                         float t = 0.2f;
-                        transform->x = transform->x + t * (entityState.x - transform->x);
-                        transform->y = transform->y + t * (entityState.y - transform->y);
+                        transform->x = transform->x + t * (x - transform->x);
+                        transform->y = transform->y + t * (y - transform->y);
                     }
                 }
                 if (auto *velocity = registry.getComponent<ecs::Velocity>(m_localPlayerEntity))
                 {
-                    velocity->x = entityState.vx;
-                    velocity->y = entityState.vy;
+                    velocity->x = vx;
+                    velocity->y = vy;
+                }
+                if (auto *beamCharge = registry.getComponent<ecs::BeamCharge>(m_localPlayerEntity))
+                {
+                    beamCharge->current_charge = static_cast<float>(stateFlags) / 255.0f;
                 }
             }
-            else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
+            else if (type == static_cast<std::uint16_t>(rnp::EntityType::PLAYER))
             {
-                if (m_remotePlayers.find(entityState.id) == m_remotePlayers.end())
+                if (const auto remoteIt = m_remotePlayers.find(id); remoteIt == m_remotePlayers.end())
                 {
-                    ecs::Entity remotePlayer =
-                        registry.createEntity()
-                            .with<ecs::Transform>("remote_player_" + std::to_string(entityState.id), entityState.x,
-                                                  entityState.y, 0.F)
-                            .with<ecs::Velocity>("remote_velocity_" + std::to_string(entityState.id), entityState.vx,
-                                                 entityState.vy)
-                            .with<ecs::Rect>("remote_rect_" + std::to_string(entityState.id), 0.F, 0.F,
-                                             static_cast<int>(GameConfig::Player::SPRITE_WIDTH),
-                                             static_cast<int>(GameConfig::Player::SPRITE_HEIGHT))
-                            .with<ecs::Scale>("remote_scale_" + std::to_string(entityState.id),
-                                              GameConfig::Player::SCALE, GameConfig::Player::SCALE)
-                            .with<ecs::Texture>("remote_texture_" + std::to_string(entityState.id),
-                                                utl::Path::Texture::TEXTURE_PLAYER)
-                            .with<ecs::Player>("remote_player_comp_" + std::to_string(entityState.id), false)
-                            .build();
-                    m_remotePlayers[entityState.id] = remotePlayer;
+                    uint32_t skinIndex = 0;
+                    if (const auto skinIt = m_playerSkinMap.find(id); skinIt != m_playerSkinMap.end())
+                    {
+                        skinIndex = skinIt->second;
+                    }
+                    float skinPosY = static_cast<float>(skinIndex) * utl::GameConfig::Player::SPRITE_HEIGHT;
 
-                    m_remotePlayerData[entityState.id] = {.targetX = entityState.x,
-                                                          .targetY = entityState.y,
-                                                          .targetVx = entityState.vx,
-                                                          .targetVy = entityState.vy,
-                                                          .currentX = entityState.x,
-                                                          .currentY = entityState.y,
-                                                          .smoothFactor = REMOTE_PLAYER_SMOOTH_FACTOR,
-                                                          .targetRotation = 0.0f,
-                                                          .currentRotation = 0.0f};
+                    const ecs::Entity remotePlayer =
+                        registry.createEntity()
+                            .with<ecs::Transform>("remote_player_" + std::to_string(id), x, y, 0.F)
+                            .with<ecs::Velocity>("remote_velocity_" + std::to_string(id), vx, vy)
+                            .with<ecs::Rect>("remote_rect_" + std::to_string(id), 0.F, skinPosY,
+                                             static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH),
+                                             static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT))
+                            .with<ecs::Scale>("remote_scale_" + std::to_string(id), utl::GameConfig::Player::SCALE,
+                                              utl::GameConfig::Player::SCALE)
+                            .with<ecs::Texture>("remote_texture_" + std::to_string(id),
+                                                utl::Path::Texture::TEXTURE_PLAYER)
+                            .with<ecs::Player>("remote_player_comp_" + std::to_string(id), false)
+                            .build();
+                    m_remotePlayers[id] = remotePlayer;
+
+                    m_remotePlayerData[id] = {.targetX = x,
+                                              .targetY = y,
+                                              .targetVx = vx,
+                                              .targetVy = vy,
+                                              .currentX = x,
+                                              .currentY = y,
+                                              .smoothFactor = REMOTE_PLAYER_SMOOTH_FACTOR,
+                                              .targetRotation = 0.0f,
+                                              .currentRotation = 0.0f};
                 }
                 else
                 {
-                    m_remotePlayerData[entityState.id].targetX = entityState.x;
-                    m_remotePlayerData[entityState.id].targetY = entityState.y;
-                    m_remotePlayerData[entityState.id].targetVx = entityState.vx;
-                    m_remotePlayerData[entityState.id].targetVy = entityState.vy;
+                    m_remotePlayerData[id].targetX = x;
+                    m_remotePlayerData[id].targetY = y;
+                    m_remotePlayerData[id].targetVx = vx;
+                    m_remotePlayerData[id].targetVy = vy;
                 }
             }
-            else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
+            else if (type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
             {
-                if (m_projectileEntities.find(entityState.id) == m_projectileEntities.end())
+                if (const auto projectileIt = m_projectileEntities.find(id); projectileIt == m_projectileEntities.end())
                 {
-                    ecs::Entity projectile =
+                    const bool isSupercharged = (vx > 1000.0f || std::abs(vx) > 1000.0f);
+                    std::string texturePath =
+                        isSupercharged ? utl::Path::Texture::TEXTURE_SHOOT_CHARGED : utl::Path::Texture::TEXTURE_SHOOT;
+
+                    auto entityBuilder =
                         registry.createEntity()
-                            .with<ecs::Transform>("projectile_" + std::to_string(entityState.id), entityState.x,
-                                                  entityState.y, 0.F)
-                            .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id),
-                                                 entityState.vx, entityState.vy)
-                            .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, 20, 10)
-                            .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
-                            .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id),
-                                                utl::Path::Texture::TEXTURE_PLAYER)
+                            .with<ecs::Transform>("projectile_" + std::to_string(id), x, y, 0.F)
+                            .with<ecs::Velocity>("projectile_velocity_" + std::to_string(id), vx, vy)
+                            .with<ecs::Rect>("projectile_rect_" + std::to_string(id), 0.F, 0.F,
+                                             isSupercharged ? 29 : 20, isSupercharged ? 24 : 10)
+                            .with<ecs::Scale>("projectile_scale_" + std::to_string(id), isSupercharged ? 1.5f : 1.0f,
+                                              isSupercharged ? 1.5f : 1.0f)
+                            .with<ecs::Texture>("projectile_texture_" + std::to_string(id), texturePath);
+
+                    if (isSupercharged)
+                    {
+                        entityBuilder.with<ecs::Animation>("projectile_animation_" + std::to_string(id), 0, 4, 0.15f,
+                                                           0.0f, 29, 24, 4);
+                    }
+
+                    const ecs::Entity projectile = entityBuilder.build();
+                    m_projectileEntities[id] = projectile;
+
+                    const auto shootSound =
+                        registry.createEntity()
+                            .with<ecs::Audio>("projectile_shoot_" + std::to_string(id),
+                                              utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 1.5F, false, false)
                             .build();
-
-                    m_projectileEntities[entityState.id] = projectile;
-
-                    m_projectileData[entityState.id] = {.targetX = entityState.x,
-                                                        .targetY = entityState.y,
-                                                        .targetVx = entityState.vx,
-                                                        .targetVy = entityState.vy,
-                                                        .currentX = entityState.x,
-                                                        .currentY = entityState.y,
-                                                        .smoothFactor = PROJECTILE_SMOOTH_FACTOR,
-                                                        .targetRotation = 0.0f,
-                                                        .currentRotation = 0.0f};
+                    if (auto *audioComp = registry.getComponent<ecs::Audio>(shootSound))
+                    {
+                        audioComp->play = true;
+                    }
                 }
                 else
                 {
-                    m_projectileData[entityState.id].targetX = entityState.x;
-                    m_projectileData[entityState.id].targetY = entityState.y;
-                    m_projectileData[entityState.id].targetVx = entityState.vx;
-                    m_projectileData[entityState.id].targetVy = entityState.vy;
+                    const ecs::Entity projectileEntity = projectileIt->second;
+                    auto *transform = registry.getComponent<ecs::Transform>(projectileEntity);
+                    auto *velocity = registry.getComponent<ecs::Velocity>(projectileEntity);
+
+                    if (transform != nullptr)
+                    {
+                        transform->x = x;
+                        transform->y = y;
+
+                        if (transform->x > 2000.0f || transform->x < -100.0f)
+                        {
+                            registry.removeComponent<ecs::Transform>(projectileEntity);
+                            registry.removeComponent<ecs::Velocity>(projectileEntity);
+                            registry.removeComponent<ecs::Rect>(projectileEntity);
+                            registry.removeComponent<ecs::Scale>(projectileEntity);
+                            registry.removeComponent<ecs::Texture>(projectileEntity);
+                            registry.removeComponent<ecs::Animation>(projectileEntity);
+                            m_projectileEntities.erase(projectileIt);
+                        }
+                        else if (velocity != nullptr)
+                        {
+                            velocity->x = vx;
+                            velocity->y = vy;
+                        }
+                    }
+                    else if (velocity != nullptr)
+                    {
+                        velocity->x = vx;
+                        velocity->y = vy;
+                    }
                 }
             }
-            else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::ENEMY))
+            else if (type == static_cast<std::uint16_t>(rnp::EntityType::ENEMY))
             {
-                if (m_enemyEntities.find(entityState.id) == m_enemyEntities.end())
+                if (auto enemyIt = m_enemyEntities.find(id); enemyIt == m_enemyEntities.end())
                 {
-                    ecs::Entity enemy =
-                        registry.createEntity()
-                            .with<ecs::Transform>("enemy_" + std::to_string(entityState.id), entityState.x,
-                                                  entityState.y, 0.F)
-                            .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx,
-                                                 entityState.vy)
-                            .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, 50, 50)
-                            .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), 1.0f, 1.0f)
-                            .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id),
-                                                utl::Path::Texture::TEXTURE_PLAYER)
-                            .build();
+                    const ecs::Entity enemy = registry.createEntity()
+                                                  .with<ecs::Transform>("enemy_" + std::to_string(id), x, y, 0.F)
+                                                  .with<ecs::Velocity>("enemy_velocity_" + std::to_string(id), vx, vy)
+                                                  .with<ecs::Rect>("enemy_rect_" + std::to_string(id), 0.F, 0.F, 50, 50)
+                                                  .with<ecs::Scale>("enemy_scale_" + std::to_string(id), 1.0f, 1.0f)
+                                                  .with<ecs::Texture>("enemy_texture_" + std::to_string(id),
+                                                                      utl::Path::Texture::TEXTURE_PLAYER)
+                                                  .build();
 
-                    m_enemyEntities[entityState.id] = enemy;
+                    m_enemyEntities[id] = enemy;
 
-                    m_enemyData[entityState.id] = {.targetX = entityState.x,
-                                                   .targetY = entityState.y,
-                                                   .targetVx = entityState.vx,
-                                                   .targetVy = entityState.vy,
-                                                   .currentX = entityState.x,
-                                                   .currentY = entityState.y,
-                                                   .smoothFactor = ENEMY_SMOOTH_FACTOR,
-                                                   .targetRotation = 0.0f,
-                                                   .currentRotation = 0.0f};
+                    m_enemyData[id] = {.targetX = x,
+                                       .targetY = y,
+                                       .targetVx = vx,
+                                       .targetVy = vy,
+                                       .currentX = x,
+                                       .currentY = y,
+                                       .smoothFactor = ENEMY_SMOOTH_FACTOR,
+                                       .targetRotation = 0.0f,
+                                       .currentRotation = 0.0f};
                 }
                 else
                 {
-                    m_enemyData[entityState.id].targetX = entityState.x;
-                    m_enemyData[entityState.id].targetY = entityState.y;
-                    m_enemyData[entityState.id].targetVx = entityState.vx;
-                    m_enemyData[entityState.id].targetVy = entityState.vy;
+                    m_enemyData[id].targetX = x;
+                    m_enemyData[id].targetY = y;
+                    m_enemyData[id].targetVx = vx;
+                    m_enemyData[id].targetVy = vy;
                 }
             }
         }
@@ -286,20 +379,67 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
     {
         m_playerController->update(reg, dt);
     }
-
-    const auto &audios = reg.getAll<ecs::Audio>();
-
-    for (const auto &audio : audios)
+    for (const auto &audios = reg.getAll<ecs::Audio>(); const auto &audio : audios | std::views::values)
     {
-        if (!audio.second.play && (m_audio->isPlaying(audio.second.id) == eng::Status::Playing))
+        if (!audio.play && audio.loop && (m_audio->isPlaying(audio.id) == eng::Status::Playing))
         {
-            m_audio->stopAudio(audio.second.id);
+            m_audio->stopAudio(audio.id);
+        }
+    }
+    if (m_beginSoundEntity != ecs::Entity{} && m_stageManager && !m_bossMusicStarted)
+    {
+        thread_local std::string beginNameCache;
+        beginNameCache.clear();
+        beginNameCache = "game_begin";
+        beginNameCache += std::to_string(m_beginSoundEntity);
+
+        if (m_audio->isPlaying(beginNameCache) != eng::Status::Playing)
+        {
+            if (auto *beginAudio = reg.getComponent<ecs::Audio>(m_beginSoundEntity))
+            {
+                beginAudio->play = false;
+            }
+            m_stageManager->stopScrolling(reg);
+            m_bossMusicEntity = reg.createEntity()
+                                    .with<ecs::Audio>("boss_music", utl::Path::Audio::AUDIO_BOSS, 1.0F, true, false)
+                                    .build();
+            if (auto *bossAudio = reg.getComponent<ecs::Audio>(m_bossMusicEntity))
+            {
+                bossAudio->loop = true;
+                bossAudio->play = true;
+            }
+            m_bossMusicStarted = true;
+            m_bossMusicTimer = 0.0f;
+            m_beginSoundEntity = {};
+        }
+    }
+    if (m_bossMusicStarted)
+    {
+        m_bossMusicTimer += dt;
+        if (m_bossMusicTimer >= BOSS_MUSIC_DURATION)
+        {
+            if (auto *bossAudio = reg.getComponent<ecs::Audio>(m_bossMusicEntity))
+            {
+                bossAudio->loop = false;
+                bossAudio->play = false;
+            }
+            m_bossMusicStarted = false;
+        }
+        else
+        {
+            if (auto *bossAudio = reg.getComponent<ecs::Audio>(m_bossMusicEntity))
+            {
+                bossAudio->loop = true;
+                bossAudio->play = true;
+            }
         }
     }
 
     updateInterpolation(m_remotePlayerData, m_remotePlayers, REMOTE_PLAYER_SMOOTH_FACTOR, dt, reg);
     updateInterpolation(m_projectileData, m_projectileEntities, PROJECTILE_SMOOTH_FACTOR, dt, reg);
     updateInterpolation(m_enemyData, m_enemyEntities, ENEMY_SMOOTH_FACTOR, dt, reg);
+
+    m_stageManager->update(reg, dt, size);
 
     processEventBus();
 }
@@ -312,16 +452,18 @@ void gme::GameMulti::event(const eng::Event &event)
 
 void gme::GameMulti::updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
                                          std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor,
-                                         float dt, ecs::Registry &registry)
+                                         float dt, ecs::Registry &registry) const
 {
     for (auto &[entityId, interpData] : dataMap)
     {
         if (&dataMap == &m_remotePlayerData && entityId == m_sessionId)
-            continue;
-
-        if (entityMap.find(entityId) != entityMap.end())
         {
-            ecs::Entity entity = entityMap[entityId];
+            continue;
+        }
+
+        if (auto entityIt = entityMap.find(entityId); entityIt != entityMap.end())
+        {
+            const ecs::Entity entity = entityIt->second;
             if (auto *transform = registry.getComponent<ecs::Transform>(entity))
             {
                 interpData.currentX += (interpData.targetX - interpData.currentX) * interpData.smoothFactor;
@@ -350,7 +492,7 @@ void gme::GameMulti::updatePlayerSkin()
 
     if (auto *playerRect = registry.getComponent<ecs::Rect>(m_localPlayerEntity); playerRect != nullptr)
     {
-        const float skinPosY = m_skinIndex * GameConfig::Player::SPRITE_HEIGHT;
+        const float skinPosY = m_skinIndex * utl::GameConfig::Player::SPRITE_HEIGHT;
         playerRect->pos_y = skinPosY;
     }
 }

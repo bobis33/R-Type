@@ -36,8 +36,10 @@ namespace gme
             void handleInput(ecs::Registry &registry, const eng::Event &event);
             ecs::Entity createPlayer(ecs::Registry &registry, float x, float y);
 
+            bool isSpacePressed() const;
+
         private:
-            void sendInputToServer(bool up, bool down, bool left, bool right, bool shoot);
+            void sendInputToServer(bool up, bool down, bool left, bool right, bool shoot) const;
             void sendInputsIfChanged();
 
             const std::shared_ptr<eng::IRenderer> &m_renderer;
@@ -47,6 +49,9 @@ namespace gme
             utl::EventBus &m_eventBus;
 
             const float INPUT_THROTTLE_INTERVAL = 1.0f / 144.0f; // Send inputs at 144 Hz max
+
+            uint32_t m_nextSeqId = 1;
+            uint32_t m_lastAckSeqId = 0;
 
             struct PendingInput
             {

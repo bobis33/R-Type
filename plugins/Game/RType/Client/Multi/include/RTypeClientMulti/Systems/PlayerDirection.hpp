@@ -1,19 +1,11 @@
-///
-/// @file PlayerDirection.hpp
-/// @brief This file contains the player direction system definitions
-/// @namespace gme
-///
-
 #pragma once
 
 #include <cmath>
-#include <numbers>
-#include <ranges>
+#include <utility>
 
 #include "ECS/Component.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
-#include "Utils/Common.hpp"
 #include "Utils/RTypeShared/GameConfig.hpp"
 
 #ifndef M_PI
@@ -22,12 +14,10 @@
 
 namespace gme
 {
-    struct AppConfig;
-
     class PlayerDirectionSystem final : public ecs::ASystem
     {
         public:
-            explicit PlayerDirectionSystem(const int skinIndex) : m_skinIndex(skinIndex) {}
+            PlayerDirectionSystem() = default;
             ~PlayerDirectionSystem() override = default;
 
             PlayerDirectionSystem(const PlayerDirectionSystem &) = delete;
@@ -37,8 +27,9 @@ namespace gme
 
             void update(ecs::Registry &registry, float /* dt */) override
             {
-                for (const auto &entity : registry.getAll<ecs::Player>() | std::views::keys)
+                for (auto &pair : registry.getAll<ecs::Player>())
                 {
+                    const auto entity = pair.first;
                     const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
 
                     if (auto *rect = registry.getComponent<ecs::Rect>(entity);
@@ -46,7 +37,9 @@ namespace gme
                     {
                         int frame = 0;
                         float angle = std::atan2(velocity->y, velocity->x);
-                        if (std::abs(velocity->x) < 0.1f && std::abs(velocity->y) < 0.1f)
+
+                        const bool isIdle = (std::abs(velocity->x) < 0.1f && std::abs(velocity->y) < 0.1f);
+                        if (isIdle)
                         {
                             frame = 0;
                         }
@@ -54,47 +47,46 @@ namespace gme
                         {
                             if (angle < 0)
                             {
-                                angle += 2.0f * std::numbers::pi_v<float>;
+                                angle += 2.0f * static_cast<float>(M_PI);
                             }
                             if (angle >= 0 && angle < M_PI / 4)
                             {
-                                frame = 0;
+                                frame = 0; // droite
                             }
                             else if (angle >= M_PI / 4 && angle < 3 * M_PI / 4)
                             {
-                                frame = 1;
+                                frame = 1; // bas
                             }
                             else if (angle >= 3 * M_PI / 4 && angle < 5 * M_PI / 4)
                             {
-                                frame = 2;
+                                frame = 2; // gauche
                             }
                             else if (angle >= 5 * M_PI / 4 && angle < 7 * M_PI / 4)
                             {
-                                frame = 3;
+                                frame = 3; // haut
                             }
                             else
                             {
-                                frame = 4;
+                                frame = 4; // wrap
                             }
                         }
-                        int frame_width = static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH);
-                        int frame_height = static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
-                        int frames_per_row = utl::GameConfig::Player::FRAMES_PER_ROW;
-                        int frame_x = (frame % frames_per_row) * frame_width;
-                        int frame_y = (frame / frames_per_row) * frame_height;
 
-                        const int skin_offset = m_skinIndex * static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
-                        frame_y += skin_offset;
+                        const int frame_x = (frame % utl::GameConfig::Player::FRAMES_PER_ROW) *
+                                            static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH);
+                        int frame_y = (frame / utl::GameConfig::Player::FRAMES_PER_ROW) *
+                                      static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
+
+                        const int current_row = static_cast<int>(
+                            rect->pos_y / static_cast<float>(static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT)));
+                        const int skin_offset = current_row * static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
+                        frame_y = skin_offset + frame_y;
 
                         rect->pos_x = static_cast<float>(frame_x);
                         rect->pos_y = static_cast<float>(frame_y);
-                        rect->size_x = frame_width;
-                        rect->size_y = frame_height;
+                        rect->size_x = static_cast<int>(utl::GameConfig::Player::SPRITE_WIDTH);
+                        rect->size_y = static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
                     }
                 }
             }
-
-        private:
-            int m_skinIndex;
-    }; // class PlayerDirectionSystem
+    };
 } // namespace gme

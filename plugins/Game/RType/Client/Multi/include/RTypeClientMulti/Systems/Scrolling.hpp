@@ -1,9 +1,3 @@
-///
-/// @file Scrolling.hpp
-/// @brief Horizontal scrolling system for large floor/ceiling sprites
-/// @namespace gme
-///
-
 #pragma once
 
 #include "ECS/Component.hpp"
@@ -14,7 +8,6 @@
 
 namespace gme
 {
-
     class ScrollingSystem final : public ecs::ASystem
     {
         public:
@@ -24,7 +17,7 @@ namespace gme
             ScrollingSystem(const ScrollingSystem &) = delete;
             ScrollingSystem &operator=(const ScrollingSystem &) = delete;
             ScrollingSystem(ScrollingSystem &&) = delete;
-            ScrollingSystem &operator=(ScrollingSystem &&) = delete;
+            ScrollingSystem &operator=(const ScrollingSystem &&) = delete;
 
             void update(ecs::Registry &registry, float dt) override
             {
@@ -73,5 +66,5 @@ namespace gme
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-    }; // class ScrollingSystem
+    };
 } // namespace gme

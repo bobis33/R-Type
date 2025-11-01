@@ -14,7 +14,7 @@
 #include "ECS/Interfaces/ISystems.hpp"
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
-#include "RTypeShared/GameConfig.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 
 namespace gme
 {
@@ -64,7 +64,7 @@ namespace gme
                             animation->current_frame = (animation->current_frame + 1) % animation->total_frames;
 
                             const int frame_x =
-                                animation->current_frame * static_cast<int>(GameConfig::Enemy::Easy::SPRITE_WIDTH);
+                                animation->current_frame * static_cast<int>(utl::GameConfig::Enemy::Easy::SPRITE_WIDTH);
                             rect->pos_x = static_cast<float>(frame_x);
                             rect->pos_y = static_cast<float>(0);
                         }
@@ -76,9 +76,9 @@ namespace gme
                                              rect->size_y);
                     m_renderer->drawSprite(texture->id + std::to_string(entity));
 
-                    if (transform->x < GameConfig::Screen::REMOVE_X ||
-                        transform->y < GameConfig::Screen::REMOVE_MIN_Y ||
-                        transform->y > GameConfig::Screen::REMOVE_MAX_Y)
+                    if (transform->x < utl::GameConfig::Screen::REMOVE_X ||
+                        transform->y < utl::GameConfig::Screen::REMOVE_MIN_Y ||
+                        transform->y > utl::GameConfig::Screen::REMOVE_MAX_Y)
                     {
                         enemiesToRemove.push_back(entity);
                     }
