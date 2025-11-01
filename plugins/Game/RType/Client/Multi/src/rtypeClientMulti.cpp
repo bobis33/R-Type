@@ -6,6 +6,7 @@
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
 #include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
 #include "RTypeClientMulti/Systems/Systems.hpp"
+#include "RTypeClientMulti/Systems/Explosion.hpp"
 #include "Utils/Logger.hpp"
 
 void gme::RTypeClientMulti::update(float deltaTime, unsigned int width, unsigned int height) {}
@@ -140,6 +141,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
                                                      m_appConfig->skinIndex, m_showDebug, sessionId);
         gameMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_appConfig->audioVolume,
                                                                 gameMulti->getRegistry(), gameMulti->playMusic()));
+        gameMulti->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));

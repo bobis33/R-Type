@@ -10,6 +10,7 @@
 #include "Utils/EventBus.hpp"
 #include <algorithm>
 #include <set>
+#include <vector>
 
 gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
                           const std::shared_ptr<eng::IAudio> &audio, const float skinIndex, bool &showDebug,
@@ -20,7 +21,7 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [this, &renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
         {
             const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
@@ -46,7 +47,12 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
             {
                 if (textComp && transform && fontComp)
                 {
-                    renderer->createFont(fontComp->id, fontComp->path);
+                    // Only create font if not already loaded (cache)
+                    if (this->m_loadedFonts.find(fontComp->id) == this->m_loadedFonts.end())
+                    {
+                        renderer->createFont(fontComp->id, fontComp->path);
+                        this->m_loadedFonts.insert(fontComp->id);
+                    }
                     renderer->createText(
                         {.font_name = fontComp->id,
                          .color = {.r = colorComp->r, .g = colorComp->g, .b = colorComp->b, .a = colorComp->a},
@@ -62,7 +68,12 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
                 const float scale_x = scaleComp ? scaleComp->x : 1.F;
                 const float scale_y = scaleComp ? scaleComp->y : 1.F;
 
-                renderer->createTexture(textureComp->id, textureComp->path);
+                // Only create texture if not already loaded (cache)
+                if (this->m_loadedTextures.find(textureComp->id) == this->m_loadedTextures.end())
+                {
+                    renderer->createTexture(textureComp->id, textureComp->path);
+                    this->m_loadedTextures.insert(textureComp->id);
+                }
 
                 if (transform && textureComp)
                 {
@@ -128,10 +139,38 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
 
     m_stageManager = std::make_unique<StageManager>();
 
+    // Preload all common textures to avoid lag spikes during gameplay
+    preloadCommonTextures();
+
     setupEventSubscriptions();
 }
 
-void gme::GameMulti::setupEventSubscriptions() const
+void gme::GameMulti::preloadCommonTextures()
+{
+    // Preload all textures that will be used during gameplay
+    // This prevents lag when entities are first created from world state
+
+    std::vector<std::pair<std::string, std::string>> texturesToLoad = {
+        {"player", utl::Path::Texture::TEXTURE_PLAYER},
+        {"enemy_basic", utl::Path::Texture::TEXTURE_ENEMY_BASIC},
+        {"enemy_advanced", utl::Path::Texture::TEXTURE_ENEMY_ADVANCED},
+        {"boss", utl::Path::Texture::TEXTURE_BOSS},
+        {"shoot", utl::Path::Texture::TEXTURE_SHOOT},
+        {"shoot_charged", utl::Path::Texture::TEXTURE_SHOOT_CHARGED},
+        {"enemy_projectile", utl::Path::Texture::TEXTURE_ENEMY_PROJECTILE},
+        {"explosion", utl::Path::Texture::TEXTURE_EXPLOSION}};
+
+    for (const auto &[id, path] : texturesToLoad)
+    {
+        if (m_loadedTextures.find(id) == m_loadedTextures.end())
+        {
+            m_renderer->createTexture(id, path);
+            m_loadedTextures.insert(id);
+        }
+    }
+}
+
+void gme::GameMulti::setupEventSubscriptions()
 {
     utl::EventBus &eventBus = utl::EventBus::getInstance();
     eventBus.registerComponent(m_eventComponentId, "GameMulti");
@@ -174,8 +213,11 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 
         auto &registry = getRegistry();
 
-        static bool firstWorldState = true;
-        if (firstWorldState)
+        // Track entities present in this world state
+        std::set<uint32_t> currentEnemyIds;
+        std::set<uint32_t> currentProjectileIds;
+
+        if (m_firstWorldState)
         {
             uint32_t playerIndex = 0;
             std::vector<uint32_t> playerIds;
@@ -198,12 +240,27 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                 playerIndex++;
             }
 
-            firstWorldState = false;
+            m_firstWorldState = false;
         }
 
-        for (const auto &[id, type, x, y, vx, vy, stateFlags] : worldState.entities)
+        // First pass: collect IDs of entities in the world state
+        for (const auto &entityState : worldState.entities)
         {
-            if (id == m_sessionId)
+            if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::ENEMY) ||
+                entityState.type == static_cast<std::uint16_t>(rnp::EntityType::BOSS))
+            {
+                currentEnemyIds.insert(entityState.id);
+            }
+            else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
+            {
+                currentProjectileIds.insert(entityState.id);
+            }
+        }
+
+        // Second pass: process entities
+        for (const auto &entityState : worldState.entities)
+        {
+            if (entityState.id == m_sessionId)
             {
                 if (auto *transform = registry.getComponent<ecs::Transform>(m_localPlayerEntity))
                 {
@@ -329,46 +386,17 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     ecs::Entity projectile = entityBuilder.build();
                     m_projectileEntities[entityState.id] = projectile;
 
-                    // Only play sound for player projectiles
-                    if (!isEnemyProjectile)
-                    {
-                        auto shootSound =
-                            registry.createEntity()
-                                .with<ecs::Audio>("projectile_shoot_" + std::to_string(entityState.id),
-                                                  utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 1.5F, false, false)
-                                .build();
-                        if (auto *audioComp = registry.getComponent<ecs::Audio>(shootSound))
-                        {
-                            audioComp->play = true;
-                        }
-                    }
+                    // Don't play sound for every projectile to avoid audio spam and lag
+                    // Sound should be played on player action locally, not on world state sync
                 }
                 else
                 {
-                    const ecs::Entity projectileEntity = projectileIt->second;
-                    auto *transform = registry.getComponent<ecs::Transform>(projectileEntity);
-                    auto *velocity = registry.getComponent<ecs::Velocity>(projectileEntity);
-
-                    if (transform != nullptr)
+                    // Update existing projectile position and velocity
+                    // Server handles cleanup of off-screen projectiles
+                    if (auto *transform = registry.getComponent<ecs::Transform>(m_projectileEntities[entityState.id]))
                     {
                         transform->x = entityState.x;
                         transform->y = entityState.y;
-
-                        if (transform->x > 2000.0f || transform->x < -100.0f)
-                        {
-                            registry.removeComponent<ecs::Transform>(projectileEntity);
-                            registry.removeComponent<ecs::Velocity>(projectileEntity);
-                            registry.removeComponent<ecs::Rect>(projectileEntity);
-                            registry.removeComponent<ecs::Scale>(projectileEntity);
-                            registry.removeComponent<ecs::Texture>(projectileEntity);
-                            registry.removeComponent<ecs::Animation>(projectileEntity);
-                            m_projectileEntities.erase(projectileIt);
-                        }
-                        else if (velocity != nullptr)
-                        {
-                            velocity->x = vx;
-                            velocity->y = vy;
-                        }
                     }
                     else if (velocity != nullptr)
                     {
@@ -514,6 +542,87 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     m_enemyData[entityState.id].targetVy = entityState.vy;
                 }
             }
+        }
+
+        // Clean up entities that are no longer in the world state
+        // Remove enemies that disappeared (create explosion before removal)
+        std::vector<uint32_t> enemiesToRemove;
+        for (const auto &[enemyId, enemyEntity] : m_enemyEntities)
+        {
+            if (currentEnemyIds.find(enemyId) == currentEnemyIds.end())
+            {
+                enemiesToRemove.push_back(enemyId);
+            }
+        }
+
+        for (uint32_t enemyId : enemiesToRemove)
+        {
+            ecs::Entity enemyEntity = m_enemyEntities[enemyId];
+
+            // Create explosion at enemy position before removing
+            if (auto *transform = registry.getComponent<ecs::Transform>(enemyEntity))
+            {
+                registry.createEntity()
+                    .with<ecs::Transform>("explosion_transform", transform->x, transform->y, 0.0f)
+                    .with<ecs::Rect>("explosion_rect", 0.0f, 0.0f,
+                                     static_cast<int>(GameConfig::Explosion::SPRITE_WIDTH),
+                                     static_cast<int>(GameConfig::Explosion::SPRITE_HEIGHT))
+                    .with<ecs::Scale>("explosion_scale", GameConfig::Explosion::SCALE, GameConfig::Explosion::SCALE)
+                    .with<ecs::Texture>("explosion_texture", utl::Path::Texture::TEXTURE_EXPLOSION)
+                    .with<ecs::Explosion>("explosion", 0, GameConfig::Explosion::ANIMATION_FRAMES,
+                                          GameConfig::Explosion::ANIMATION_DURATION, 0.0f,
+                                          GameConfig::Explosion::SPRITE_WIDTH, GameConfig::Explosion::SPRITE_HEIGHT,
+                                          GameConfig::Explosion::FRAMES_PER_ROW, GameConfig::Explosion::LIFETIME, 0.0f)
+                    .build();
+            }
+
+            // Remove all components
+            if (registry.hasComponent<ecs::Transform>(enemyEntity))
+                registry.removeComponent<ecs::Transform>(enemyEntity);
+            if (registry.hasComponent<ecs::Velocity>(enemyEntity))
+                registry.removeComponent<ecs::Velocity>(enemyEntity);
+            if (registry.hasComponent<ecs::Rect>(enemyEntity))
+                registry.removeComponent<ecs::Rect>(enemyEntity);
+            if (registry.hasComponent<ecs::Scale>(enemyEntity))
+                registry.removeComponent<ecs::Scale>(enemyEntity);
+            if (registry.hasComponent<ecs::Texture>(enemyEntity))
+                registry.removeComponent<ecs::Texture>(enemyEntity);
+            if (registry.hasComponent<ecs::Animation>(enemyEntity))
+                registry.removeComponent<ecs::Animation>(enemyEntity);
+
+            m_enemyEntities.erase(enemyId);
+            m_enemyData.erase(enemyId);
+        }
+
+        // Remove projectiles that disappeared
+        std::vector<uint32_t> projectilesToRemove;
+        for (const auto &[projectileId, projectileEntity] : m_projectileEntities)
+        {
+            if (currentProjectileIds.find(projectileId) == currentProjectileIds.end())
+            {
+                projectilesToRemove.push_back(projectileId);
+            }
+        }
+
+        for (uint32_t projectileId : projectilesToRemove)
+        {
+            ecs::Entity projectileEntity = m_projectileEntities[projectileId];
+
+            // Remove all components
+            if (registry.hasComponent<ecs::Transform>(projectileEntity))
+                registry.removeComponent<ecs::Transform>(projectileEntity);
+            if (registry.hasComponent<ecs::Velocity>(projectileEntity))
+                registry.removeComponent<ecs::Velocity>(projectileEntity);
+            if (registry.hasComponent<ecs::Rect>(projectileEntity))
+                registry.removeComponent<ecs::Rect>(projectileEntity);
+            if (registry.hasComponent<ecs::Scale>(projectileEntity))
+                registry.removeComponent<ecs::Scale>(projectileEntity);
+            if (registry.hasComponent<ecs::Texture>(projectileEntity))
+                registry.removeComponent<ecs::Texture>(projectileEntity);
+            if (registry.hasComponent<ecs::Animation>(projectileEntity))
+                registry.removeComponent<ecs::Animation>(projectileEntity);
+
+            m_projectileEntities.erase(projectileId);
         }
     }
     catch (const std::exception &e)

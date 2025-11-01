@@ -18,6 +18,7 @@
 #include "RTypeServer/Systems/CollisionSystem.hpp"
 #include "RTypeServer/Systems/EnemyAISystem.hpp"
 #include "RTypeServer/Systems/EnemySpawnSystem.hpp"
+#include "RTypeServer/WaveManager.hpp"
 
 namespace gme
 {
@@ -59,6 +60,7 @@ namespace gme
         private:
             void processServerStartEvent(const utl::Event &event);
             void processPlayerInputEvent(const utl::Event &event);
+            void processGameStartEvent(const utl::Event &event);
             void updateEntities(float deltaTime);
             void updateSystems(float deltaTime);
             void broadcastWorldState();
@@ -74,6 +76,7 @@ namespace gme
             std::unique_ptr<CollisionSystem> m_collisionSystem;
             std::unique_ptr<EnemyAISystem> m_enemyAISystem;
             std::unique_ptr<EnemySpawnSystem> m_enemySpawnSystem;
+            std::unique_ptr<WaveManager> m_waveManager;
 
             State m_gameState = State::PLAYING;
             LevelState m_levelState = LevelState::WAITING_FOR_PLAYERS;

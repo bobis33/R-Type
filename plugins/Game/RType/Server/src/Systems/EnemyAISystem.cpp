@@ -5,6 +5,7 @@
 ///
 
 #include "RTypeServer/Systems/EnemyAISystem.hpp"
+#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Logger.hpp"
 #include <algorithm>
 #include <chrono>
@@ -385,13 +386,11 @@ namespace gme
         if (!transform)
             return;
 
-        const float SCREEN_WIDTH = 1920.0f;
-        const float SCREEN_HEIGHT = 1080.0f;
         const float MARGIN = 50.0f;
 
         // Clamp to screen bounds with margin
-        transform->x = std::max(-MARGIN, std::min(transform->x, SCREEN_WIDTH + MARGIN));
-        transform->y = std::max(MARGIN, std::min(transform->y, SCREEN_HEIGHT - MARGIN));
+        transform->x = std::max(-MARGIN, std::min(transform->x, GameConfig::Server::SCREEN_WIDTH + MARGIN));
+        transform->y = std::max(MARGIN, std::min(transform->y, GameConfig::Server::SCREEN_HEIGHT - MARGIN));
     }
 
 } // namespace gme

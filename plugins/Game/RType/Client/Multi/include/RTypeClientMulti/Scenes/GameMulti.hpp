@@ -9,6 +9,7 @@
 #include <deque>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "Engine/Interfaces/IScene.hpp"
@@ -60,6 +61,7 @@ namespace gme
             void setupEventSubscriptions() const;
             void processEventBus();
             void handleWorldStateUpdate(const utl::Event &event);
+            void preloadCommonTextures();
 
             void updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
                                      std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor, float dt,
@@ -114,5 +116,12 @@ namespace gme
             float m_bossMusicTimer = 0.0f;
             bool m_bossMusicStarted = false;
             static constexpr float BOSS_MUSIC_DURATION = 40.0f;
+
+            // Cache to avoid recreating textures/fonts
+            std::unordered_set<std::string> m_loadedTextures;
+            std::unordered_set<std::string> m_loadedFonts;
+
+            // Track if this is the first world state (for player skin initialization)
+            bool m_firstWorldState = true;
     }; // class GameMulti
 } // namespace gme

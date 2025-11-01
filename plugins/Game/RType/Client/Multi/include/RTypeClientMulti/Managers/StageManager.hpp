@@ -20,13 +20,24 @@ namespace gme
             void update(ecs::Registry &registry, float dt, const eng::WindowSize &size);
             static void spawnStage(ecs::Registry &registry, int screenWidth);
             bool isStageSpawned() const { return m_stageSpawned; }
+            int getCurrentWave() const { return m_currentWave; }
+            float getWaveTimer() const { return m_waveTimer; }
+            float getTotalGameTime() const { return m_totalGameTimer; }
 
             static void stopScrolling(ecs::Registry &registry);
 
         private:
             float m_stageTimer = 0.0f;
             bool m_stageSpawned = false;
-            static constexpr float STAGE_SPAWN_DELAY = 12.0f;
+
+            // Wave tracking (synchronized with server)
+            int m_currentWave = 0;
+            float m_waveTimer = 0.0f;
+            float m_totalGameTimer = 0.0f;
+
+            static constexpr float STAGE_SPAWN_DELAY = 0.5f;
+            static constexpr float WAVE_DURATION = 30.0f;
+            static constexpr int TOTAL_WAVES = 3;
             static constexpr float SCROLL_SPEED = -40.0f;
             static constexpr float ORIGINAL_WIDTH = 2608.0f;
             static constexpr float SPRITE_HEIGHT = 208.0f;

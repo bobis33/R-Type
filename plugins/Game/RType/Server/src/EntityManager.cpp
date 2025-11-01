@@ -5,6 +5,7 @@
 ///
 
 #include "RTypeServer/EntityManager.hpp"
+#include "RTypeShared/GameConfig.hpp"
 #include "Utils/Logger.hpp"
 #include <algorithm>
 
@@ -22,10 +23,8 @@ namespace gme
         }
 
         // Validate spawn position
-        const float SCREEN_WIDTH = 1920.0f;
-        const float SCREEN_HEIGHT = 1080.0f;
-        x = std::max(0.0f, std::min(x, SCREEN_WIDTH));
-        y = std::max(0.0f, std::min(y, SCREEN_HEIGHT));
+        x = std::max(0.0f, std::min(x, GameConfig::Server::SCREEN_WIDTH));
+        y = std::max(0.0f, std::min(y, GameConfig::Server::SCREEN_HEIGHT));
 
         ecs::Entity playerEntity =
             m_registry.createEntity()
@@ -97,7 +96,8 @@ namespace gme
                 .with<ecs::Transform>("enemy_transform_" + std::to_string(enemyId), x, y, 0.0f)
                 .with<ecs::Velocity>("enemy_velocity_" + std::to_string(enemyId), -200.0f, 0.0f) // Move left
                 .with<ecs::Enemy>("enemy_" + std::to_string(enemyId), health, health, 10.0f, 200.0f, 0.0f, 2.0f)
-                .with<ecs::Hitbox>("enemy_hitbox_" + std::to_string(enemyId), 15.0f, 0.0f, 0.0f)
+                .with<ecs::Hitbox>("enemy_hitbox_" + std::to_string(enemyId), 30.0f, 0.0f,
+                                   0.0f) // Increased from 15 to 30 for better collision
                 .build();
 
         m_enemyEntities[enemyId] = enemyEntity;
@@ -123,7 +123,8 @@ namespace gme
                 .with<ecs::Transform>("enemy_transform_" + std::to_string(enemyId), x, y, 0.0f)
                 .with<ecs::Velocity>("enemy_velocity_" + std::to_string(enemyId), -150.0f, 0.0f)
                 .with<ecs::Enemy>("enemy_" + std::to_string(enemyId), health, health, 20.0f, 150.0f, 0.0f, 1.5f)
-                .with<ecs::Hitbox>("enemy_hitbox_" + std::to_string(enemyId), 20.0f, 0.0f, 0.0f)
+                .with<ecs::Hitbox>("enemy_hitbox_" + std::to_string(enemyId), 35.0f, 0.0f,
+                                   0.0f) // Increased from 20 to 35 for better collision
                 .build();
 
         m_enemyEntities[enemyId] = enemyEntity;
@@ -149,7 +150,8 @@ namespace gme
                 .with<ecs::Transform>("boss_transform_" + std::to_string(enemyId), x, y, 0.0f)
                 .with<ecs::Velocity>("boss_velocity_" + std::to_string(enemyId), -50.0f, 0.0f)
                 .with<ecs::Enemy>("boss_" + std::to_string(enemyId), health, health, 50.0f, 50.0f, 0.0f, 0.5f)
-                .with<ecs::Hitbox>("boss_hitbox_" + std::to_string(enemyId), 50.0f, 0.0f, 0.0f)
+                .with<ecs::Hitbox>("boss_hitbox_" + std::to_string(enemyId), 90.0f, 0.0f,
+                                   0.0f) // Increased from 50 to 90 for better collision with large sprite
                 .build();
 
         m_enemyEntities[enemyId] = bossEntity;
@@ -186,6 +188,7 @@ namespace gme
         ecs::Projectile::Type projType = isSupercharged ? ecs::Projectile::SUPERCHARGED : ecs::Projectile::BASIC;
         float damage = isSupercharged ? 50.0f : 25.0f;
         int pierce = isSupercharged ? 3 : 1;
+        float hitboxRadius = isSupercharged ? 8.0f : 5.0f; // Match GameConfig::Hitbox values
 
         ecs::Entity projectileEntity =
             m_registry.createEntity()
@@ -193,7 +196,7 @@ namespace gme
                 .with<ecs::Velocity>("projectile_velocity_" + std::to_string(projectileId), vx, vy)
                 .with<ecs::Projectile>("projectile_" + std::to_string(projectileId), projType, damage, 5.0f, 0.0f,
                                        pierce)
-                .with<ecs::Hitbox>("projectile_hitbox_" + std::to_string(projectileId), 5.0f, 0.0f, 0.0f)
+                .with<ecs::Hitbox>("projectile_hitbox_" + std::to_string(projectileId), hitboxRadius, 0.0f, 0.0f)
                 .build();
 
         m_projectileEntities[projectileId] = projectileEntity;
