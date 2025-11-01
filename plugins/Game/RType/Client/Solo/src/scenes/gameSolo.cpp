@@ -12,7 +12,7 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
     auto &registry = AScene::getRegistry();
 
     registry.onComponentAdded(
-        [&renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
+        [this, &renderer, &audio, &registry](const ecs::Entity e, const std::type_info &type)
         {
             const auto *audioComp = registry.getComponent<ecs::Audio>(e);
             const auto *colorComp = registry.getComponent<ecs::Color>(e);
@@ -38,7 +38,12 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
             {
                 if (textComp && transform && fontComp)
                 {
-                    renderer->createFont(fontComp->id, fontComp->path);
+                    // Only create font if not already loaded (cache)
+                    if (this->m_loadedFonts.find(fontComp->id) == this->m_loadedFonts.end())
+                    {
+                        renderer->createFont(fontComp->id, fontComp->path);
+                        this->m_loadedFonts.insert(fontComp->id);
+                    }
                     renderer->createText(
                         {.font_name = fontComp->id,
                          .color = {.r = colorComp->r, .g = colorComp->g, .b = colorComp->b, .a = colorComp->a},
@@ -54,7 +59,12 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
                 const float scale_x = scaleComp ? scaleComp->x : 1.F;
                 const float scale_y = scaleComp ? scaleComp->y : 1.F;
 
-                renderer->createTexture(textureComp->id, textureComp->path);
+                // Only create texture if not already loaded (cache)
+                if (this->m_loadedTextures.find(textureComp->id) == this->m_loadedTextures.end())
+                {
+                    renderer->createTexture(textureComp->id, textureComp->path);
+                    this->m_loadedTextures.insert(textureComp->id);
+                }
 
                 if (transform && textureComp)
                 {
@@ -86,9 +96,34 @@ gme::GameSolo::GameSolo(const eng::id assignedId, const std::shared_ptr<eng::IRe
     m_playerEntity = createPlayer(registry);
     m_stageManager = std::make_unique<StageManager>();
 
+    // Preload all common textures to avoid lag spikes during gameplay
+    preloadCommonTextures();
+
     const auto beginSoundEntity = registry.createEntity()
                                       .with<ecs::Audio>("game_begin", utl::Path::Audio::AUDIO_BEGIN, 10.0F, true, true)
                                       .build();
+}
+
+void gme::GameSolo::preloadCommonTextures()
+{
+    // Preload all textures that will be used during gameplay
+    // This prevents lag when entities are first created
+
+    std::vector<std::pair<std::string, std::string>> texturesToLoad = {
+        {"player", utl::Path::Texture::TEXTURE_PLAYER},
+        {"stage1_floor", utl::Path::Texture::TEXTURE_STAGE1_FLOOR},
+        {"stage1_ceiling", utl::Path::Texture::TEXTURE_STAGE1_CEILING},
+        {"shoot", utl::Path::Texture::TEXTURE_SHOOT},
+        {"shoot_charged", utl::Path::Texture::TEXTURE_SHOOT_CHARGED}};
+
+    for (const auto &[id, path] : texturesToLoad)
+    {
+        if (m_loadedTextures.find(id) == m_loadedTextures.end())
+        {
+            m_renderer->createTexture(id, path);
+            m_loadedTextures.insert(id);
+        }
+    }
 }
 
 void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)

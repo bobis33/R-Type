@@ -39,8 +39,8 @@ namespace utl
         } // namespace Network
         namespace Window
         {
-            inline constexpr auto DEFAULT_WINDOW_WIDTH = 960;
-            inline constexpr auto DEFAULT_WINDOW_HEIGHT = 540;
+            inline constexpr auto DEFAULT_WINDOW_WIDTH = 1920;
+            inline constexpr auto DEFAULT_WINDOW_HEIGHT = 1080;
             inline constexpr auto DEFAULT_WINDOW_FRAME_LIMIT = 240;
             inline constexpr auto DEFAULT_WINDOW_FULLSCREEN = false;
         } // namespace Window
@@ -117,7 +117,7 @@ namespace utl
             inline constexpr auto TEXTURE_SHOOT_LOADING = "assets/sprites/shootchargedloading.gif";
             inline constexpr auto TEXTURE_ENEMY_EASY = "assets/sprites/r-typesheet5.gif";
             inline constexpr auto TEXTURE_ENEMY_BASIC = "assets/sprites/r-typesheet5.gif";
-            inline constexpr auto TEXTURE_ENEMY_ADVANCED = "assets/sprites/r-typesheet30.gif";
+            inline constexpr auto TEXTURE_ENEMY_ADVANCED = "assets/sprites/r-typesheet3.gif";
             inline constexpr auto TEXTURE_BOSS = "assets/sprites/r-typesheet14.gif";
             inline constexpr auto TEXTURE_ENEMY_PROJECTILE = "assets/sprites/r-typesheet20.gif";
             inline constexpr auto TEXTURE_EXPLOSION = "assets/sprites/r-typesheet44.gif";

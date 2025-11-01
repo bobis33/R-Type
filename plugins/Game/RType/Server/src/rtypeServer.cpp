@@ -7,6 +7,7 @@
 #include "RTypeServer/RTypeServer.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 #include "Utils/EventBus.hpp"
 #include "Utils/Logger.hpp"
 #include <algorithm>
@@ -22,6 +23,7 @@ namespace gme
         // Subscribe to events
         m_eventBus.subscribe(utl::GAME_LOGIC, utl::EventType::SERVER_START);
         m_eventBus.subscribe(utl::GAME_LOGIC, utl::EventType::PLAYER_INPUT_RECEIVED);
+        m_eventBus.subscribe(utl::GAME_LOGIC, utl::EventType::GAME_START);
 
         // Initialize entity manager
         m_entityManager = std::make_unique<EntityManager>(m_registry);
@@ -31,6 +33,10 @@ namespace gme
         m_enemyAISystem = std::make_unique<EnemyAISystem>(m_registry, *m_entityManager);
         m_enemySpawnSystem = std::make_unique<EnemySpawnSystem>(*m_entityManager);
 
+        // Initialize wave manager with default waves
+        m_waveManager = std::make_unique<WaveManager>(*m_entityManager);
+        m_waveManager->setupDefaultWaves();
+
         utl::Logger::log("RTypeServer: Initialized with entity management system", utl::LogLevel::INFO);
     }
 
@@ -39,10 +45,11 @@ namespace gme
         m_gameState = State::PLAYING;
         m_levelState = LevelState::WAITING_FOR_PLAYERS;
 
-        // Enable enemy spawning
-        m_enemySpawnSystem->setEnabled(true);
+        // Disable old enemy spawning system, use wave manager instead
+        m_enemySpawnSystem->setEnabled(false);
 
-        utl::Logger::log("RTypeServer: Start called - enemy spawning enabled", utl::LogLevel::INFO);
+        // DON'T start wave manager here - wait for GAME_START event from waiting room
+        utl::Logger::log("RTypeServer: Server started - waiting for game to begin", utl::LogLevel::INFO);
     }
 
     void RTypeServer::stop()
@@ -54,6 +61,7 @@ namespace gme
 
         // Reset systems
         m_enemySpawnSystem->reset();
+        m_waveManager->reset();
 
         // Clear player tracking
         m_playerShooting.clear();
@@ -76,6 +84,10 @@ namespace gme
             else if (event.type == utl::EventType::PLAYER_INPUT_RECEIVED)
             {
                 processPlayerInputEvent(event);
+            }
+            else if (event.type == utl::EventType::GAME_START)
+            {
+                processGameStartEvent(event);
             }
         }
 
@@ -131,33 +143,6 @@ namespace gme
                 m_levelState = LevelState::IN_PROGRESS;
                 m_enemySpawnSystem->setEnabled(true);
                 utl::Logger::log("RTypeServer: Game started, enemy spawning enabled", utl::LogLevel::INFO);
-            }
-        }
-    }
-    for (auto &time : m_lastShotTime | std::views::values)
-    {
-        time += deltaTime;
-    }
-    for (auto &[sessionId, playerEntity] : m_playerEntities)
-    {
-        if (auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity); beamCharge != nullptr)
-        {
-            if (m_playerShooting.contains(sessionId) && m_playerShooting[sessionId])
-            {
-                beamCharge->current_charge += 2.0F * deltaTime;
-                beamCharge->current_charge = std::min(beamCharge->current_charge, beamCharge->max_charge);
-            }
-            else if (beamCharge->current_charge > 0.01f)
-            {
-                if (const auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity))
-                {
-                    const float projectileX = transform->x + utl::GameConfig::Player::WIDTH + 10.0F;
-                    const float projectileY = transform->y + (utl::GameConfig::Player::HEIGHT / 2.0f);
-                    const bool isSupercharged = beamCharge->current_charge >= 0.5f;
-                    const float projectileSpeed = beamCharge->current_charge >= 0.5f ? 1200.0f : 800.0f;
-                    spawnProjectile(sessionId, projectileX, projectileY, projectileSpeed, 0.0f, isSupercharged);
-                    beamCharge->current_charge = 0.0f;
-                }
             }
         }
     }
@@ -250,13 +235,34 @@ namespace gme
         }
     }
 
+    void RTypeServer::processGameStartEvent(const utl::Event &event)
+    {
+        (void)event; // Event data contains lobby info if needed
+
+        utl::Logger::log("RTypeServer: GAME_START event received - starting waves!", utl::LogLevel::INFO);
+
+        // Start the wave manager now that the game is actually starting
+        if (!m_waveManager->isActive())
+        {
+            m_waveManager->start();
+            m_levelState = LevelState::IN_PROGRESS;
+            utl::Logger::log("RTypeServer: Wave system started - 3 waves of 30 seconds", utl::LogLevel::INFO);
+        }
+        else
+        {
+            utl::Logger::log("RTypeServer: Wave system already active", utl::LogLevel::WARNING);
+        }
+    }
+
     void RTypeServer::updateSystems(float deltaTime)
     {
         // Update all game systems in order
 
         m_enemyAISystem->update(m_registry, deltaTime);
 
-        m_enemySpawnSystem->update(m_registry, deltaTime);
+        // Update wave manager instead of simple enemy spawning
+        // Assuming 1920 as default screen width (can be made configurable later)
+        m_waveManager->update(m_registry, deltaTime, 1920);
 
         for (auto &[sessionId, _] : m_entityManager->getPlayers())
         {
@@ -343,17 +349,17 @@ namespace gme
                     const float PLAYER_HITBOX_RADIUS = hitbox->radius;
 
                     float minX = PLAYER_HITBOX_RADIUS;
-                    float maxX = 1920.0f - (PLAYER_WIDTH - PLAYER_HITBOX_RADIUS);
+                    float maxX = utl::GameConfig::Server::SCREEN_WIDTH - (PLAYER_WIDTH - PLAYER_HITBOX_RADIUS);
                     float minY = PLAYER_HITBOX_RADIUS;
-                    float maxY = 1080.0f - (PLAYER_HEIGHT - PLAYER_HITBOX_RADIUS);
+                    float maxY = utl::GameConfig::Server::SCREEN_HEIGHT - (PLAYER_HEIGHT - PLAYER_HITBOX_RADIUS);
 
                     transform->x = std::max(minX, std::min(transform->x, maxX));
                     transform->y = std::max(minY, std::min(transform->y, maxY));
                 }
                 else
                 {
-                    transform->x = std::max(0.0f, std::min(transform->x, 1920.0f));
-                    transform->y = std::max(0.0f, std::min(transform->y, 1080.0f));
+                    transform->x = std::max(0.0f, std::min(transform->x, utl::GameConfig::Server::SCREEN_WIDTH));
+                    transform->y = std::max(0.0f, std::min(transform->y, utl::GameConfig::Server::SCREEN_HEIGHT));
                 }
             }
         }
@@ -375,9 +381,11 @@ namespace gme
                 transform->x += velocity->x * deltaTime;
                 transform->y += velocity->y * deltaTime;
 
-                const float MARGIN = 200.0f;
-                if (transform->x < -MARGIN || transform->x > 1920.0f + MARGIN || transform->y < -MARGIN ||
-                    transform->y > 1080.0f + MARGIN)
+                // Destroy enemies that are too far off-screen
+                if (transform->x < -utl::GameConfig::Server::WORLD_MARGIN ||
+                    transform->x > utl::GameConfig::Server::SCREEN_WIDTH + utl::GameConfig::Server::WORLD_MARGIN ||
+                    transform->y < -utl::GameConfig::Server::WORLD_MARGIN ||
+                    transform->y > utl::GameConfig::Server::SCREEN_HEIGHT + utl::GameConfig::Server::WORLD_MARGIN)
                 {
                     m_entityManager->destroyEnemy(enemyId);
                 }
@@ -399,9 +407,11 @@ namespace gme
                 transform->x += velocity->x * deltaTime;
                 transform->y += velocity->y * deltaTime;
 
-                // Remove projectiles that are off-screen
-                if (transform->x > 2100.0f || transform->x < -100.0f || transform->y > 1180.0f ||
-                    transform->y < -100.0f)
+                // Remove projectiles that are off-screen (with margin)
+                if (transform->x > utl::GameConfig::Server::SCREEN_WIDTH + utl::GameConfig::Server::WORLD_MARGIN ||
+                    transform->x < -utl::GameConfig::Server::WORLD_MARGIN ||
+                    transform->y > utl::GameConfig::Server::SCREEN_HEIGHT + utl::GameConfig::Server::WORLD_MARGIN ||
+                    transform->y < -utl::GameConfig::Server::WORLD_MARGIN)
                 {
                     m_entityManager->destroyProjectile(projectileId);
                 }

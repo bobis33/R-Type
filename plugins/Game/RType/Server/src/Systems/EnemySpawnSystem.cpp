@@ -14,7 +14,7 @@ namespace gme
         : m_entityManager(entityManager), m_levelTime(0.0f), m_currentWaveIndex(0), m_waveSpawnTimer(0.0f),
           m_enabled(false), m_totalEnemiesSpawned(0), m_yDistribution(100.0f, 980.0f)
     {
-        auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
+        const auto seed = static_cast<unsigned int>(std::chrono::system_clock::now().time_since_epoch().count());
         m_rng.seed(seed);
 
         initializeWaves();

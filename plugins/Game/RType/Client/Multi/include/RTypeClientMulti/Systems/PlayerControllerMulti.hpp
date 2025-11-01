@@ -38,8 +38,6 @@ namespace gme
             
             bool isSpacePressed() const;
 
-            bool isSpacePressed() const;
-
         private:
             void sendInputToServer(bool up, bool down, bool left, bool right, bool shoot) const;
             void sendInputsIfChanged();

@@ -1584,6 +1584,10 @@ namespace srv
 
         utl::Logger::log("AsioServer: Broadcasted game start for lobby " + std::to_string(lobbyId),
                          utl::LogLevel::INFO);
+
+        // Publish GAME_START event to game logic to start waves
+        m_eventBus.publish(utl::EventType::GAME_START, gameStartData, utl::NETWORK_SERVER, utl::GAME_LOGIC);
+        utl::Logger::log("AsioServer: Published GAME_START event to game logic", utl::LogLevel::INFO);
     }
 
 } // namespace srv
