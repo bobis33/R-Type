@@ -12,7 +12,6 @@ file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/plugins/Game/RType/Client/Shared/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
 target_link_libraries(${PROJECT_NAME} PRIVATE r-type_modules_server)
