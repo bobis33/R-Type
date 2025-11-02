@@ -2,12 +2,12 @@
 #include "ECS/Component.hpp"
 #include "Interfaces/Protocol/Protocol.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
-#include "RTypeClientMulti/Utils/HitboxUtils.hpp"
+#include "Utils/HitboxUtils.hpp"
 #include "Utils/RTypeShared/GameConfig.hpp"
 
 ecs::Entity gme::PlayerControllerMulti::createPlayer(ecs::Registry &registry, float x, float y)
 {
-    auto [offsetX, offsetY] = Utils::calculateHitboxOffsets(
+    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(
         utl::GameConfig::Player::SPRITE_WIDTH, utl::GameConfig::Player::SPRITE_HEIGHT, utl::GameConfig::Player::SCALE);
 
     m_playerEntity =

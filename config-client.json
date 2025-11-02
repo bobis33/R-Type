@@ -5,11 +5,11 @@
     "player_name": "Bobss"
   },
   "plugins": {
-    "audio": "audio_sfml.dll",
-    "network": "network_asio_client.dll",
-    "renderer": "renderer_sfml.dll",
-    "game_solo": "game_flappybird_client_solo.dll",
-    "game_multi": "game_rtype_client_multi.dll"
+    "audio": "audio_sfml.so",
+    "network": "network_asio_client.so",
+    "renderer": "renderer_sfml.so",
+    "game_solo": "game_flappybird_client_solo.so",
+    "game_multi": "game_rtype_client_multi.so"
   },
   "window": {
     "fullscreen": false,

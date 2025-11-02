@@ -114,6 +114,7 @@ namespace utl
         namespace Hitbox
         {
             inline constexpr float PLAYER_RADIUS = 20.0f;
+            inline constexpr float BOSS_RADIUS = 90.0f;
             inline constexpr float ENEMY_RADIUS = 15.0f;
             inline constexpr float PROJECTILE_BASIC_RADIUS = 5.0f;
             inline constexpr float PROJECTILE_SUPERCHARGED_RADIUS = 8.0f;

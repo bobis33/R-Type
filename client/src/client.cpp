@@ -100,13 +100,14 @@ void cli::Client::setupScenes()
 
     auto winConditionId = m_engine->getSceneManager()->generateNextId();
     auto winCondition = std::make_unique<WinCondition>(winConditionId, m_engine->getRenderer(), m_engine->getAudio());
-    winCondition->addSystem(
-        std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume, winCondition->getRegistry(), winCondition->playMusic()));
+    winCondition->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume,
+                                                               winCondition->getRegistry(), winCondition->playMusic()));
     winCondition->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     winCondition->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     winCondition->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     winCondition->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
-
+    m_gameSolo->init(*m_engine, m_config, m_showDebug, menuId, winConditionId);
+    m_gameMulti->init(*m_engine, m_config, m_showDebug, menuId, winConditionId);
     auto introId = m_engine->getSceneManager()->generateNextId();
     auto intro = std::make_unique<Intro>(introId, m_engine->getRenderer(), m_engine->getAudio());
     intro->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume,
@@ -149,7 +150,4 @@ void cli::Client::setupScenes()
     m_engine->getSceneManager()->addScene(std::move(settings));
     m_engine->getSceneManager()->addScene(std::move(winCondition));
     m_engine->getSceneManager()->switchToScene(introId);
-
-    m_gameSolo->init(*m_engine, m_config, m_showDebug, menuId, winConditionId);
-    m_gameMulti->init(*m_engine, m_config, m_showDebug, menuId, winConditionId);
 }

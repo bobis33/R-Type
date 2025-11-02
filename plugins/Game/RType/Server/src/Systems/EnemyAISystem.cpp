@@ -5,8 +5,8 @@
 ///
 
 #include "RTypeServer/Systems/EnemyAISystem.hpp"
-#include "Utils/RTypeShared/GameConfig.hpp"
 #include "Utils/Logger.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>

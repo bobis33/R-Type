@@ -32,8 +32,8 @@ namespace gme
             [[nodiscard]] utl::PluginType getType() const override { return utl::PluginType::GAME_CLIENT; }
 
             void update(float deltaTime, unsigned int width, unsigned int height) override;
-            void init(eng::Engine &engine, utl::cli::AppConfig &appConfig, bool &showDebug,
-                      const eng::id menuSceneId, const eng::id winSceneId) override
+            void init(eng::Engine &engine, utl::cli::AppConfig &appConfig, bool &showDebug, const eng::id menuSceneId,
+                      const eng::id winSceneId) override
             {
                 m_engine = &engine;
                 m_appConfig = &appConfig;

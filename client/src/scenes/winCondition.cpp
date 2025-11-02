@@ -77,13 +77,14 @@ cli::WinCondition::WinCondition(const eng::id assignedId, const std::shared_ptr<
     m_soundEntity =
         registry.createEntity().with<ecs::Audio>("victory_sound", "assets/audio/coin.mp3", 30.0F, false, true).build();
 
-    m_titleEntity = registry.createEntity()
-                        .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
-                        .with<ecs::Transform>("title_transform", width * 0.32F, height * 0.25F, 0.F)
-                        .with<ecs::Color>("title_color", utl::Config::Color::CYAN_ELECTRIC.r,
-                                          utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
-                        .with<ecs::Text>("title_text", std::string("VICTORY!"), 96U)
-                        .build();
+    m_titleEntity =
+        registry.createEntity()
+            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+            .with<ecs::Transform>("title_transform", width * 0.32F, height * 0.25F, 0.F)
+            .with<ecs::Color>("title_color", utl::Config::Color::CYAN_ELECTRIC.r, utl::Config::Color::CYAN_ELECTRIC.g,
+                              utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+            .with<ecs::Text>("title_text", std::string("VICTORY!"), 96U)
+            .build();
 
     m_subtitleEntity = registry.createEntity()
                            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
@@ -98,7 +99,8 @@ cli::WinCondition::WinCondition(const eng::id assignedId, const std::shared_ptr<
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("instruction_transform", width * 0.25F, height * 0.75F, 0.F)
             .with<ecs::Color>("instruction_color", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b,
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("instruction_text", std::string("Press ENTER to quit"), 28U)
             .build();
 
@@ -216,7 +218,8 @@ void cli::WinCondition::update(const float dt, const eng::WindowSize &size)
                        .with<ecs::Transform>("particle_transform", p.x, p.y)
                        .with<ecs::Scale>("particle_scale", 0.15F, 0.15F)
                        .with<ecs::Color>("particle_color", utl::Config::Color::CYAN_ELECTRIC.r,
-                                         utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
+                                         utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b,
+                                         utl::Config::Color::CYAN_ELECTRIC.a)
                        .with<ecs::Texture>("particle_texture", utl::Path::Icons::ICON_APP)
                        .build();
 

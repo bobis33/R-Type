@@ -218,30 +218,38 @@ namespace gme
 
             static void removeProjectile(ecs::Registry &registry, ecs::Entity entity)
             {
-                if (registry.hasComponent<ecs::Projectile>(entity)) {
+                if (registry.hasComponent<ecs::Projectile>(entity))
+                {
                     registry.removeComponent<ecs::Projectile>(entity);
-}
-                if (registry.hasComponent<ecs::Transform>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Transform>(entity))
+                {
                     registry.removeComponent<ecs::Transform>(entity);
-}
-                if (registry.hasComponent<ecs::Velocity>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Velocity>(entity))
+                {
                     registry.removeComponent<ecs::Velocity>(entity);
-}
-                if (registry.hasComponent<ecs::Rect>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Rect>(entity))
+                {
                     registry.removeComponent<ecs::Rect>(entity);
-}
-                if (registry.hasComponent<ecs::Texture>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Texture>(entity))
+                {
                     registry.removeComponent<ecs::Texture>(entity);
-}
-                if (registry.hasComponent<ecs::Scale>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Scale>(entity))
+                {
                     registry.removeComponent<ecs::Scale>(entity);
-}
-                if (registry.hasComponent<ecs::Animation>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Animation>(entity))
+                {
                     registry.removeComponent<ecs::Animation>(entity);
-}
-                if (registry.hasComponent<ecs::Hitbox>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Hitbox>(entity))
+                {
                     registry.removeComponent<ecs::Hitbox>(entity);
-}
+                }
             }
 
             static void removeEnemy(ecs::Registry &registry, ecs::Entity entity)
@@ -250,30 +258,38 @@ namespace gme
                 {
                     registry.removeComponent<ecs::Enemy>(entity);
                 }
-                if (registry.hasComponent<ecs::Transform>(entity)) {
+                if (registry.hasComponent<ecs::Transform>(entity))
+                {
                     registry.removeComponent<ecs::Transform>(entity);
-}
-                if (registry.hasComponent<ecs::Velocity>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Velocity>(entity))
+                {
                     registry.removeComponent<ecs::Velocity>(entity);
-}
-                if (registry.hasComponent<ecs::Rect>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Rect>(entity))
+                {
                     registry.removeComponent<ecs::Rect>(entity);
-}
-                if (registry.hasComponent<ecs::Texture>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Texture>(entity))
+                {
                     registry.removeComponent<ecs::Texture>(entity);
-}
-                if (registry.hasComponent<ecs::Scale>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Scale>(entity))
+                {
                     registry.removeComponent<ecs::Scale>(entity);
-}
-                if (registry.hasComponent<ecs::Animation>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Animation>(entity))
+                {
                     registry.removeComponent<ecs::Animation>(entity);
-}
-                if (registry.hasComponent<ecs::Hitbox>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Hitbox>(entity))
+                {
                     registry.removeComponent<ecs::Hitbox>(entity);
-}
-                if (registry.hasComponent<ecs::Projectile>(entity)) {
+                }
+                if (registry.hasComponent<ecs::Projectile>(entity))
+                {
                     registry.removeComponent<ecs::Projectile>(entity);
-}
+                }
             }
 
             static void createExplosion(ecs::Registry &registry, float x, float y)

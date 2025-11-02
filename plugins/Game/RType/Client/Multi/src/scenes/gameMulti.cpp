@@ -1,3 +1,4 @@
+#include <Utils/HitboxUtils.hpp>
 #include <algorithm>
 #include <ranges>
 #include <set>
@@ -228,7 +229,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             if (entityState.id == m_sessionId && entityState.type == static_cast<uint16_t>(rnp::EntityType::PLAYER))
             {
                 // Update the Score component with the server's score
-                for (auto &[entity, score] : registry.getAll<ecs::Score>())
+                for (auto &score : registry.getAll<ecs::Score>() | std::views::values)
                 {
                     score.value = static_cast<int>(entityState.score);
                     break;
@@ -350,6 +351,9 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                         skinIndex = m_playerSkinMap[entityState.id];
                     }
                     float skinPosY = static_cast<float>(skinIndex) * utl::GameConfig::Player::SPRITE_HEIGHT;
+                    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(utl::GameConfig::Player::SPRITE_WIDTH,
+                                                                          utl::GameConfig::Player::SPRITE_HEIGHT,
+                                                                          utl::GameConfig::Player::SCALE);
 
                     ecs::Entity remotePlayer =
                         registry.createEntity()
@@ -365,6 +369,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                             .with<ecs::Texture>("remote_texture_" + std::to_string(entityState.id),
                                                 utl::Path::Texture::TEXTURE_PLAYER)
                             .with<ecs::Player>("remote_player_comp_" + std::to_string(entityState.id), false)
+                            .with<ecs::Hitbox>("hitbox", utl::GameConfig::Hitbox::BOSS_RADIUS, offsetX, offsetY)
                             .with<ecs::Health>("remote_player_health_" + std::to_string(entityState.id), 100.0f, 100.0f)
                             .build();
                     m_remotePlayers[entityState.id] = remotePlayer;
@@ -491,6 +496,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                         height = 32.0f;
                         scale = 2.0f;
                     }
+                    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(width, height, scale);
 
                     ecs::Entity enemy =
                         registry.createEntity()
@@ -502,6 +508,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                                              static_cast<int>(width), static_cast<int>(height))
                             .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), scale, scale)
                             .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id), texturePath)
+                            .with<ecs::Hitbox>("enemy_hitbox", utl::GameConfig::Hitbox::ENEMY_RADIUS, offsetX, offsetY)
                             .with<ecs::Animation>("enemy_animation_" + std::to_string(entityState.id), 0, animFrames,
                                                   0.5f, 0.0f, static_cast<int>(width), static_cast<int>(height),
                                                   animFrames)
@@ -536,7 +543,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     float width = 64.0f;
                     float height = 64.0f;
                     float scale = 3.0f;
-
+                    auto [offsetX, offsetY] = utl::calculateHitboxOffsets(width, height, scale);
                     ecs::Entity boss =
                         registry.createEntity()
                             .with<ecs::Transform>("boss_" + std::to_string(entityState.id), entityState.x,
@@ -547,6 +554,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                                              static_cast<int>(width), static_cast<int>(height))
                             .with<ecs::Scale>("boss_scale_" + std::to_string(entityState.id), scale, scale)
                             .with<ecs::Texture>("boss_texture_" + std::to_string(entityState.id), texturePath)
+                            .with<ecs::Hitbox>("boss_hitbox", utl::GameConfig::Hitbox::BOSS_RADIUS, offsetX, offsetY)
                             .with<ecs::Animation>("boss_animation_" + std::to_string(entityState.id), 0, 2, 0.3f, 0.0f,
                                                   static_cast<int>(width), static_cast<int>(height), 2)
                             .build();

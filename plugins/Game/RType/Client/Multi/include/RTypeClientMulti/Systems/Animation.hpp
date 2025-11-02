@@ -55,4 +55,3 @@ namespace gme
 
     }; // class AnimationSystem
 } // namespace gme
-

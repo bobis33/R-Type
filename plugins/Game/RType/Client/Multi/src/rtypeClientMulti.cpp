@@ -145,7 +145,6 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         gameMulti->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
         gameMulti->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), gameMulti->getRegistry()));
         gameMulti->addSystem(std::make_unique<ecs::AnimationSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::LoadingAnimationSystem>(m_engine->getRenderer()));
@@ -156,6 +155,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         gameMulti->addSystem(std::make_unique<gme::WeaponSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::PlayerDirectionSystem>());
         gameMulti->addSystem(std::make_unique<gme::HealthBarSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
 
         gameMulti->onGameOver = [this, menuSceneId]()
         {

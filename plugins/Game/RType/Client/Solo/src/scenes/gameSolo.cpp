@@ -131,9 +131,10 @@ void gme::GameSolo::handlePlayerInputs(ecs::Registry &registry, const float dt)
     auto *playerTransform = registry.getComponent<ecs::Transform>(m_playerEntity);
     auto *playerVelocity = registry.getComponent<ecs::Velocity>(m_playerEntity);
 
-    if ((playerTransform == nullptr) || (playerVelocity == nullptr)) {
+    if ((playerTransform == nullptr) || (playerVelocity == nullptr))
+    {
         return;
-}
+    }
 
     constexpr float diagonal_speed =
         utl::GameConfig::Player::SPEED * utl::GameConfig::Player::DIAGONAL_SPEED_MULTIPLIER;
