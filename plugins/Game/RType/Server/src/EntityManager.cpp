@@ -51,35 +51,18 @@ namespace gme
 
     void EntityManager::destroyPlayer(std::uint32_t sessionId)
     {
-        auto it = m_playerEntities.find(sessionId);
-        if (it != m_playerEntities.end())
+        // Mark player as inactive so it won't be included in next world state broadcast
+        auto *metadata = getEntityMetadata(sessionId);
+        if (metadata)
         {
-            ecs::Entity entity = it->second;
-
-            // Remove components
-            if (m_registry.hasComponent<ecs::Transform>(entity))
-                m_registry.removeComponent<ecs::Transform>(entity);
-            if (m_registry.hasComponent<ecs::Velocity>(entity))
-                m_registry.removeComponent<ecs::Velocity>(entity);
-            if (m_registry.hasComponent<ecs::Player>(entity))
-                m_registry.removeComponent<ecs::Player>(entity);
-            if (m_registry.hasComponent<ecs::Health>(entity))
-                m_registry.removeComponent<ecs::Health>(entity);
-            if (m_registry.hasComponent<ecs::BeamCharge>(entity))
-                m_registry.removeComponent<ecs::BeamCharge>(entity);
-            if (m_registry.hasComponent<ecs::Hitbox>(entity))
-                m_registry.removeComponent<ecs::Hitbox>(entity);
-
-            unregisterEntity(sessionId);
-
-            // Clear score
-            m_playerScores.erase(sessionId);
-            m_playerEntities.erase(it);
-            m_deadPlayers.erase(sessionId);
-
-            utl::Logger::log("EntityManager: Destroyed player entity for sessionId " + std::to_string(sessionId),
-                             utl::LogLevel::INFO);
+            metadata->isActive = false;
         }
+
+        // Add to destroy queue for cleanup
+        m_destroyQueue.push_back(sessionId);
+
+        utl::Logger::log("EntityManager: Marked player " + std::to_string(sessionId) + " for destruction",
+                         utl::LogLevel::INFO);
     }
 
     ecs::Entity EntityManager::getPlayer(std::uint32_t sessionId)
@@ -590,6 +573,37 @@ namespace gme
         for (std::uint32_t networkId : m_destroyQueue)
         {
             // Check which container this entity belongs to
+            auto playerIt = m_playerEntities.find(networkId);
+            if (playerIt != m_playerEntities.end())
+            {
+                ecs::Entity entity = playerIt->second;
+
+                // Remove components
+                if (m_registry.hasComponent<ecs::Transform>(entity))
+                    m_registry.removeComponent<ecs::Transform>(entity);
+                if (m_registry.hasComponent<ecs::Velocity>(entity))
+                    m_registry.removeComponent<ecs::Velocity>(entity);
+                if (m_registry.hasComponent<ecs::Player>(entity))
+                    m_registry.removeComponent<ecs::Player>(entity);
+                if (m_registry.hasComponent<ecs::Health>(entity))
+                    m_registry.removeComponent<ecs::Health>(entity);
+                if (m_registry.hasComponent<ecs::BeamCharge>(entity))
+                    m_registry.removeComponent<ecs::BeamCharge>(entity);
+                if (m_registry.hasComponent<ecs::Hitbox>(entity))
+                    m_registry.removeComponent<ecs::Hitbox>(entity);
+
+                unregisterEntity(networkId);
+
+                // Clear score and other player data
+                m_playerScores.erase(networkId);
+                m_deadPlayers.erase(networkId);
+                m_playerEntities.erase(playerIt);
+
+                utl::Logger::log("EntityManager: Destroyed player entity for sessionId " + std::to_string(networkId),
+                                 utl::LogLevel::INFO);
+                continue;
+            }
+
             auto enemyIt = m_enemyEntities.find(networkId);
             if (enemyIt != m_enemyEntities.end())
             {
