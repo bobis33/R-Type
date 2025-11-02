@@ -23,9 +23,9 @@ namespace gme
     {
         public:
             virtual void init(eng::Engine &engine, utl::cli::AppConfig &appConfig, bool &showDebug,
-                              unsigned int menuSceneId) = 0;
+                              unsigned int menuSceneId, unsigned int winSceneId) = 0;
             virtual void update(float deltaTime, unsigned int width, unsigned int height) = 0;
-            virtual unsigned int getMainSceneId() const = 0;
+            [[nodiscard]] virtual unsigned int getMainSceneId() const = 0;
 
         private:
     }; // class IGameClient

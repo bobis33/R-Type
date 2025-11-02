@@ -34,6 +34,8 @@ namespace cli
             void update(float dt, const eng::WindowSize &size) override;
             void event(const eng::Event &event) override;
 
+            bool &playMusic() { return m_playMusic; }
+
             std::function<void()> onLeave;
 
         private:
@@ -53,6 +55,8 @@ namespace cli
             float m_elapsedTime = 0.F;
             float m_titlePulseTime = 0.F;
             float m_particleSpawnTimer = 0.F;
+
+            bool m_playMusic = false;
 
             ecs::Entity m_titleEntity = 0;
             ecs::Entity m_subtitleEntity = 0;

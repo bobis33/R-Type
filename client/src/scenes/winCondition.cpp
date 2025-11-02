@@ -81,7 +81,7 @@ cli::WinCondition::WinCondition(const eng::id assignedId, const std::shared_ptr<
                         .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                         .with<ecs::Transform>("title_transform", width * 0.32F, height * 0.25F, 0.F)
                         .with<ecs::Color>("title_color", utl::Config::Color::CYAN_ELECTRIC.r,
-                                          utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, 0U)
+                                          utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
                         .with<ecs::Text>("title_text", std::string("VICTORY!"), 96U)
                         .build();
 
@@ -89,7 +89,7 @@ cli::WinCondition::WinCondition(const eng::id assignedId, const std::shared_ptr<
                            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
                            .with<ecs::Transform>("subtitle_transform", width * 0.28F, height * 0.45F, 0.F)
                            .with<ecs::Color>("subtitle_color", utl::Config::Color::GREEN.r, utl::Config::Color::GREEN.g,
-                                             utl::Config::Color::GREEN.b, 0U)
+                                             utl::Config::Color::GREEN.b, utl::Config::Color::GREEN.a)
                            .with<ecs::Text>("subtitle_text", std::string("Mission Accomplished"), 42U)
                            .build();
 
@@ -98,7 +98,7 @@ cli::WinCondition::WinCondition(const eng::id assignedId, const std::shared_ptr<
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
             .with<ecs::Transform>("instruction_transform", width * 0.25F, height * 0.75F, 0.F)
             .with<ecs::Color>("instruction_color", utl::Config::Color::GRAY_BLUE_SUBTLE.r,
-                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b, 0U)
+                              utl::Config::Color::GRAY_BLUE_SUBTLE.g, utl::Config::Color::GRAY_BLUE_SUBTLE.b, utl::Config::Color::GRAY_BLUE_SUBTLE.a)
             .with<ecs::Text>("instruction_text", std::string("Press ENTER to quit"), 28U)
             .build();
 
@@ -106,7 +106,7 @@ cli::WinCondition::WinCondition(const eng::id assignedId, const std::shared_ptr<
                        .with<ecs::Transform>("icon_transform", width * 0.45F, height * 0.55F)
                        .with<ecs::Scale>("icon_scale", 0.5F, 0.5F)
                        .with<ecs::Color>("icon_color", utl::Config::Color::WHITE_LOW.r, utl::Config::Color::WHITE_LOW.g,
-                                         utl::Config::Color::WHITE_LOW.b, 0U)
+                                         utl::Config::Color::WHITE_LOW.b, utl::Config::Color::WHITE_LOW.a)
                        .with<ecs::Texture>("icon_texture", utl::Path::Icons::ICON_APP)
                        .build();
 }
@@ -190,8 +190,7 @@ void cli::WinCondition::update(const float dt, const eng::WindowSize &size)
         }
     }
 
-    const size_t MAX_PARTICLES = 50;
-    if (m_elapsedTime > 1.0F && m_particleSpawnTimer > 0.3F && m_particles.size() < MAX_PARTICLES)
+    if (m_elapsedTime > 1.0F && m_particleSpawnTimer > 0.3F && m_particles.size() < 50)
     {
         m_particleSpawnTimer = 0.0F;
 
@@ -217,7 +216,7 @@ void cli::WinCondition::update(const float dt, const eng::WindowSize &size)
                        .with<ecs::Transform>("particle_transform", p.x, p.y)
                        .with<ecs::Scale>("particle_scale", 0.15F, 0.15F)
                        .with<ecs::Color>("particle_color", utl::Config::Color::CYAN_ELECTRIC.r,
-                                         utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, 255U)
+                                         utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b, utl::Config::Color::CYAN_ELECTRIC.a)
                        .with<ecs::Texture>("particle_texture", utl::Path::Icons::ICON_APP)
                        .build();
 
