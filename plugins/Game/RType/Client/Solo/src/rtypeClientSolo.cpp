@@ -2,6 +2,10 @@
 #include "RTypeClientSolo/Scenes/ConfigSolo.hpp"
 #include "RTypeClientSolo/Scenes/GameSolo.hpp"
 #include "RTypeClientSolo/Systems/Systems.hpp"
+#include "ECS/Systems/LoadingAnimation.hpp"
+#include "ECS/Systems/PlayerDirection.hpp"
+#include "ECS/Systems/Projectile.hpp"
+#include "ECS/Systems/Scrolling.hpp"
 
 void gme::RTypeClientSolo::setupScenes(bool &showDebug, eng::id menuSceneId)
 {
@@ -24,11 +28,13 @@ void gme::RTypeClientSolo::setupScenes(bool &showDebug, eng::id menuSceneId)
     gameSolo->addSystem(std::make_unique<ecs::BeamSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<CollisionSystem>(m_engine->getRenderer(), showDebug));
     gameSolo->addSystem(std::make_unique<EnemySystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<LoadingAnimationSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<PlayerDirectionSystem>(m_appConfig->skinIndex));
-    gameSolo->addSystem(std::make_unique<ProjectileSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<ScrollingSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<ecs::ExplosionSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<ecs::LoadingAnimationSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<ecs::PlayerDirectionSystem>([skinIndex = m_appConfig->skinIndex](ecs::Registry &, ecs::Entity, ecs::Rect *) {
+        return skinIndex * static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
+    }));
+    gameSolo->addSystem(std::make_unique<ecs::ProjectileSystem>(m_engine->getRenderer()));
+    gameSolo->addSystem(std::make_unique<ecs::ScrollingSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<WeaponSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<SpawnSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), showDebug));

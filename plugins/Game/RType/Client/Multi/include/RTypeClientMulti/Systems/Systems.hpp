@@ -13,7 +13,4 @@
 #include "RTypeClientMulti/Systems/HealthBarSystem.hpp"
 #include "RTypeClientMulti/Systems/LoadingAnimation.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
-#include "RTypeClientMulti/Systems/PlayerDirection.hpp"
-#include "RTypeClientMulti/Systems/Projectile.hpp"
-#include "RTypeClientMulti/Systems/Scrolling.hpp"
 #include "RTypeClientMulti/Systems/Weapon.hpp"

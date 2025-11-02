@@ -2,7 +2,6 @@
 #include "ECS/Systems/Systems.hpp"
 #include "FlappyBirdClientSolo/Scenes/Game.hpp"
 #include "FlappyBirdClientSolo/Scenes/ConfigFlappy.hpp"
-#include "FlappyBirdClientSolo/Systems/FlappyDebugSystem.hpp"
 
 void gme::FlappyBirdClientSolo::update(float deltaTime, unsigned int width, unsigned int height) {}
 
@@ -24,7 +23,17 @@ void gme::FlappyBirdClientSolo::setupScenes(bool &showDebug, eng::id menuSceneId
     gameSolo->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), gameSolo->getRegistry()));
     gameSolo->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     gameSolo->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
-    gameSolo->addSystem(std::make_unique<FlappyDebugSystem>(m_engine->getRenderer(), showDebug));
+    gameSolo->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), showDebug, [](ecs::Registry &registry, ecs::Entity entity) {
+        if (registry.hasComponent<ecs::Texture>(entity))
+        {
+            const auto *texture = registry.getComponent<ecs::Texture>(entity);
+            if (texture && (texture->id.find("pipe") != std::string::npos))
+            {
+                return false;
+            }
+        }
+        return true;
+    }));
     
     m_mainSceneId = configFlappyId;
 
@@ -43,7 +52,17 @@ void gme::FlappyBirdClientSolo::setupScenes(bool &showDebug, eng::id menuSceneId
             newGame->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), newGame->getRegistry()));
             newGame->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
             newGame->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
-            newGame->addSystem(std::make_unique<FlappyDebugSystem>(m_engine->getRenderer(), *m_showDebug));
+            newGame->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), *m_showDebug, [](ecs::Registry &registry, ecs::Entity entity) {
+                if (registry.hasComponent<ecs::Texture>(entity))
+                {
+                    const auto *texture = registry.getComponent<ecs::Texture>(entity);
+                    if (texture && (texture->id.find("pipe") != std::string::npos))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }));
             sceneManager->addScene(std::move(newGame));
             sceneManager->switchToScene(gameSoloId);
         }

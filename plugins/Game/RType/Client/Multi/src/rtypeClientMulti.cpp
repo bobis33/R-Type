@@ -7,6 +7,11 @@
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
 #include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
 #include "RTypeClientMulti/Systems/Systems.hpp"
+#include "ECS/Systems/Explosion.hpp"
+#include "ECS/Systems/LoadingAnimation.hpp"
+#include "ECS/Systems/PlayerDirection.hpp"
+#include "ECS/Systems/Projectile.hpp"
+#include "ECS/Systems/Scrolling.hpp"
 #include "Utils/EventBus.hpp"
 #include "Utils/Logger.hpp"
 
@@ -142,17 +147,17 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
                                                      m_appConfig->skinIndex, m_showDebug, sessionId);
         gameMulti->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_appConfig->audioVolume,
                                                                 gameMulti->getRegistry(), gameMulti->playMusic()));
-        gameMulti->addSystem(std::make_unique<ExplosionSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
         gameMulti->addSystem(std::make_unique<ecs::StarfieldSystem>(m_engine->getRenderer(), gameMulti->getRegistry()));
         gameMulti->addSystem(std::make_unique<ecs::AnimationSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<gme::LoadingAnimationSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<gme::ScrollingSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::LoadingAnimationSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::ScrollingSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::CollisionSystem>(m_engine->getRenderer(), m_showDebug));
         gameMulti->addSystem(std::make_unique<ecs::BeamSystem>(m_engine->getRenderer()));
-        gameMulti->addSystem(std::make_unique<gme::ProjectileSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::ExplosionSystem>(m_engine->getRenderer()));
+        gameMulti->addSystem(std::make_unique<ecs::ProjectileSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::WeaponSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::PlayerDirectionSystem>());
         gameMulti->addSystem(std::make_unique<gme::HealthBarSystem>(m_engine->getRenderer()));

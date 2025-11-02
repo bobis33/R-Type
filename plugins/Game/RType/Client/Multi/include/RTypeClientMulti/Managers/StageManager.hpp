@@ -40,6 +40,6 @@ namespace gme
             static constexpr int TOTAL_WAVES = 3;
             static constexpr float SCROLL_SPEED = -40.0f;
             static constexpr float ORIGINAL_WIDTH = 2608.0f;
-            static constexpr float SPRITE_HEIGHT = 208.0f;
+            static constexpr float SPRITE_HEIGHT = 86.0f;
     };
 } // namespace gme

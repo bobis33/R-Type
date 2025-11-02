@@ -74,9 +74,9 @@ namespace ecs
 
                     m_renderer->setSpriteTexture(spriteName, sprite->path);
                     m_renderer->setSpritePosition(spriteName, x, y);
-                    if ((scale != nullptr) && !hasScrolling)
+                    if ((scale != nullptr) && hasScrolling)
                     {
-                        m_renderer->setSpriteScale(spriteName, static_cast<int>(scale->x), static_cast<int>(scale->y));
+                        m_renderer->setSpriteScale(spriteName, scale->x, scale->y);
                     }
                     if (rect != nullptr)
                     {

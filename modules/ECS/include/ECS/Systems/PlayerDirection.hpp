@@ -1,7 +1,14 @@
+///
+/// @file PlayerDirection.hpp
+/// @brief This file contains the player direction system definition
+/// @namespace ecs
+///
+
 #pragma once
 
 #include <cmath>
-#include <utility>
+#include <functional>
+#include <numbers>
 
 #include "ECS/Component.hpp"
 #include "ECS/Interfaces/ISystems.hpp"
@@ -12,27 +19,35 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-namespace gme
+namespace ecs
 {
-    class PlayerDirectionSystem final : public ecs::ASystem
+
+    ///
+    /// @class PlayerDirectionSystem
+    /// @brief Class for player direction system
+    /// @namespace ecs
+    ///
+    class PlayerDirectionSystem final : public ASystem
     {
         public:
-            PlayerDirectionSystem() = default;
+            using SkinOffsetGetter = std::function<int(Registry &, Entity, Rect *)>;
+
+            explicit PlayerDirectionSystem(SkinOffsetGetter getter = nullptr) : m_skinOffsetGetter(getter) {}
             ~PlayerDirectionSystem() override = default;
 
             PlayerDirectionSystem(const PlayerDirectionSystem &) = delete;
             PlayerDirectionSystem &operator=(const PlayerDirectionSystem &) = delete;
             PlayerDirectionSystem(PlayerDirectionSystem &&) = delete;
-            PlayerDirectionSystem &operator=(PlayerDirectionSystem &&) = delete;
+            PlayerDirectionSystem &operator=(const PlayerDirectionSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float /* dt */) override
+            void update(Registry &registry, float /* dt */) override
             {
-                for (auto &pair : registry.getAll<ecs::Player>())
+                for (auto &pair : registry.getAll<Player>())
                 {
                     const auto entity = pair.first;
-                    const auto *velocity = registry.getComponent<ecs::Velocity>(entity);
+                    const auto *velocity = registry.getComponent<Velocity>(entity);
 
-                    if (auto *rect = registry.getComponent<ecs::Rect>(entity);
+                    if (auto *rect = registry.getComponent<Rect>(entity);
                         (velocity != nullptr) && (rect != nullptr))
                     {
                         int frame = 0;
@@ -51,23 +66,23 @@ namespace gme
                             }
                             if (angle >= 0 && angle < M_PI / 4)
                             {
-                                frame = 0; // droite
+                                frame = 0;
                             }
                             else if (angle >= M_PI / 4 && angle < 3 * M_PI / 4)
                             {
-                                frame = 1; // bas
+                                frame = 1;
                             }
                             else if (angle >= 3 * M_PI / 4 && angle < 5 * M_PI / 4)
                             {
-                                frame = 2; // gauche
+                                frame = 2;
                             }
                             else if (angle >= 5 * M_PI / 4 && angle < 7 * M_PI / 4)
                             {
-                                frame = 3; // haut
+                                frame = 3;
                             }
                             else
                             {
-                                frame = 4; // wrap
+                                frame = 4;
                             }
                         }
 
@@ -76,9 +91,17 @@ namespace gme
                         int frame_y = (frame / utl::GameConfig::Player::FRAMES_PER_ROW) *
                                       static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
 
-                        const int current_row = static_cast<int>(
-                            rect->pos_y / static_cast<float>(static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT)));
-                        const int skin_offset = current_row * static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
+                        int skin_offset = 0;
+                        if (m_skinOffsetGetter)
+                        {
+                            skin_offset = m_skinOffsetGetter(registry, entity, rect);
+                        }
+                        else
+                        {
+                            const int current_row = static_cast<int>(
+                                rect->pos_y / static_cast<float>(static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT)));
+                            skin_offset = current_row * static_cast<int>(utl::GameConfig::Player::SPRITE_HEIGHT);
+                        }
                         frame_y = skin_offset + frame_y;
 
                         rect->pos_x = static_cast<float>(frame_x);
@@ -88,5 +111,9 @@ namespace gme
                     }
                 }
             }
-    };
-} // namespace gme
+
+        private:
+            SkinOffsetGetter m_skinOffsetGetter;
+    }; // class PlayerDirectionSystem
+} // namespace ecs
+

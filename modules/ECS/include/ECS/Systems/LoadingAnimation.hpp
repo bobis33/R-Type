@@ -1,3 +1,9 @@
+///
+/// @file LoadingAnimation.hpp
+/// @brief This file contains the loading animation system definition
+/// @namespace ecs
+///
+
 #pragma once
 
 #include "ECS/Component.hpp"
@@ -5,10 +11,15 @@
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
 
-namespace gme
+namespace ecs
 {
 
-    class LoadingAnimationSystem final : public ecs::ASystem
+    ///
+    /// @class LoadingAnimationSystem
+    /// @brief Class for loading animation system
+    /// @namespace ecs
+    ///
+    class LoadingAnimationSystem final : public ASystem
     {
         public:
             explicit LoadingAnimationSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
@@ -19,16 +30,16 @@ namespace gme
             LoadingAnimationSystem(LoadingAnimationSystem &&) = delete;
             LoadingAnimationSystem &operator=(const LoadingAnimationSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(Registry &registry, float dt) override
             {
                 std::string spriteName;
                 spriteName.reserve(64);
 
-                for (auto &[entity, animation] : registry.getAll<ecs::LoadingAnimation>())
+                for (auto &[entity, animation] : registry.getAll<LoadingAnimation>())
                 {
-                    const auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    auto *rect = registry.getComponent<ecs::Rect>(entity);
-                    const auto *texture = registry.getComponent<ecs::Texture>(entity);
+                    const auto *transform = registry.getComponent<Transform>(entity);
+                    auto *rect = registry.getComponent<Rect>(entity);
+                    const auto *texture = registry.getComponent<Texture>(entity);
 
                     if (!transform || !rect || !texture)
                     {
@@ -64,5 +75,6 @@ namespace gme
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-    };
-} // namespace gme
+    }; // class LoadingAnimationSystem
+} // namespace ecs
+

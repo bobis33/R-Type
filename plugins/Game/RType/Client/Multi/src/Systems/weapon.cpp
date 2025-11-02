@@ -55,6 +55,31 @@ void gme::WeaponSystem::update(ecs::Registry &registry, const float dt)
     {
         m_isCharging = false;
         hideLoadingAnimation(registry, playerEntity);
+        
+        const float chargeThreshold = beamCharge->max_charge * 0.5F;
+        if (beamCharge->current_charge >= chargeThreshold)
+        {
+            ensureSuperShotAudio(registry);
+            if (m_superShotAudioEntity != ecs::INVALID_ENTITY)
+            {
+                if (auto *audio = registry.getComponent<ecs::Audio>(m_superShotAudioEntity))
+                {
+                    audio->play = true;
+                }
+            }
+        }
+        else
+        {
+            ensureBasicShotAudio(registry);
+            if (m_basicShotAudioEntity != ecs::INVALID_ENTITY)
+            {
+                if (auto *audio = registry.getComponent<ecs::Audio>(m_basicShotAudioEntity))
+                {
+                    audio->play = true;
+                }
+            }
+        }
+        
         beamCharge->current_charge = 0.0f;
     }
 }
@@ -133,5 +158,18 @@ void gme::WeaponSystem::ensureSuperShotAudio(ecs::Registry &registry)
     m_superShotAudioEntity =
         registry.createEntity()
             .with<ecs::Audio>("player_super_shot", utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 2.0F, false, false)
+            .build();
+}
+
+void gme::WeaponSystem::ensureBasicShotAudio(ecs::Registry &registry)
+{
+    if (m_basicShotAudioEntity != ecs::INVALID_ENTITY && registry.hasComponent<ecs::Audio>(m_basicShotAudioEntity))
+    {
+        return;
+    }
+
+    m_basicShotAudioEntity =
+        registry.createEntity()
+            .with<ecs::Audio>("player_basic_shot", utl::Path::Audio::AUDIO_SUPERCHARGED_SHOT, 1.0F, false, false)
             .build();
 }

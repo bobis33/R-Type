@@ -147,7 +147,7 @@ namespace eng
             virtual void drawSprite(const std::string &name) = 0;
             virtual void setSpritePosition(const std::string &name, float x, float y) = 0;
             virtual void setSpriteTexture(const std::string &name, const std::string &path) = 0;
-            virtual void setSpriteScale(const std::string &name, int x, int y) = 0;
+            virtual void setSpriteScale(const std::string &name, float x, float y) = 0;
             virtual void setSpriteFrame(const std::string &name, int fx, int fy, int fnx, int fny) = 0;
             virtual void setSpriteRotation(const std::string &name, float rotation) = 0;
             virtual void rotateSprite(const std::string &name, float rotation) = 0;

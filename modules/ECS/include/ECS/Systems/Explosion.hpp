@@ -1,7 +1,7 @@
 ///
 /// @file Explosion.hpp
-/// @brief This file contains the explosion system definitions
-/// @namespace gme
+/// @brief This file contains the explosion system definition
+/// @namespace ecs
 ///
 
 #pragma once
@@ -13,10 +13,15 @@
 #include "ECS/Registry.hpp"
 #include "Interfaces/IRenderer.hpp"
 
-namespace gme
+namespace ecs
 {
 
-    class ExplosionSystem final : public ecs::ASystem
+    ///
+    /// @class ExplosionSystem
+    /// @brief Class for explosion system
+    /// @namespace ecs
+    ///
+    class ExplosionSystem final : public ASystem
     {
         public:
             explicit ExplosionSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
@@ -25,21 +30,21 @@ namespace gme
             ExplosionSystem(const ExplosionSystem &) = delete;
             ExplosionSystem &operator=(const ExplosionSystem &) = delete;
             ExplosionSystem(ExplosionSystem &&) = delete;
-            ExplosionSystem &operator=(ExplosionSystem &&) = delete;
+            ExplosionSystem &operator=(const ExplosionSystem &&) = delete;
 
             bool isEnable() override { return true; }
             void setEnable(bool enable) override { (void)enable; }
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(Registry &registry, float dt) override
             {
-                std::vector<ecs::Entity> explosionsToRemove;
+                std::vector<Entity> explosionsToRemove;
 
-                for (auto &[entity, explosion] : registry.getAll<ecs::Explosion>())
+                for (auto &[entity, explosion] : registry.getAll<Explosion>())
                 {
-                    auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    auto *rect = registry.getComponent<ecs::Rect>(entity);
-                    auto *texture = registry.getComponent<ecs::Texture>(entity);
-                    auto *scale = registry.getComponent<ecs::Scale>(entity);
+                    auto *transform = registry.getComponent<Transform>(entity);
+                    auto *rect = registry.getComponent<Rect>(entity);
+                    auto *texture = registry.getComponent<Texture>(entity);
+                    auto *scale = registry.getComponent<Scale>(entity);
 
                     if ((transform == nullptr) || (rect == nullptr) || (texture == nullptr) || (scale == nullptr))
                     {
@@ -73,7 +78,7 @@ namespace gme
                     }
                 }
 
-                for (const ecs::Entity entity : explosionsToRemove)
+                for (const Entity entity : explosionsToRemove)
                 {
                     removeExplosion(registry, entity);
                 }
@@ -82,18 +87,19 @@ namespace gme
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
 
-            static void removeExplosion(ecs::Registry &registry, const ecs::Entity entity)
+            static void removeExplosion(Registry &registry, const Entity entity)
             {
-                if (registry.hasComponent<ecs::Explosion>(entity))
-                    registry.removeComponent<ecs::Explosion>(entity);
-                if (registry.hasComponent<ecs::Transform>(entity))
-                    registry.removeComponent<ecs::Transform>(entity);
-                if (registry.hasComponent<ecs::Rect>(entity))
-                    registry.removeComponent<ecs::Rect>(entity);
-                if (registry.hasComponent<ecs::Texture>(entity))
-                    registry.removeComponent<ecs::Texture>(entity);
-                if (registry.hasComponent<ecs::Scale>(entity))
-                    registry.removeComponent<ecs::Scale>(entity);
+                if (registry.hasComponent<Explosion>(entity))
+                    registry.removeComponent<Explosion>(entity);
+                if (registry.hasComponent<Transform>(entity))
+                    registry.removeComponent<Transform>(entity);
+                if (registry.hasComponent<Rect>(entity))
+                    registry.removeComponent<Rect>(entity);
+                if (registry.hasComponent<Texture>(entity))
+                    registry.removeComponent<Texture>(entity);
+                if (registry.hasComponent<Scale>(entity))
+                    registry.removeComponent<Scale>(entity);
             }
     }; // class ExplosionSystem
-} // namespace gme
+} // namespace ecs
+

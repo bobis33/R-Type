@@ -353,11 +353,11 @@ void eng::SFMLRenderer::setSpriteFrame(const std::string &name, int fx, int fy, 
     }
 }
 
-void eng::SFMLRenderer::setSpriteScale(const std::string &name, const int x, const int y)
+void eng::SFMLRenderer::setSpriteScale(const std::string &name, const float x, const float y)
 {
     if (const auto it = sprites.find(name); it != sprites.end())
     {
-        it->second.setScale({static_cast<float>(x), static_cast<float>(y)});
+        it->second.setScale({x, y});
     }
     else
     {

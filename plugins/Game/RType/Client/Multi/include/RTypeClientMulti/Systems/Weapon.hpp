@@ -113,7 +113,9 @@ namespace gme
             /// @details Creates the audio entity for charged shot sound if it doesn't exist
             ///
             void ensureSuperShotAudio(ecs::Registry &registry);
+            void ensureBasicShotAudio(ecs::Registry &registry);
 
-            ecs::Entity m_superShotAudioEntity = ecs::INVALID_ENTITY; ///< Entity for charged shot audio
+            ecs::Entity m_superShotAudioEntity = ecs::INVALID_ENTITY;
+            ecs::Entity m_basicShotAudioEntity = ecs::INVALID_ENTITY;
     }; // class WeaponSystem
 } // namespace gme

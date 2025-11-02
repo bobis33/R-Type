@@ -1,3 +1,9 @@
+///
+/// @file Scrolling.hpp
+/// @brief Horizontal scrolling system for large sprites
+/// @namespace ecs
+///
+
 #pragma once
 
 #include "ECS/Component.hpp"
@@ -6,9 +12,15 @@
 #include "Interfaces/IRenderer.hpp"
 #include "Utils/RTypeShared/GameConfig.hpp"
 
-namespace gme
+namespace ecs
 {
-    class ScrollingSystem final : public ecs::ASystem
+
+    ///
+    /// @class ScrollingSystem
+    /// @brief Class for scrolling system
+    /// @namespace ecs
+    ///
+    class ScrollingSystem final : public ASystem
     {
         public:
             explicit ScrollingSystem(const std::shared_ptr<eng::IRenderer> &renderer) : m_renderer(renderer) {}
@@ -19,16 +31,16 @@ namespace gme
             ScrollingSystem(ScrollingSystem &&) = delete;
             ScrollingSystem &operator=(const ScrollingSystem &&) = delete;
 
-            void update(ecs::Registry &registry, float dt) override
+            void update(Registry &registry, float dt) override
             {
                 const auto [width, height] = m_renderer->getWindowSize();
 
-                for (auto &[entity, scrolling] : registry.getAll<ecs::Scrolling>())
+                for (auto &[entity, scrolling] : registry.getAll<Scrolling>())
                 {
-                    auto *transform = registry.getComponent<ecs::Transform>(entity);
-                    auto *scale = registry.getComponent<ecs::Scale>(entity);
-                    const bool isFloor = registry.hasComponent<ecs::Floor>(entity);
-                    const bool isCeiling = registry.hasComponent<ecs::Ceiling>(entity);
+                    auto *transform = registry.getComponent<Transform>(entity);
+                    auto *scale = registry.getComponent<Scale>(entity);
+                    const bool isFloor = registry.hasComponent<Floor>(entity);
+                    const bool isCeiling = registry.hasComponent<Ceiling>(entity);
 
                     if (transform == nullptr)
                     {
@@ -50,8 +62,7 @@ namespace gme
                     }
                     else if (isFloor)
                     {
-                        transform->y =
-                            static_cast<float>(height) - scaledHeight - utl::GameConfig::Stage::FLOOR_OFFSET_Y;
+                        transform->y = static_cast<float>(height) - scaledHeight;
                     }
 
                     transform->x += scrolling.speed_x * dt;
@@ -66,5 +77,6 @@ namespace gme
 
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
-    };
-} // namespace gme
+    }; // class ScrollingSystem
+} // namespace ecs
+

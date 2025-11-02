@@ -6,7 +6,9 @@
 
 #pragma once
 
+#include <functional>
 #include <ranges>
+#include <string>
 
 #include "ECS/Component.hpp"
 #include "ECS/Registry.hpp"
@@ -23,8 +25,11 @@ namespace ecs
     class DebugSystem final : public ASystem
     {
         public:
-            explicit DebugSystem(const std::shared_ptr<eng::IRenderer> &renderer, bool &showDebug)
-                : m_renderer(renderer), m_showDebug(showDebug)
+            using EntityFilter = std::function<bool(Registry &, Entity)>;
+
+            explicit DebugSystem(const std::shared_ptr<eng::IRenderer> &renderer, bool &showDebug,
+                                 EntityFilter filter = nullptr)
+                : m_renderer(renderer), m_showDebug(showDebug), m_filter(filter)
             {
             }
 
@@ -33,16 +38,20 @@ namespace ecs
             DebugSystem(const DebugSystem &) = delete;
             DebugSystem &operator=(const DebugSystem &) = delete;
             DebugSystem(DebugSystem &&) = delete;
-            DebugSystem &operator=(DebugSystem &&) = delete;
+            DebugSystem &operator=(const DebugSystem &&) = delete;
 
-            void update(Registry &registry, float dt) override
+            void update(Registry &registry, float /* dt */) override
             {
-
                 const auto &circleShapes = registry.getAll<Hitbox>();
-                const auto &transforms = registry.getAll<Transform>();
-                for (const auto &key : circleShapes | std::views::keys)
+                for (const auto &pair : circleShapes)
                 {
+                    const auto key = pair.first;
                     if (!registry.hasComponent<Hitbox>(key) || !registry.hasComponent<Transform>(key))
+                    {
+                        continue;
+                    }
+
+                    if (m_filter && !m_filter(registry, key))
                     {
                         continue;
                     }
@@ -56,10 +65,18 @@ namespace ecs
                     }
                     const float hitboxX = transform->x + hitbox->offsetX - hitbox->radius;
                     const float hitboxY = transform->y + hitbox->offsetY - hitbox->radius;
-                    m_renderer->setCircleShapePosition("hitbox_" + std::to_string(key), hitboxX, hitboxY);
-                    if (m_showDebug)
+                    const std::string circleName = "hitbox_" + std::to_string(key);
+                    try
                     {
-                        m_renderer->drawCircleShape("hitbox_" + std::to_string(key));
+                        m_renderer->setCircleShapePosition(circleName, hitboxX, hitboxY);
+                        if (m_showDebug)
+                        {
+                            m_renderer->drawCircleShape(circleName);
+                        }
+                    }
+                    catch (const std::runtime_error &)
+                    {
+                        continue;
                     }
                 }
             }
@@ -67,6 +84,7 @@ namespace ecs
         private:
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             bool &m_showDebug;
+            EntityFilter m_filter;
 
     }; // class DebugSystem
 } // namespace ecs
