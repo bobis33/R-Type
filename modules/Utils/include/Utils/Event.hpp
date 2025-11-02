@@ -61,6 +61,7 @@ namespace utl
         LOBBY_LEAVE = 0x4030,
         LOBBY_UPDATE = 0x4040,
         GAME_START = 0x4050,
+        GAME_OVER = 0x4060,
     };
 
     ///

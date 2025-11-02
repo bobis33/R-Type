@@ -41,6 +41,7 @@ namespace rnp
         LOBBY_UPDATE = 0x10,
         GAME_START = 0x11,
         START_GAME_REQUEST = 0x12,
+        GAME_OVER = 0x13,
     };
 
     ///
@@ -187,6 +188,7 @@ namespace rnp
             float vx, vy;
             std::uint8_t healthPercent; // Health as percentage (0-100), 255 = no health bar
             std::uint8_t stateFlags;    // Additional flags (beam charge for players, etc.)
+            std::uint32_t score;        // Player score (0 for non-player entities)
     };
 
     ///

@@ -61,10 +61,12 @@ namespace gme
             void processServerStartEvent(const utl::Event &event);
             void processPlayerInputEvent(const utl::Event &event);
             void processGameStartEvent(const utl::Event &event);
+            void processPlayerDisconnectEvent(const utl::Event &event);
             void updateEntities(float deltaTime);
             void updateSystems(float deltaTime);
             void broadcastWorldState() const;
             void handlePlayerShooting(std::uint32_t sessionId, float deltaTime);
+            void checkGameOver();
 
             utl::EventBus &m_eventBus;
             ecs::Registry m_registry;

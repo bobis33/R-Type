@@ -70,7 +70,7 @@ namespace gme
             bool getCollisionInfo(ecs::Entity entity, float &x, float &y, float &radius) const;
 
             // Damage application
-            void applyDamageToEnemy(std::uint32_t enemyId, float damage);
+            void applyDamageToEnemy(std::uint32_t enemyId, float damage, std::uint32_t attackerPlayerId = 0);
             void applyDamageToPlayer(std::uint32_t playerId, float damage);
     };
 

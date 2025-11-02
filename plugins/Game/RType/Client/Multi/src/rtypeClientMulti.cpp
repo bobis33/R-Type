@@ -2,11 +2,12 @@
 #include "RTypeClientMulti/Scenes/ConfigMulti.hpp"
 #include "RTypeClientMulti/Scenes/CreateRoom.hpp"
 #include "RTypeClientMulti/Scenes/GameMulti.hpp"
+#include "RTypeClientMulti/Scenes/GameOver.hpp"
 #include "RTypeClientMulti/Scenes/JoinRoom.hpp"
 #include "RTypeClientMulti/Scenes/ServerScene.hpp"
 #include "RTypeClientMulti/Scenes/WaitingRoom.hpp"
 #include "RTypeClientMulti/Systems/Systems.hpp"
-#include "RTypeClientMulti/Systems/Explosion.hpp"
+#include "Utils/EventBus.hpp"
 #include "Utils/Logger.hpp"
 
 void gme::RTypeClientMulti::update(float deltaTime, unsigned int width, unsigned int height) {}
@@ -126,7 +127,7 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
 
     waitingRoomScene->onLeaveLobby = [this, configMultiId]()
     { m_engine->getSceneManager()->switchToScene(configMultiId); };
-    waitingRoomScene->onGameStart = [this]()
+    waitingRoomScene->onGameStart = [this, menuSceneId]()
     {
         utl::Logger::log("RTypeClientMulti: Game starting!", utl::LogLevel::INFO);
 
@@ -154,6 +155,23 @@ void gme::RTypeClientMulti::setupScenes(bool &showDebug, eng::id menuSceneId)
         gameMulti->addSystem(std::make_unique<gme::ProjectileSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::WeaponSystem>(m_engine->getRenderer()));
         gameMulti->addSystem(std::make_unique<gme::PlayerDirectionSystem>());
+        gameMulti->addSystem(std::make_unique<gme::HealthBarSystem>(m_engine->getRenderer()));
+
+        gameMulti->onGameOver = [this, menuSceneId]()
+        {
+            utl::Logger::log("RTypeClientMulti: All players died - switching to GameOver scene", utl::LogLevel::INFO);
+
+            auto gameOverId = m_engine->getSceneManager()->generateNextId();
+            auto gameOver = std::make_unique<GameOverScene>(gameOverId, m_engine->getRenderer());
+            gameOver->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_appConfig->audioVolume,
+                                                                   gameOver->getRegistry(), gameOver->playMusic()));
+            gameOver->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+
+            gameOver->onBackToMenu = [this, menuSceneId]() { m_engine->getSceneManager()->switchToScene(menuSceneId); };
+
+            m_engine->getSceneManager()->addScene(std::move(gameOver));
+            m_engine->getSceneManager()->switchToScene(gameOverId);
+        };
 
         m_engine->getSceneManager()->addScene(std::move(gameMulti));
         m_engine->getSceneManager()->switchToScene(gameMultiId);

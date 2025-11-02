@@ -11,6 +11,7 @@
 #include "Interfaces/Protocol/Protocol.hpp"
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace gme
@@ -63,8 +64,16 @@ namespace gme
             ecs::Entity createPlayer(std::uint32_t sessionId, float x, float y);
             void destroyPlayer(std::uint32_t sessionId);
             ecs::Entity getPlayer(std::uint32_t sessionId);
+            ecs::Entity getPlayerEntity(std::uint32_t sessionId) const;
             bool hasPlayer(std::uint32_t sessionId) const;
+            void markPlayerAsDead(std::uint32_t sessionId);
+            std::uint32_t getAlivePlayerCount() const;
             const std::unordered_map<std::uint32_t, ecs::Entity> &getPlayers() const { return m_playerEntities; }
+
+            // ========== Score Management ==========
+            void addScore(std::uint32_t sessionId, int points);
+            int getScore(std::uint32_t sessionId) const;
+            void resetScore(std::uint32_t sessionId);
 
             // ========== Enemy Management ==========
             ecs::Entity createBasicEnemy(float x, float y, float health = 50.0f);
@@ -115,6 +124,12 @@ namespace gme
 
             // Metadata tracking (networkId -> Metadata)
             std::unordered_map<std::uint32_t, EntityMetadata> m_entityMetadata;
+
+            // Dead players tracking
+            std::unordered_set<std::uint32_t> m_deadPlayers;
+
+            // Score tracking (sessionId -> score)
+            std::unordered_map<std::uint32_t, int> m_playerScores;
 
             // Reverse lookup (Entity -> networkId)
             std::unordered_map<ecs::Entity, std::uint32_t> m_entityToNetworkId;

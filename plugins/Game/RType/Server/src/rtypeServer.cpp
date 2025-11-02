@@ -7,9 +7,9 @@
 #include <algorithm>
 #include <ranges>
 
-#include "RTypeServer/RTypeServer.hpp"
 #include "ECS/Component.hpp"
 #include "Interfaces/Protocol/Serializer.hpp"
+#include "RTypeServer/RTypeServer.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
 #include "Utils/Logger.hpp"
@@ -91,6 +91,10 @@ namespace gme
             {
                 processGameStartEvent(event);
             }
+            else if (event.type == utl::EventType::PLAYER_DISCONNECTED)
+            {
+                processPlayerDisconnectEvent(event);
+            }
         }
 
         // Update all game systems
@@ -104,6 +108,9 @@ namespace gme
 
         // Clean up destroyed entities
         m_entityManager->cleanupDestroyedEntities();
+
+        // Check for game over conditions
+        checkGameOver();
 
         // Broadcast world state at 60 Hz
         if (m_lastBroadcastTime >= utl::GameConfig::Server::Network::BROADCAST_INTERVAL)
@@ -274,6 +281,111 @@ namespace gme
         m_collisionSystem->update(m_registry, deltaTime);
     }
 
+    void RTypeServer::checkGameOver()
+    {
+        // Don't check if game is not in progress
+        if (m_levelState != LevelState::IN_PROGRESS)
+        {
+            return;
+        }
+
+        // Check if there are no more players at all (all disconnected)
+        const std::uint32_t totalPlayerCount = static_cast<std::uint32_t>(m_entityManager->getPlayers().size());
+        if (totalPlayerCount == 0)
+        {
+            utl::Logger::log("RTypeServer: No players left in game - resetting", utl::LogLevel::INFO);
+            m_levelState = LevelState::WAITING_FOR_PLAYERS;
+            m_entityManager->clear();
+            if (m_waveManager)
+            {
+                m_waveManager->reset();
+            }
+            return;
+        }
+
+        // Check if all waves are completed
+        const bool allWavesComplete = m_waveManager->isCompleted();
+
+        // Check alive player count
+        const std::uint32_t alivePlayerCount = m_entityManager->getAlivePlayerCount();
+
+        // Game Over conditions:
+        // 1. Only 1 or 0 players alive (in multiplayer context)
+        // 2. All waves completed (victory)
+        bool shouldGameOver = false;
+        std::string reason;
+
+        if (alivePlayerCount == 0)
+        {
+            shouldGameOver = true;
+            reason = "All players died";
+            m_levelState = LevelState::LOOSE;
+        }
+        else if (totalPlayerCount > 1 && alivePlayerCount == 1)
+        {
+            shouldGameOver = true;
+            reason = "Only one player remaining";
+            m_levelState = LevelState::LOOSE;
+        }
+        else if (allWavesComplete)
+        {
+            shouldGameOver = true;
+            reason = "All waves completed";
+            m_levelState = LevelState::COMPLETED;
+        }
+
+        if (shouldGameOver)
+        {
+            utl::Logger::log("RTypeServer: Game Over - " + reason, utl::LogLevel::INFO);
+
+            // Broadcast GAME_OVER event to all clients
+            std::vector<std::uint8_t> gameOverData;
+            gameOverData.resize(1);
+            gameOverData[0] = static_cast<std::uint8_t>(m_levelState);
+
+            m_eventBus.publish(utl::EventType::GAME_OVER, gameOverData, utl::GAME_LOGIC, 0);
+
+            // Reset game state for next round
+            m_levelState = LevelState::WAITING_FOR_PLAYERS;
+        }
+    }
+
+    void RTypeServer::processPlayerDisconnectEvent(const utl::Event &event)
+    {
+        std::uint32_t sessionId = event.sourceId;
+
+        utl::Logger::log("RTypeServer: Player " + std::to_string(sessionId) + " disconnected", utl::LogLevel::INFO);
+
+        // Remove player from entity manager
+        if (m_entityManager->hasPlayer(sessionId))
+        {
+            m_entityManager->destroyPlayer(sessionId);
+            utl::Logger::log("RTypeServer: Removed player " + std::to_string(sessionId) + " from game",
+                             utl::LogLevel::INFO);
+        }
+
+        // Check if there are no more players
+        if (m_entityManager->getPlayers().empty())
+        {
+            utl::Logger::log("RTypeServer: No more players in game - resetting game state", utl::LogLevel::INFO);
+            m_levelState = LevelState::WAITING_FOR_PLAYERS;
+
+            // Clear all game entities
+            m_entityManager->clear();
+
+            // Reset wave manager
+            if (m_waveManager)
+            {
+                m_waveManager->reset();
+            }
+        }
+        else
+        {
+            // Check if game should end with remaining players
+            checkGameOver();
+        }
+    }
+
     void RTypeServer::handlePlayerShooting(std::uint32_t sessionId, float deltaTime)
     {
         if (!m_lastShotTime.contains(sessionId))
@@ -284,19 +396,21 @@ namespace gme
         m_lastShotTime[sessionId] += deltaTime;
 
         const ecs::Entity playerEntity = m_entityManager->getPlayer(sessionId);
-        if (playerEntity == ecs::INVALID_ENTITY) {
+        if (playerEntity == ecs::INVALID_ENTITY)
+        {
             return;
-}
+        }
 
         auto *beamCharge = m_registry.getComponent<ecs::BeamCharge>(playerEntity);
         auto *transform = m_registry.getComponent<ecs::Transform>(playerEntity);
 
-        if (!beamCharge || !transform) {
+        if (!beamCharge || !transform)
+        {
             return;
-}
+        }
         if (m_playerShooting.contains(sessionId) && m_playerShooting[sessionId])
         {
-            constexpr  float CHARGE_RATE = 2.0f;
+            constexpr float CHARGE_RATE = 2.0f;
             beamCharge->current_charge += CHARGE_RATE * deltaTime;
             if (beamCharge->current_charge > beamCharge->max_charge)
                 beamCharge->current_charge = beamCharge->max_charge;
@@ -338,8 +452,10 @@ namespace gme
 
                 if (hitbox)
                 {
-                    constexpr float PLAYER_WIDTH = utl::GameConfig::Player::SPRITE_WIDTH * utl::GameConfig::Player::SCALE;
-                    constexpr float PLAYER_HEIGHT = utl::GameConfig::Player::SPRITE_HEIGHT * utl::GameConfig::Player::SCALE;
+                    constexpr float PLAYER_WIDTH =
+                        utl::GameConfig::Player::SPRITE_WIDTH * utl::GameConfig::Player::SCALE;
+                    constexpr float PLAYER_HEIGHT =
+                        utl::GameConfig::Player::SPRITE_HEIGHT * utl::GameConfig::Player::SCALE;
                     const float hitboxRadius = hitbox->radius;
 
                     float maxX = utl::GameConfig::Server::SCREEN_WIDTH - (PLAYER_WIDTH - hitboxRadius);
@@ -360,9 +476,10 @@ namespace gme
         for (const auto &enemies = m_entityManager->getEnemies(); const auto &[enemyId, entity] : enemies)
         {
             // Skip inactive entities
-            if (const auto *metadata = m_entityManager->getEntityMetadata(enemyId); !metadata || !metadata->isActive) {
+            if (const auto *metadata = m_entityManager->getEntityMetadata(enemyId); !metadata || !metadata->isActive)
+            {
                 continue;
-}
+            }
 
             auto *transform = m_registry.getComponent<ecs::Transform>(entity);
             auto *velocity = m_registry.getComponent<ecs::Velocity>(entity);
@@ -387,9 +504,10 @@ namespace gme
         for (const auto &[projectileId, entity] : projectiles)
         {
             if (const auto *metadata = m_entityManager->getEntityMetadata(projectileId);
-                !metadata || !metadata->isActive) {
+                !metadata || !metadata->isActive)
+            {
                 continue;
-}
+            }
 
             auto *transform = m_registry.getComponent<ecs::Transform>(entity);
             auto *velocity = m_registry.getComponent<ecs::Velocity>(entity);

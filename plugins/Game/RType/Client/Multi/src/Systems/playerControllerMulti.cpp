@@ -19,6 +19,7 @@ ecs::Entity gme::PlayerControllerMulti::createPlayer(ecs::Registry &registry, fl
             .with<ecs::Scale>("player_scale", utl::GameConfig::Player::SCALE, utl::GameConfig::Player::SCALE)
             .with<ecs::Texture>("player_texture", utl::Path::Texture::TEXTURE_PLAYER)
             .with<ecs::Player>("player", true)
+            .with<ecs::Health>("player_health", 100.0f, 100.0f)
             .with<ecs::BeamCharge>("beam_charge", 0.0f, utl::GameConfig::Beam::MAX_CHARGE)
             .with<ecs::Hitbox>("player_hitbox", utl::GameConfig::Hitbox::PLAYER_RADIUS, offsetX, offsetY)
             .build();

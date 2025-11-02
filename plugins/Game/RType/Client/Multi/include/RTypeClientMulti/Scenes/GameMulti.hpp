@@ -15,9 +15,9 @@
 #include "Engine/Interfaces/IScene.hpp"
 #include "Interfaces/IAudio.hpp"
 #include "RTypeClientMulti/Managers/StageManager.hpp"
-#include "Utils/EventBus.hpp"
+#include "RTypeClientMulti/Systems/HUD.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
-
+#include "Utils/EventBus.hpp"
 
 namespace gme
 {
@@ -53,6 +53,7 @@ namespace gme
             void updatePlayerSkin();
 
             bool &playMusic() { return m_playMusic; }
+            std::function<void()> onGameOver;
 
         private:
             void setupEventSubscriptions() const;
@@ -75,6 +76,7 @@ namespace gme
             const std::shared_ptr<eng::IRenderer> &m_renderer;
             float m_skinIndex;
             std::unique_ptr<PlayerControllerMulti> m_playerController;
+            std::unique_ptr<HUDSystem> m_hudSystem;
             std::unordered_map<eng::Key, bool> m_keysPressed;
             bool &m_showDebug;
             bool m_playMusic = false;

@@ -434,6 +434,19 @@ namespace srv
                                        rnp::ErrorCode errorCode, const rnp::LobbyInfo *lobbyInfo = nullptr);
 
             ///
+            /// @brief Handle GAME_OVER event from game server
+            /// @param event Game over event
+            ///
+            void handleGameOverEvent(const utl::Event &event);
+
+            ///
+            /// @brief Broadcast GAME_OVER packet to all players in a lobby
+            /// @param lobbyId Target lobby ID
+            /// @param gameOverData Game over packet data
+            ///
+            void broadcastGameOverToLobby(std::uint32_t lobbyId, const std::vector<std::uint8_t> &gameOverData);
+
+            ///
             /// @brief Clean up empty lobbies
             ///
             void cleanupEmptyLobbies();

@@ -8,6 +8,9 @@
 
 #include "ECS/Systems/Systems.hpp"
 #include "RTypeClientMulti/Systems/Collision.hpp"
+#include "RTypeClientMulti/Systems/Explosion.hpp"
+#include "RTypeClientMulti/Systems/HUD.hpp"
+#include "RTypeClientMulti/Systems/HealthBarSystem.hpp"
 #include "RTypeClientMulti/Systems/LoadingAnimation.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 #include "RTypeClientMulti/Systems/PlayerDirection.hpp"

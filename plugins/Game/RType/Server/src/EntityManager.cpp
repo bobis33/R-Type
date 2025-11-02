@@ -5,8 +5,8 @@
 ///
 
 #include "RTypeServer/EntityManager.hpp"
-#include "Utils/RTypeShared/GameConfig.hpp"
 #include "Utils/Logger.hpp"
+#include "Utils/RTypeShared/GameConfig.hpp"
 #include <algorithm>
 
 namespace gme
@@ -31,12 +31,16 @@ namespace gme
                 .with<ecs::Transform>("player_transform_" + std::to_string(sessionId), x, y, 0.0f)
                 .with<ecs::Velocity>("player_velocity_" + std::to_string(sessionId), 0.0f, 0.0f)
                 .with<ecs::Player>("player_" + std::to_string(sessionId), true)
+                .with<ecs::Health>("player_health_" + std::to_string(sessionId), 100.0f, 100.0f)
                 .with<ecs::BeamCharge>("beam_charge_" + std::to_string(sessionId), 0.0f, 1.0f)
                 .with<ecs::Hitbox>("player_hitbox_" + std::to_string(sessionId), 10.0f, 0.0f, 0.0f)
                 .build();
 
         m_playerEntities[sessionId] = playerEntity;
         registerEntity(playerEntity, ServerEntityType::PLAYER, sessionId, -1.0f);
+
+        // Initialize score
+        m_playerScores[sessionId] = 0;
 
         utl::Logger::log("EntityManager: Created player entity for sessionId " + std::to_string(sessionId) +
                              " at position (" + std::to_string(x) + ", " + std::to_string(y) + ")",
@@ -59,13 +63,19 @@ namespace gme
                 m_registry.removeComponent<ecs::Velocity>(entity);
             if (m_registry.hasComponent<ecs::Player>(entity))
                 m_registry.removeComponent<ecs::Player>(entity);
+            if (m_registry.hasComponent<ecs::Health>(entity))
+                m_registry.removeComponent<ecs::Health>(entity);
             if (m_registry.hasComponent<ecs::BeamCharge>(entity))
                 m_registry.removeComponent<ecs::BeamCharge>(entity);
             if (m_registry.hasComponent<ecs::Hitbox>(entity))
                 m_registry.removeComponent<ecs::Hitbox>(entity);
 
             unregisterEntity(sessionId);
+
+            // Clear score
+            m_playerScores.erase(sessionId);
             m_playerEntities.erase(it);
+            m_deadPlayers.erase(sessionId);
 
             utl::Logger::log("EntityManager: Destroyed player entity for sessionId " + std::to_string(sessionId),
                              utl::LogLevel::INFO);
@@ -81,6 +91,53 @@ namespace gme
     bool EntityManager::hasPlayer(std::uint32_t sessionId) const
     {
         return m_playerEntities.find(sessionId) != m_playerEntities.end();
+    }
+
+    ecs::Entity EntityManager::getPlayerEntity(std::uint32_t sessionId) const
+    {
+        auto it = m_playerEntities.find(sessionId);
+        return (it != m_playerEntities.end()) ? it->second : ecs::INVALID_ENTITY;
+    }
+
+    void EntityManager::markPlayerAsDead(std::uint32_t sessionId)
+    {
+        m_deadPlayers.insert(sessionId);
+        utl::Logger::log("EntityManager: Player " + std::to_string(sessionId) + " marked as dead", utl::LogLevel::INFO);
+    }
+
+    std::uint32_t EntityManager::getAlivePlayerCount() const
+    {
+        std::uint32_t aliveCount = 0;
+        for (const auto &[sessionId, entity] : m_playerEntities)
+        {
+            if (m_deadPlayers.find(sessionId) == m_deadPlayers.end())
+            {
+                aliveCount++;
+            }
+        }
+        return aliveCount;
+    }
+
+    // ========== Score Management ==========
+
+    void EntityManager::addScore(std::uint32_t sessionId, int points)
+    {
+        m_playerScores[sessionId] += points;
+        utl::Logger::log("EntityManager: Player " + std::to_string(sessionId) + " earned " + std::to_string(points) +
+                             " points. Total: " + std::to_string(m_playerScores[sessionId]),
+                         utl::LogLevel::INFO);
+    }
+
+    int EntityManager::getScore(std::uint32_t sessionId) const
+    {
+        auto it = m_playerScores.find(sessionId);
+        return (it != m_playerScores.end()) ? it->second : 0;
+    }
+
+    void EntityManager::resetScore(std::uint32_t sessionId)
+    {
+        m_playerScores[sessionId] = 0;
+        utl::Logger::log("EntityManager: Reset score for player " + std::to_string(sessionId), utl::LogLevel::INFO);
     }
 
     ecs::Entity EntityManager::createBasicEnemy(float x, float y, float health)
@@ -299,7 +356,17 @@ namespace gme
 
                 // Handle health percentage
                 state.healthPercent = 255; // Default: no health bar
-                if (netType == rnp::EntityType::ENEMY || netType == rnp::EntityType::BOSS)
+
+                if (netType == rnp::EntityType::PLAYER)
+                {
+                    auto *health = m_registry.getComponent<ecs::Health>(entity);
+                    if (health && health->max > 0.0f)
+                    {
+                        float healthPct = (health->current / health->max) * 100.0f;
+                        state.healthPercent = static_cast<std::uint8_t>(std::max(0.0f, std::min(100.0f, healthPct)));
+                    }
+                }
+                else if (netType == rnp::EntityType::ENEMY || netType == rnp::EntityType::BOSS)
                 {
                     auto *enemy = m_registry.getComponent<ecs::Enemy>(entity);
                     if (enemy && enemy->max_health > 0.0f)
@@ -320,6 +387,9 @@ namespace gme
                     }
                 }
 
+                // Initialize score to 0 (will be set for players below)
+                state.score = 0;
+
                 states.push_back(state);
             }
         };
@@ -330,6 +400,11 @@ namespace gme
             if (metadata && metadata->isActive)
             {
                 addEntityState(sessionId, entity, rnp::EntityType::PLAYER);
+                // Set the player's score in the last added state
+                if (!states.empty())
+                {
+                    states.back().score = static_cast<std::uint32_t>(getScore(sessionId));
+                }
             }
         }
 
@@ -427,6 +502,8 @@ namespace gme
                 m_registry.removeComponent<ecs::BeamCharge>(entity);
             if (m_registry.hasComponent<ecs::Hitbox>(entity))
                 m_registry.removeComponent<ecs::Hitbox>(entity);
+            if (m_registry.hasComponent<ecs::Health>(entity))
+                m_registry.removeComponent<ecs::Health>(entity);
         }
         m_playerEntities.clear();
 
@@ -473,6 +550,7 @@ namespace gme
         m_entityMetadata.clear();
         m_entityToNetworkId.clear();
         m_destroyQueue.clear();
+        m_deadPlayers.clear();
     }
 
     size_t EntityManager::getTotalEntityCount() const

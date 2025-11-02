@@ -379,6 +379,7 @@ namespace rnp
                 writeFloat(entity.vy);
                 writeByte(entity.healthPercent);
                 writeByte(entity.stateFlags);
+                writeUInt32(entity.score);
             }
 
             ///
@@ -397,6 +398,7 @@ namespace rnp
                 entity.vy = readFloat();
                 entity.healthPercent = readByte();
                 entity.stateFlags = readByte();
+                entity.score = readUInt32();
                 return entity;
             }
 

@@ -36,6 +36,7 @@ namespace srv
         m_eventBus.subscribe(m_componentId, utl::EventType::SEND_TO_CLIENT);
         m_eventBus.subscribe(m_componentId, utl::EventType::BROADCAST_WORLD_STATE);
         m_eventBus.subscribe(m_componentId, utl::EventType::SEND_ENTITY_EVENTS);
+        m_eventBus.subscribe(m_componentId, utl::EventType::GAME_OVER);
 
         // utl::Logger::log("AsioServer: Initialized with EventBus integration", utl::LogLevel::INFO);
     }
@@ -859,6 +860,9 @@ namespace srv
                 case utl::EventType::SEND_TO_CLIENT:
                     handleSendToClientEvent(event);
                     break;
+                case utl::EventType::GAME_OVER:
+                    handleGameOverEvent(event);
+                    break;
 
                 case utl::EventType::BROADCAST_WORLD_STATE:
                     handleBroadcastEvent(event);
@@ -1285,6 +1289,19 @@ namespace srv
                                      std::to_string(lobbyId),
                                  utl::LogLevel::INFO);
 
+                // Clear the client's current lobby association
+                {
+                    std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+                    auto clientIt = m_clients.find(sessionId);
+                    if (clientIt != m_clients.end())
+                    {
+                        clientIt->second.currentLobbyId = 0;
+                        utl::Logger::log("AsioServer: Cleared lobby association for session " +
+                                             std::to_string(sessionId),
+                                         utl::LogLevel::INFO);
+                    }
+                }
+
                 // If host left, assign new host or delete lobby
                 if (lobby.hostSessionId == sessionId)
                 {
@@ -1307,6 +1324,86 @@ namespace srv
         }
 
         cleanupEmptyLobbies();
+    }
+
+    void AsioServer::handleGameOverEvent(const utl::Event &event)
+    {
+        utl::Logger::log("AsioServer: Received GAME_OVER event - closing all active lobbies", utl::LogLevel::INFO);
+
+        // Broadcast GAME_OVER to all clients in lobbies
+        std::vector<std::uint32_t> lobbyIds;
+        {
+            std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
+            for (const auto &[lobbyId, lobby] : m_lobbies)
+            {
+                lobbyIds.push_back(lobbyId);
+            }
+        }
+
+        // Send GAME_OVER packet to all clients in each lobby
+        for (std::uint32_t lobbyId : lobbyIds)
+        {
+            broadcastGameOverToLobby(lobbyId, event.data);
+        }
+
+        // Close all lobbies after game over
+        {
+            std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
+            std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+
+            for (auto &[sessionId, client] : m_clients)
+            {
+                if (client.currentLobbyId != 0)
+                {
+                    utl::Logger::log("AsioServer: Clearing lobby association for session " + std::to_string(sessionId),
+                                     utl::LogLevel::INFO);
+                    client.currentLobbyId = 0;
+                }
+            }
+
+            utl::Logger::log("AsioServer: Clearing all lobbies (" + std::to_string(m_lobbies.size()) + " lobbies)",
+                             utl::LogLevel::INFO);
+            m_lobbies.clear();
+        }
+    }
+
+    void AsioServer::broadcastGameOverToLobby(std::uint32_t lobbyId, const std::vector<std::uint8_t> &gameOverData)
+    {
+        std::vector<std::uint32_t> playerSessions;
+
+        {
+            std::lock_guard<std::mutex> lobbiesLock(m_lobbiesMutex);
+            auto lobbyIt = m_lobbies.find(lobbyId);
+            if (lobbyIt == m_lobbies.end())
+            {
+                return;
+            }
+            playerSessions = lobbyIt->second.playerSessions;
+        }
+
+        rnp::Serializer serializer;
+        rnp::PacketHeader header;
+        header.type = static_cast<std::uint8_t>(rnp::PacketType::GAME_OVER);
+        header.length = static_cast<std::uint16_t>(gameOverData.size());
+        header.sessionId = 0; // Broadcast to all
+
+        serializer.serializeHeader(header);
+        // Append game over data to serializer
+        std::vector<std::uint8_t> packetData = serializer.getData();
+        packetData.insert(packetData.end(), gameOverData.begin(), gameOverData.end());
+
+        // Send to all players in lobby
+        std::lock_guard<std::mutex> clientsLock(m_clientsMutex);
+        for (std::uint32_t sessionId : playerSessions)
+        {
+            auto clientIt = m_clients.find(sessionId);
+            if (clientIt != m_clients.end() && clientIt->second.isConnected)
+            {
+                utl::Logger::log("AsioServer: Sending GAME_OVER to session " + std::to_string(sessionId),
+                                 utl::LogLevel::INFO);
+                sendPacketImmediate(packetData, clientIt->second.endpoint);
+            }
+        }
     }
 
     void AsioServer::broadcastLobbyUpdate(std::uint32_t lobbyId)
