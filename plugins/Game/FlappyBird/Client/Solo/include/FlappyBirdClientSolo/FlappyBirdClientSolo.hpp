@@ -33,7 +33,7 @@ namespace gme
 
             void update(float deltaTime, unsigned int width, unsigned int height) override;
             void init(eng::Engine &engine, utl::cli::AppConfig &appConfig, bool &showDebug,
-                      const eng::id menuSceneId) override
+                      const eng::id menuSceneId, const eng::id winSceneId) override
             {
                 m_engine = &engine;
                 m_appConfig = &appConfig;

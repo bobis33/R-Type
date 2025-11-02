@@ -3,6 +3,7 @@
 #include "Client/Scenes/Intro.hpp"
 #include "Client/Scenes/Menu.hpp"
 #include "Client/Scenes/Settings.hpp"
+#include "Client/Scenes/WinCondition.hpp"
 #include "ECS/Systems/Systems.hpp"
 #include "Utils/Logger.hpp"
 #include "Utils/PluginLoader.hpp"
@@ -88,7 +89,6 @@ void cli::Client::stop() const
 
 void cli::Client::setupScenes()
 {
-    bool f = false;
     auto menuId = m_engine->getSceneManager()->generateNextId();
     auto menu = std::make_unique<Menu>(menuId, m_engine->getRenderer());
     menu->addSystem(std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume, menu->getRegistry(),
@@ -97,6 +97,15 @@ void cli::Client::setupScenes()
     menu->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     menu->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
+
+    auto winConditionId = m_engine->getSceneManager()->generateNextId();
+    auto winCondition = std::make_unique<WinCondition>(winConditionId, m_engine->getRenderer(), m_engine->getAudio());
+    winCondition->addSystem(
+        std::make_unique<ecs::AudioSystem>(m_engine->getAudio(), m_config.audioVolume, winCondition->getRegistry(), winCondition->playMusic()));
+    winCondition->addSystem(std::make_unique<ecs::SpriteSystem>(m_engine->getRenderer()));
+    winCondition->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
+    winCondition->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
+    winCondition->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
 
     auto introId = m_engine->getSceneManager()->generateNextId();
     auto intro = std::make_unique<Intro>(introId, m_engine->getRenderer(), m_engine->getAudio());
@@ -107,9 +116,6 @@ void cli::Client::setupScenes()
     intro->addSystem(std::make_unique<ecs::TextSystem>(m_engine->getRenderer()));
     intro->addSystem(std::make_unique<ecs::DebugSystem>(m_engine->getRenderer(), m_showDebug));
     intro->onLeave = [this, menuId]() { m_engine->getSceneManager()->switchToScene(menuId); };
-
-    m_gameSolo->init(*m_engine, m_config, m_showDebug, menuId);
-    m_gameMulti->init(*m_engine, m_config, m_showDebug, menuId);
 
     auto settingsId = m_engine->getSceneManager()->generateNextId();
     auto settings = std::make_unique<Settings>(settingsId, m_engine->getRenderer(), m_config);
@@ -141,5 +147,9 @@ void cli::Client::setupScenes()
     m_engine->getSceneManager()->addScene(std::move(menu));
     m_engine->getSceneManager()->addScene(std::move(intro));
     m_engine->getSceneManager()->addScene(std::move(settings));
+    m_engine->getSceneManager()->addScene(std::move(winCondition));
     m_engine->getSceneManager()->switchToScene(introId);
+
+    m_gameSolo->init(*m_engine, m_config, m_showDebug, menuId, winConditionId);
+    m_gameMulti->init(*m_engine, m_config, m_showDebug, menuId, winConditionId);
 }
