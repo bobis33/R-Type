@@ -5,8 +5,8 @@
 
 #include "ECS/Component.hpp"
 #include "Interfaces/IAudio.hpp"
-#include "RTypeClientMulti/Scenes/GameMulti.hpp"
 #include "RTypeClientMulti/Managers/StageManager.hpp"
+#include "RTypeClientMulti/Scenes/GameMulti.hpp"
 #include "RTypeClientMulti/Systems/PlayerControllerMulti.hpp"
 #include "Utils/Common.hpp"
 #include "Utils/EventBus.hpp"
@@ -103,6 +103,7 @@ gme::GameMulti::GameMulti(const eng::id assignedId, const std::shared_ptr<eng::I
     registry.createEntity().with<ecs::Score>("score", 0).build();
 
     m_playerController = std::make_unique<PlayerControllerMulti>(renderer, m_sessionId);
+    m_hudSystem = std::make_unique<HUDSystem>(renderer, registry);
 
     m_localPlayerEntity = m_playerController->createPlayer(registry, 200.F, 100.F);
 
@@ -177,6 +178,7 @@ void gme::GameMulti::setupEventSubscriptions() const
     eventBus.subscribe(m_eventComponentId, utl::EventType::GAME_START);
     eventBus.subscribe(m_eventComponentId, utl::EventType::PLAYER_INPUT_RECEIVED);
     eventBus.subscribe(m_eventComponentId, utl::EventType::WORLD_STATE_RECEIVED);
+    eventBus.subscribe(m_eventComponentId, utl::EventType::GAME_OVER);
 }
 
 void gme::GameMulti::processEventBus()
@@ -196,6 +198,15 @@ void gme::GameMulti::processEventBus()
             case utl::EventType::WORLD_STATE_RECEIVED:
                 handleWorldStateUpdate(event);
                 break;
+            case utl::EventType::GAME_OVER:
+            {
+                utl::Logger::log("GameMulti: Received GAME_OVER event", utl::LogLevel::INFO);
+                if (onGameOver)
+                {
+                    onGameOver();
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -210,6 +221,20 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
         rnp::PacketWorldState worldState = deserializer.deserializeWorldState();
 
         auto &registry = getRegistry();
+
+        // Update local player score from world state
+        for (const auto &entityState : worldState.entities)
+        {
+            if (entityState.id == m_sessionId && entityState.type == static_cast<uint16_t>(rnp::EntityType::PLAYER))
+            {
+                // Update the Score component with the server's score
+                for (auto &[entity, score] : registry.getAll<ecs::Score>())
+                {
+                    score.value = static_cast<int>(entityState.score);
+                    break;
+                }
+            }
+        }
 
         // Track entities present in this world state
         std::set<uint32_t> currentEnemyIds;
@@ -279,6 +304,35 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     velocity->y = entityState.vy;
                 }
 
+                // Synchronize health from server
+                if (auto *health = registry.getComponent<ecs::Health>(m_localPlayerEntity))
+                {
+                    if (entityState.healthPercent != 255) // 255 means no health data
+                    {
+                        float previousHealth = health->current;
+                        health->current = (static_cast<float>(entityState.healthPercent) / 100.0f) * health->max;
+
+                        // Detect player death
+                        if (health->current <= 0.0f && previousHealth > 0.0f)
+                        {
+                            utl::Logger::log("GameMulti: Local player died - disconnecting and showing game over",
+                                             utl::LogLevel::WARNING);
+
+                            // Send disconnect event to network
+                            utl::EventBus &eventBus = utl::EventBus::getInstance();
+                            std::vector<std::uint8_t> emptyData;
+                            eventBus.publish(utl::EventType::REQUEST_DISCONNECT, emptyData, m_eventComponentId,
+                                             utl::NETWORK_CLIENT);
+
+                            // Trigger game over after a short delay to allow disconnect to process
+                            if (onGameOver)
+                            {
+                                onGameOver();
+                            }
+                        }
+                    }
+                }
+
                 // Synchronize beam charge from server
                 if (auto *beamCharge = registry.getComponent<ecs::BeamCharge>(m_localPlayerEntity))
                 {
@@ -311,6 +365,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                             .with<ecs::Texture>("remote_texture_" + std::to_string(entityState.id),
                                                 utl::Path::Texture::TEXTURE_PLAYER)
                             .with<ecs::Player>("remote_player_comp_" + std::to_string(entityState.id), false)
+                            .with<ecs::Health>("remote_player_health_" + std::to_string(entityState.id), 100.0f, 100.0f)
                             .build();
                     m_remotePlayers[entityState.id] = remotePlayer;
 
@@ -330,6 +385,15 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     m_remotePlayerData[entityState.id].targetY = entityState.y;
                     m_remotePlayerData[entityState.id].targetVx = entityState.vx;
                     m_remotePlayerData[entityState.id].targetVy = entityState.vy;
+
+                    // Update remote player health
+                    if (auto *health = registry.getComponent<ecs::Health>(m_remotePlayers[entityState.id]))
+                    {
+                        if (entityState.healthPercent != 255)
+                        {
+                            health->current = (static_cast<float>(entityState.healthPercent) / 100.0f) * health->max;
+                        }
+                    }
                 }
             }
             else if (entityState.type == static_cast<std::uint16_t>(rnp::EntityType::PROJECTILE))
@@ -371,8 +435,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                                                   entityState.y, 0.F)
                             .with<ecs::Velocity>("projectile_velocity_" + std::to_string(entityState.id),
                                                  entityState.vx, entityState.vy)
-                            .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F, static_cast<int>(width),
-                                             static_cast<int>(height))
+                            .with<ecs::Rect>("projectile_rect_" + std::to_string(entityState.id), 0.F, 0.F,
+                                             static_cast<int>(width), static_cast<int>(height))
                             .with<ecs::Scale>("projectile_scale_" + std::to_string(entityState.id), scale, scale)
                             .with<ecs::Texture>("projectile_texture_" + std::to_string(entityState.id), texturePath);
 
@@ -434,7 +498,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                                                   entityState.y, 0.F)
                             .with<ecs::Velocity>("enemy_velocity_" + std::to_string(entityState.id), entityState.vx,
                                                  entityState.vy)
-                            .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F, static_cast<int>(width), static_cast<int>(height))
+                            .with<ecs::Rect>("enemy_rect_" + std::to_string(entityState.id), 0.F, 0.F,
+                                             static_cast<int>(width), static_cast<int>(height))
                             .with<ecs::Scale>("enemy_scale_" + std::to_string(entityState.id), scale, scale)
                             .with<ecs::Texture>("enemy_texture_" + std::to_string(entityState.id), texturePath)
                             .with<ecs::Animation>("enemy_animation_" + std::to_string(entityState.id), 0, animFrames,
@@ -478,7 +543,8 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                                                   entityState.y, 0.F)
                             .with<ecs::Velocity>("boss_velocity_" + std::to_string(entityState.id), entityState.vx,
                                                  entityState.vy)
-                            .with<ecs::Rect>("boss_rect_" + std::to_string(entityState.id), 0.F, 0.F, static_cast<int>(width), static_cast<int>(height))
+                            .with<ecs::Rect>("boss_rect_" + std::to_string(entityState.id), 0.F, 0.F,
+                                             static_cast<int>(width), static_cast<int>(height))
                             .with<ecs::Scale>("boss_scale_" + std::to_string(entityState.id), scale, scale)
                             .with<ecs::Texture>("boss_texture_" + std::to_string(entityState.id), texturePath)
                             .with<ecs::Animation>("boss_animation_" + std::to_string(entityState.id), 0, 2, 0.3f, 0.0f,
@@ -533,12 +599,14 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
                     .with<ecs::Rect>("explosion_rect", 0.0f, 0.0f,
                                      static_cast<int>(utl::GameConfig::Explosion::SPRITE_WIDTH),
                                      static_cast<int>(utl::GameConfig::Explosion::SPRITE_HEIGHT))
-                    .with<ecs::Scale>("explosion_scale", utl::GameConfig::Explosion::SCALE, utl::GameConfig::Explosion::SCALE)
+                    .with<ecs::Scale>("explosion_scale", utl::GameConfig::Explosion::SCALE,
+                                      utl::GameConfig::Explosion::SCALE)
                     .with<ecs::Texture>("explosion_texture", utl::Path::Texture::TEXTURE_EXPLOSION)
-                    .with<ecs::Explosion>("explosion", 0, utl::GameConfig::Explosion::ANIMATION_FRAMES,
-                                          utl::GameConfig::Explosion::ANIMATION_DURATION, 0.0f,
-                                          utl::GameConfig::Explosion::SPRITE_WIDTH, utl::GameConfig::Explosion::SPRITE_HEIGHT,
-                                          utl::GameConfig::Explosion::FRAMES_PER_ROW, utl::GameConfig::Explosion::LIFETIME, 0.0f)
+                    .with<ecs::Explosion>(
+                        "explosion", 0, utl::GameConfig::Explosion::ANIMATION_FRAMES,
+                        utl::GameConfig::Explosion::ANIMATION_DURATION, 0.0f, utl::GameConfig::Explosion::SPRITE_WIDTH,
+                        utl::GameConfig::Explosion::SPRITE_HEIGHT, utl::GameConfig::Explosion::FRAMES_PER_ROW,
+                        utl::GameConfig::Explosion::LIFETIME, 0.0f)
                     .build();
             }
 
@@ -562,7 +630,7 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
 
         // Remove projectiles that disappeared
         std::vector<uint32_t> projectilesToRemove;
-        for (const auto &projectileId: m_projectileEntities | std::views::keys)
+        for (const auto &projectileId : m_projectileEntities | std::views::keys)
         {
             if (!currentProjectileIds.contains(projectileId))
             {
@@ -575,24 +643,30 @@ void gme::GameMulti::handleWorldStateUpdate(const utl::Event &event)
             ecs::Entity projectileEntity = m_projectileEntities[projectileId];
 
             // Remove all components
-            if (registry.hasComponent<ecs::Transform>(projectileEntity)) {
+            if (registry.hasComponent<ecs::Transform>(projectileEntity))
+            {
                 registry.removeComponent<ecs::Transform>(projectileEntity);
-}
-            if (registry.hasComponent<ecs::Velocity>(projectileEntity)) {
+            }
+            if (registry.hasComponent<ecs::Velocity>(projectileEntity))
+            {
                 registry.removeComponent<ecs::Velocity>(projectileEntity);
-}
-            if (registry.hasComponent<ecs::Rect>(projectileEntity)) {
+            }
+            if (registry.hasComponent<ecs::Rect>(projectileEntity))
+            {
                 registry.removeComponent<ecs::Rect>(projectileEntity);
-}
-            if (registry.hasComponent<ecs::Scale>(projectileEntity)) {
+            }
+            if (registry.hasComponent<ecs::Scale>(projectileEntity))
+            {
                 registry.removeComponent<ecs::Scale>(projectileEntity);
-}
-            if (registry.hasComponent<ecs::Texture>(projectileEntity)) {
+            }
+            if (registry.hasComponent<ecs::Texture>(projectileEntity))
+            {
                 registry.removeComponent<ecs::Texture>(projectileEntity);
-}
-            if (registry.hasComponent<ecs::Animation>(projectileEntity)) {
+            }
+            if (registry.hasComponent<ecs::Animation>(projectileEntity))
+            {
                 registry.removeComponent<ecs::Animation>(projectileEntity);
-}
+            }
 
             m_projectileEntities.erase(projectileId);
         }
@@ -610,6 +684,11 @@ void gme::GameMulti::update(const float dt, const eng::WindowSize &size)
     if (m_playerController)
     {
         m_playerController->update(reg, dt);
+    }
+
+    if (m_hudSystem)
+    {
+        m_hudSystem->update(reg, dt);
     }
     for (const auto &audios = reg.getAll<ecs::Audio>(); const auto &audio : audios | std::views::values)
     {
@@ -684,12 +763,14 @@ void gme::GameMulti::event(const eng::Event &event)
 
 void gme::GameMulti::updateInterpolation(std::unordered_map<uint32_t, InterpolationData> &dataMap,
                                          std::unordered_map<uint32_t, ecs::Entity> &entityMap, float smoothFactor,
-                                         float dt, ecs::Registry &registry) {
+                                         float dt, ecs::Registry &registry)
+{
     for (auto &[entityId, interpData] : dataMap)
     {
-        if (&dataMap == &m_remotePlayerData && entityId == m_sessionId) {
+        if (&dataMap == &m_remotePlayerData && entityId == m_sessionId)
+        {
             continue;
-}
+        }
 
         if (entityMap.contains(entityId))
         {

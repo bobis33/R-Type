@@ -37,6 +37,11 @@ namespace ecs
             bool is_cli{};
             // bool is_alive{};
     };
+    struct Health final : IComponent
+    {
+            float current;
+            float max;
+    };
     struct Pixel final : IComponent
     {
     };

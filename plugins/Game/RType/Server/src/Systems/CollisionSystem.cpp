@@ -65,8 +65,11 @@ namespace gme
                     // Collision detected!
                     m_collisionCount++;
 
-                    // Apply damage to enemy
-                    applyDamageToEnemy(enemyId, projProjectile->damage);
+                    // Get projectile owner for score attribution
+                    std::uint32_t ownerId = projMetadata->ownerId;
+
+                    // Apply damage to enemy and award score if killed
+                    applyDamageToEnemy(enemyId, projProjectile->damage, ownerId);
 
                     // Reduce pierce count
                     projProjectile->pierce_remaining--;
@@ -172,8 +175,8 @@ namespace gme
                     // Apply damage to player
                     applyDamageToPlayer(playerId, damage);
 
-                    // Apply damage to enemy (ram damage)
-                    applyDamageToEnemy(enemyId, 20.0f);
+                    // Apply damage to enemy (ram damage) - no score for ram damage
+                    applyDamageToEnemy(enemyId, 20.0f, 0);
 
                     // Collision logged only for debugging (too verbose at INFO level)
                     // utl::Logger::log("CollisionSystem: Player " + std::to_string(playerId) + " collided with enemy "
@@ -190,7 +193,7 @@ namespace gme
         // For now, this is a placeholder
     }
 
-    void CollisionSystem::applyDamageToEnemy(std::uint32_t enemyId, float damage)
+    void CollisionSystem::applyDamageToEnemy(std::uint32_t enemyId, float damage, std::uint32_t attackerPlayerId)
     {
         ecs::Entity enemyEntity = m_entityManager.getEnemy(enemyId);
         if (enemyEntity == ecs::INVALID_ENTITY)
@@ -211,25 +214,66 @@ namespace gme
         if (enemy->health <= 0.0f)
         {
             utl::Logger::log("CollisionSystem: Enemy " + std::to_string(enemyId) + " destroyed", utl::LogLevel::INFO);
-            m_entityManager.destroyEnemy(enemyId);
 
-            // TODO: Add score/rewards here
-            // TODO: Potentially spawn powerup
+            // Award score to the player who killed the enemy
+            if (attackerPlayerId > 0)
+            {
+                const auto *enemyMetadata = m_entityManager.getEntityMetadata(enemyId);
+                int points = 0;
+
+                // Different points based on enemy type
+                if (enemyMetadata)
+                {
+                    switch (enemyMetadata->type)
+                    {
+                        case ServerEntityType::ENEMY_BASIC:
+                            points = 100;
+                            break;
+                        case ServerEntityType::ENEMY_ADVANCED:
+                            points = 250;
+                            break;
+                        case ServerEntityType::BOSS:
+                            points = 1000;
+                            break;
+                        default:
+                            points = 50;
+                            break;
+                    }
+                }
+
+                m_entityManager.addScore(attackerPlayerId, points);
+            }
+
+            m_entityManager.destroyEnemy(enemyId);
         }
     }
 
     void CollisionSystem::applyDamageToPlayer(std::uint32_t playerId, float damage)
     {
-        // For now, just log the damage
-        // TODO: Implement player health system
-        // Damage logged only for debugging (too verbose at INFO level)
-        // utl::Logger::log("CollisionSystem: Player " + std::to_string(playerId) + " took " + std::to_string(damage) +
-        //                      " damage");
+        ecs::Entity playerEntity = m_entityManager.getPlayerEntity(playerId);
+        auto *health = m_registry.getComponent<ecs::Health>(playerEntity);
 
-        // TODO: When health system is implemented:
-        // - Reduce player health
-        // - If health <= 0, handle player death
-        // - Broadcast player damage event to clients
+        if (!health)
+        {
+            utl::Logger::log("CollisionSystem: Player " + std::to_string(playerId) + " has no health component",
+                             utl::LogLevel::WARNING);
+            return;
+        }
+
+        health->current -= damage;
+
+        utl::Logger::log("CollisionSystem: Player " + std::to_string(playerId) + " took " + std::to_string(damage) +
+                             " damage (health: " + std::to_string(health->current) + "/" + std::to_string(health->max) +
+                             ")",
+                         utl::LogLevel::INFO);
+
+        // Check if player is dead
+        if (health->current <= 0.0f)
+        {
+            health->current = 0.0f;
+            utl::Logger::log("CollisionSystem: Player " + std::to_string(playerId) + " died", utl::LogLevel::INFO);
+            m_entityManager.markPlayerAsDead(playerId);
+        }
     }
 
 } // namespace gme
