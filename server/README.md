@@ -16,14 +16,18 @@ Here is an example configuration file:
   "host": "0.0.0.0",
   "port": 2560,
   "plugins": {
-    "network": "/plugins/my_network_server_plugin.so"
+    "game": "my_game_server_plugin.so",
+    "network": "my_network_server_plugin.so"
   }
 }
 ```
 
 ## Plugins
 
-The server requires a network plugin implementing `INetworkServer`.
+The server uses two main plugin types:
+
+- **Audio**: Implements `IAudio`
+- **Game**: Implements `IGameServer`
 
 Refer to the plugin folder and the interfaces documentation to implement custom plugins.
 

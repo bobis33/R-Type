@@ -19,9 +19,11 @@ Here is an example configuration file:
     "player_name": "Player"
   },
   "plugins": {
-    "audio": "/plugins/my_audio_plugin.so",
-    "network": "/plugins/my_network_client_plugin.so",
-    "renderer": "/plugins/my_renderer_plugin.so"
+    "audio": "my_audio_plugin.so",
+    "network": "my_network_client_plugin.so",
+    "renderer": "my_renderer_plugin.so",
+    "game_solo": "my_game_client_solo_plugin.so",
+    "game_multi": "my_game_client_multi_plugin.so"
   },
   "window": {
     "fullscreen": false,
@@ -34,9 +36,11 @@ Here is an example configuration file:
 
 ## Plugins
 
-The client uses three main plugin types:
+The client uses five main plugin types:
 
 - **Audio**: Implements `IAudio`
+- **GameSolo**: Implements `IGameClient`
+- **GameMulti**: Implements `IGameClient`
 - **Renderer**: Implements `IRenderer`
 - **Network client**: Implements `INetworkClient` 
 

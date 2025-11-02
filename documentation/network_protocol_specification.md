@@ -1,4 +1,4 @@
-# R-Type Network Protocol (RNP) Specification
+# Network Protocol Specification
 
 **Version:** 1.0
 **Status:** Stable

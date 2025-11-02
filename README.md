@@ -64,7 +64,7 @@ Make sure you have the following dependencies installed on your system:
 ```bash
 ./scripts/unix/build.sh release
 ## Or
-cmake -S . -B cmake-build-release -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
+cmake -S . -B cmake-build-release -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
 cmake --build cmake-build-release -- -j4
 ## Then
 ./cmake-build-release/bin/r-type_client ## client
@@ -86,12 +86,10 @@ You can find the same documentation as PDF [here](https://github.com/bobis33/R-T
 More specific documentation for each part of the project can be found in their respective directories:
   - [Client documentation](https://github.com/bobis33/R-Type/blob/main/client/README.md)
   - [Server documentation](https://github.com/bobis33/R-Type/blob/main/server/README.md)
+  - [Network protocol specification](https://github.com/bobis33/R-Type/blob/main/documentation/network_protocol_specification.md)
   - [Plugins documentation](https://github.com/bobis33/R-Type/blob/main/plugins/README.md)
   - [Modules documentation](https://github.com/bobis33/R-Type/blob/main/modules/README.md)
-
-## Technology Stack Analysis
-For a detailed comparative study of the technologies used in this project and the reasoning behind our architectural choices, see:
-[Comparative study](https://github.com/bobis33/R-Type/blob/main/documentation/comparative_study.md)
+  - [Comparative study](https://github.com/bobis33/R-Type/blob/main/documentation/comparative_study.md)
 
 ## External Libraries
 All dependencies are included as submodules in the [third-party](https://github.com/bobis33/R-Type/tree/main/third-party) directory.

@@ -31,11 +31,12 @@ file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
-        "${CMAKE_SOURCE_DIR}/modules/Utils/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        r-type_modules_client
+        r-type_game_client_shared
+)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON
@@ -75,6 +76,24 @@ namespace eng
             SnakeClient &operator=(const SnakeClient &) = delete;
             SnakeClient(SnakeClient &&) = delete;
             SnakeClient &operator=(SnakeClient &&) = delete;
+            
+            void update(float deltaTime, unsigned int width, unsigned int height) override;
+            void init(eng::Engine &engine, utl::cli::AppConfig &appConfig, bool &showDebug,
+                      const eng::id menuSceneId) override
+            {
+                m_engine = &engine;
+                m_appConfig = &appConfig;
+                setupScenes(showDebug, menuSceneId);
+            }
+
+            [[nodiscard]] unsigned int getMainSceneId() const override { return m_mainSceneId; }
+
+        private:
+            eng::Engine *m_engine = nullptr;
+            utl::cli::AppConfig *m_appConfig = nullptr;
+            eng::id m_mainSceneId;
+
+            void setupScenes(bool &showDebug, eng::id menuSceneId);
 
     }; // class SnakeClient
 
@@ -111,11 +130,12 @@ file(GLOB_RECURSE HEADERS "${INCLUDE_DIR}/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${HEADERS})
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${INCLUDE_DIR}
-        "${CMAKE_SOURCE_DIR}/modules/Interfaces/include"
-        "${CMAKE_SOURCE_DIR}/modules/Utils/include"
 )
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
-target_link_libraries(${PROJECT_NAME} PRIVATE utils)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+        r-type_modules_server
+        r-type_game_client_shared
+)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 set_target_properties(${PROJECT_NAME} PROPERTIES
         POSITION_INDEPENDENT_CODE ON
@@ -155,6 +175,12 @@ namespace eng
             SnakeServer &operator=(const SnakeServer &) = delete;
             SnakeServer(SnakeServer &&) = delete;
             SnakeServer &operator=(SnakeServer &&) = delete;
+
+            [[nodiscard]] State getState() const override;
+
+            void start() override;
+            void stop() override;
+            void update(float deltaTime) override;
 
     }; // class SnakeServer
 
