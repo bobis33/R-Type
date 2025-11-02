@@ -39,8 +39,10 @@ float getGapSize(const PipeType type)
 }
 
 gme::Game::Game(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> &renderer,
-                const std::shared_ptr<eng::IAudio> &audio, bool &showDebug)
-    : AScene(assignedId), m_renderer(renderer), m_audio(audio), m_showDebug(showDebug)
+                const std::shared_ptr<eng::IAudio> &audio, bool &showDebug, int skinIndex,
+                const std::string &playerName)
+    : AScene(assignedId), m_renderer(renderer), m_audio(audio), m_showDebug(showDebug), m_skinIndex(skinIndex),
+      m_playerName(playerName)
 {
     auto &registry = AScene::getRegistry();
 
@@ -59,13 +61,26 @@ gme::Game::Game(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
 
             if (hitBox && transform)
             {
-                renderer->createCircleShape({.name = "hitbox_" + std::to_string(e),
-                                             .radius = hitBox->radius,
-                                             .color = {.r = 255, .g = 0, .b = 0, .a = 100},
-                                             .x = transform->x + hitBox->offsetX,
-                                             .y = transform->y + hitBox->offsetY,
-                                             .outline_thickness = 1.0f,
-                                             .outline_color = {.r = 255, .g = 0, .b = 0, .a = 200}});
+                bool isPipe = false;
+                if (registry.hasComponent<ecs::Texture>(e))
+                {
+                    const auto *texture = registry.getComponent<ecs::Texture>(e);
+                    if (texture && (texture->id.find("pipe") != std::string::npos))
+                    {
+                        isPipe = true;
+                    }
+                }
+                
+                if (!isPipe)
+                {
+                    renderer->createCircleShape({.name = "hitbox_" + std::to_string(e),
+                                                 .radius = hitBox->radius,
+                                                 .color = {.r = 255, .g = 0, .b = 0, .a = 100},
+                                                 .x = transform->x + hitBox->offsetX,
+                                                 .y = transform->y + hitBox->offsetY,
+                                                 .outline_thickness = 1.0f,
+                                                 .outline_color = {.r = 255, .g = 0, .b = 0, .a = 200}});
+                }
             }
 
             if (type == typeid(ecs::Text))
@@ -117,10 +132,30 @@ gme::Game::Game(const eng::id assignedId, const std::shared_ptr<eng::IRenderer> 
 
     m_playerEntity = createPlayer(registry);
 
+    m_playerNameEntity = registry.createEntity()
+                            .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+                            .with<ecs::Transform>("transform_player_name", 200.0F, 160.0F, 0.F)
+                            .with<ecs::Color>("color_player_name", utl::Config::Color::CYAN_ELECTRIC.r,
+                                              utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b,
+                                              utl::Config::Color::CYAN_ELECTRIC.a)
+                            .with<ecs::Text>("id_player_name", m_playerName.empty() ? "Player" : m_playerName, 20U)
+                            .build();
+
     auto [width, height] = m_renderer->getWindowSize();
     m_pipes.emplace_back(createPipePair(registry, width + 200.f, height / 2.f));
     m_pipes.emplace_back(createPipePair(registry, width + 600.f, height / 2.f + 50.f));
     m_pipes.emplace_back(createPipePair(registry, width + 1000.f, height / 2.f - 50.f));
+    m_pipeScored = {false, false, false};
+
+    m_scoreEntity = registry.createEntity()
+                        .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
+                        .with<ecs::Transform>("transform_score", 50.0F, 50.0F, 0.F)
+                        .with<ecs::Color>("color_score", utl::Config::Color::CYAN_ELECTRIC.r,
+                                          utl::Config::Color::CYAN_ELECTRIC.g, utl::Config::Color::CYAN_ELECTRIC.b,
+                                          utl::Config::Color::CYAN_ELECTRIC.a)
+                        .with<ecs::Text>("id_score", std::string("Score: 0"), 32U)
+                        .build();
+
     m_looseText =
         registry.createEntity()
             .with<ecs::Font>("main_font", utl::Path::Font::FONTS_RTYPE)
@@ -158,13 +193,29 @@ void gme::Game::update(const float dt, const eng::WindowSize &size)
         return;
     }
 
+    checkCollisions(registry);
+    checkScore(registry);
+    
+    if (m_showDebug)
+    {
+        drawDebugRectangles(registry);
+    }
+
     auto *transform = registry.getComponent<ecs::Transform>(m_playerEntity);
     auto *velocity = registry.getComponent<ecs::Velocity>(m_playerEntity);
+    auto *playerNameTransform = registry.getComponent<ecs::Transform>(m_playerNameEntity);
 
     if (transform && velocity)
     {
         constexpr float gravity = 900.f;
         velocity->y += gravity * dt;
+        
+        // Update player name position to follow the player
+        if (playerNameTransform)
+        {
+            playerNameTransform->x = transform->x;
+            playerNameTransform->y = transform->y - 40.0F;
+        }
         transform->y += velocity->y * dt;
 
         if (transform->y > size.height - 50)
@@ -182,8 +233,9 @@ void gme::Game::update(const float dt, const eng::WindowSize &size)
         m_renderer->setSpritePosition("player_texture" + std::to_string(m_playerEntity), transform->x, transform->y);
     }
 
-    for (auto &[topPipe, bottomPipe] : m_pipes)
+    for (std::size_t i = 0; i < m_pipes.size(); ++i)
     {
+        auto &[topPipe, bottomPipe] = m_pipes[i];
         auto *topTransform = registry.getComponent<ecs::Transform>(topPipe);
         auto *botTransform = registry.getComponent<ecs::Transform>(bottomPipe);
         const auto *topVel = registry.getComponent<ecs::Velocity>(topPipe);
@@ -199,8 +251,19 @@ void gme::Game::update(const float dt, const eng::WindowSize &size)
                 topTransform->x = size.width + 200.f;
                 botTransform->x = size.width + 200.f;
 
-                topTransform->y = 0.0F;
-                botTransform->y = size.height - 320.f;
+                const PipeType type = randomPipeType();
+                const float gapSize = getGapSize(type);
+                const float gapY = static_cast<float>(100 + rand() % (size.height - 100 - static_cast<int>(gapSize)));
+
+                const float scale = static_cast<float>(size.width) / 1920.f;
+                const float pipeHeight = 153.f * scale * 3.f;
+                topTransform->y = gapY - pipeHeight / 2.f;
+                botTransform->y = gapY + gapSize + pipeHeight / 2.f;
+
+                if (i < m_pipeScored.size())
+                {
+                    m_pipeScored[i] = false;
+                }
             }
 
             m_renderer->setSpritePosition("pipe_top_texture" + std::to_string(topPipe), topTransform->x,
@@ -239,11 +302,12 @@ void gme::Game::event(const eng::Event &event)
 ecs::Entity gme::Game::createPlayer(ecs::Registry &registry)
 {
     auto [offsetX, offsetY] = utl::calculateHitboxOffsets(utl::GameConfig::Player::SPRITE_WIDTH, utl::GameConfig::Player::SPRITE_HEIGHT, utl::GameConfig::Player::SCALE);
+    const float skinPosY = m_skinIndex * utl::GameConfig::Player::SPRITE_HEIGHT;
 
     return registry.createEntity()
         .with<ecs::Transform>("player_transform", 200.0F, 200.0F, 0.F)
         .with<ecs::Velocity>("player_velocity", 0.F, 0.F)
-        .with<ecs::Rect>("player_rect", 0.F, 0.F, 33, 17)
+        .with<ecs::Rect>("player_rect", 0.F, skinPosY, 33, 17)
         .with<ecs::Scale>("player_scale", 2.0F, 2.0F)
         .with<ecs::Texture>("player_texture", utl::Path::Texture::TEXTURE_PLAYER)
         .with<ecs::Player>("player", true)
@@ -255,12 +319,18 @@ std::pair<ecs::Entity, ecs::Entity> gme::Game::createPipePair(ecs::Registry &reg
 {
     auto [width, height] = m_renderer->getWindowSize();
     const float scale = width / 1920.f;
+    const float pipeOriginalWidth = 153.f;
+    const float pipeOriginalHeight = 22.f;
+    const float pipeScaledWidth = pipeOriginalWidth * scale * 3.f;
+    const float pipeScaledHeight = pipeOriginalHeight * scale * 3.f;
+    const float pipeRadius = pipeScaledWidth / 2.f * 1.2f;
 
     auto topPipe = registry.createEntity()
                        .with<ecs::Transform>("pipe_top_transform", x, 0.f, 0.f)
                        .with<ecs::Velocity>("pipe_top_velocity", -200.f * scale, 0.f)
                        .with<ecs::Scale>("pipe_top_scale", scale * 3.f, scale * 3.f)
                        .with<ecs::Texture>("pipe_top_texture", "assets/sprites/flappybird-pipe-xl.png")
+                       .with<ecs::Hitbox>("pipe_top_hitbox", pipeRadius, 0.f, 0.f)
                        .build();
 
     m_renderer->setSpriteRotation("pipe_top_texture" + std::to_string(topPipe), -90.f);
@@ -271,6 +341,7 @@ std::pair<ecs::Entity, ecs::Entity> gme::Game::createPipePair(ecs::Registry &reg
                           .with<ecs::Velocity>("pipe_bottom_velocity", -200.f * scale, 0.f)
                           .with<ecs::Scale>("pipe_bottom_scale", scale * 3.f, scale * 3.f)
                           .with<ecs::Texture>("pipe_bottom_texture", "assets/sprites/flappybird-pipe-xl.png")
+                          .with<ecs::Hitbox>("pipe_bottom_hitbox", pipeRadius, 0.f, 0.f)
                           .build();
 
     m_renderer->setSpriteRotation("pipe_bottom_texture" + std::to_string(bottomPipe), 90.f);
@@ -293,10 +364,12 @@ void gme::Game::resetGame()
     }
 
     auto [width, height] = m_renderer->getWindowSize();
+    const float scale = width / 1920.f;
     float startX = width + 200.f;
 
-    for (auto &[topPipe, bottomPipe] : m_pipes)
+    for (std::size_t i = 0; i < m_pipes.size(); ++i)
     {
+        auto &[topPipe, bottomPipe] = m_pipes[i];
         auto *topTransform = registry.getComponent<ecs::Transform>(topPipe);
         if (auto *botTransform = registry.getComponent<ecs::Transform>(bottomPipe); topTransform && botTransform)
         {
@@ -306,12 +379,186 @@ void gme::Game::resetGame()
             const float gapSize = getGapSize(type);
             const float gapY = static_cast<float>(100 + rand() % (height - 100 - static_cast<int>(gapSize)));
 
-            topTransform->y = gapY - 320.f;
-            botTransform->y = gapY + gapSize;
+            const float pipeHeight = 153.f * scale * 3.f;
+            topTransform->y = gapY - pipeHeight / 2.f;
+            botTransform->y = gapY + gapSize + pipeHeight / 2.f;
         }
         startX += 400.f;
+        if (i < m_pipeScored.size())
+        {
+            m_pipeScored[i] = false;
+        }
     }
 
     m_gameOver = false;
     m_gameOverShown = false;
+    m_score = 0;
+    if (auto *scoreText = registry.getComponent<ecs::Text>(m_scoreEntity))
+    {
+        scoreText->content = "Score: 0";
+        m_renderer->setTextContent("id_score", "Score: 0");
+    }
+}
+
+bool gme::Game::checkCircleCollision(float x1, float y1, float r1, float x2, float y2, float r2) const
+{
+    const float dx = x1 - x2;
+    const float dy = y1 - y2;
+    const float distance = std::sqrt(dx * dx + dy * dy);
+    const float combinedRadius = r1 + r2;
+
+    return distance < combinedRadius;
+}
+
+bool gme::Game::checkCircleRectCollision(float circleX, float circleY, float circleR, float rectX, float rectY, float rectW, float rectH) const
+{
+    const float closestX = std::max(rectX, std::min(circleX, rectX + rectW));
+    const float closestY = std::max(rectY, std::min(circleY, rectY + rectH));
+    
+    const float dx = circleX - closestX;
+    const float dy = circleY - closestY;
+    const float distanceSquared = dx * dx + dy * dy;
+    
+    return distanceSquared < circleR * circleR;
+}
+
+void gme::Game::checkCollisions(ecs::Registry &registry)
+{
+    if (m_gameOver)
+        return;
+
+    auto *playerTransform = registry.getComponent<ecs::Transform>(m_playerEntity);
+    auto *playerHitbox = registry.getComponent<ecs::Hitbox>(m_playerEntity);
+
+    if (!playerTransform || !playerHitbox)
+        return;
+
+    const float playerX = playerTransform->x + playerHitbox->offsetX;
+    const float playerY = playerTransform->y + playerHitbox->offsetY;
+    const float playerRadius = playerHitbox->radius;
+
+    auto [width, height] = m_renderer->getWindowSize();
+    const float scale = width / 1920.f;
+    const float pipeOriginalWidth = 153.f;
+    const float pipeOriginalHeight = 22.f;
+    const float pipeScaledWidth = pipeOriginalWidth * scale * 3.f;
+    const float pipeScaledHeight = pipeOriginalHeight * scale * 3.f;
+
+    for (const auto &[topPipe, bottomPipe] : m_pipes)
+    {
+        auto *topTransform = registry.getComponent<ecs::Transform>(topPipe);
+        auto *botTransform = registry.getComponent<ecs::Transform>(bottomPipe);
+
+        if (!topTransform || !botTransform)
+            continue;
+
+        const float topRectX = topTransform->x - pipeScaledHeight / 2.f;
+        const float topRectY = topTransform->y - pipeScaledWidth / 2.f;
+        const float topRectW = pipeScaledHeight;
+        const float topRectH = pipeScaledWidth;
+
+        const float botRectX = botTransform->x - pipeScaledHeight / 2.f;
+        const float botRectY = botTransform->y - pipeScaledWidth / 2.f;
+        const float botRectW = pipeScaledHeight;
+        const float botRectH = pipeScaledWidth;
+
+        if (checkCircleRectCollision(playerX, playerY, playerRadius, topRectX, topRectY, topRectW, topRectH) ||
+            checkCircleRectCollision(playerX, playerY, playerRadius, botRectX, botRectY, botRectW, botRectH))
+        {
+            m_gameOver = true;
+            return;
+        }
+    }
+}
+
+void gme::Game::checkScore(ecs::Registry &registry)
+{
+    if (m_gameOver)
+        return;
+
+    auto *playerTransform = registry.getComponent<ecs::Transform>(m_playerEntity);
+    if (!playerTransform)
+        return;
+
+    const float playerX = playerTransform->x;
+
+    for (std::size_t i = 0; i < m_pipes.size(); ++i)
+    {
+        if (i >= m_pipeScored.size())
+            continue;
+
+        if (m_pipeScored[i])
+            continue;
+
+        auto &[topPipe, bottomPipe] = m_pipes[i];
+        auto *topTransform = registry.getComponent<ecs::Transform>(topPipe);
+
+        if (!topTransform)
+            continue;
+
+        if (playerX > topTransform->x + 100.f)
+        {
+            m_pipeScored[i] = true;
+            m_score++;
+            if (auto *scoreText = registry.getComponent<ecs::Text>(m_scoreEntity))
+            {
+                scoreText->content = "Score: " + std::to_string(m_score);
+                m_renderer->setTextContent("id_score", "Score: " + std::to_string(m_score));
+            }
+        }
+    }
+}
+
+void gme::Game::drawDebugRectangles(ecs::Registry &registry) const
+{
+    auto [width, height] = m_renderer->getWindowSize();
+    const float scale = width / 1920.f;
+    const float pipeOriginalWidth = 153.f;
+    const float pipeOriginalHeight = 22.f;
+    const float pipeScaledWidth = pipeOriginalWidth * scale * 3.f;
+    const float pipeScaledHeight = pipeOriginalHeight * scale * 3.f;
+    
+    const eng::Color debugColor = {.r = 0, .g = 255, .b = 0, .a = 200};
+    
+    for (const auto &[topPipe, bottomPipe] : m_pipes)
+    {
+        auto *topTransform = registry.getComponent<ecs::Transform>(topPipe);
+        auto *botTransform = registry.getComponent<ecs::Transform>(bottomPipe);
+        
+        if (!topTransform || !botTransform)
+            continue;
+        
+        const float topRectX = topTransform->x - pipeScaledHeight / 2.f;
+        const float topRectY = topTransform->y - pipeScaledWidth / 2.f;
+        const float topRectW = pipeScaledHeight;
+        const float topRectH = pipeScaledWidth;
+        
+        const float botRectX = botTransform->x - pipeScaledHeight / 2.f;
+        const float botRectY = botTransform->y - pipeScaledWidth / 2.f;
+        const float botRectW = pipeScaledHeight;
+        const float botRectH = pipeScaledWidth;
+        
+        const float step = 2.f;
+        for (float x = topRectX; x <= topRectX + topRectW; x += step)
+        {
+            m_renderer->drawPoint(x, topRectY, debugColor);
+            m_renderer->drawPoint(x, topRectY + topRectH, debugColor);
+        }
+        for (float y = topRectY; y <= topRectY + topRectH; y += step)
+        {
+            m_renderer->drawPoint(topRectX, y, debugColor);
+            m_renderer->drawPoint(topRectX + topRectW, y, debugColor);
+        }
+        
+        for (float x = botRectX; x <= botRectX + botRectW; x += step)
+        {
+            m_renderer->drawPoint(x, botRectY, debugColor);
+            m_renderer->drawPoint(x, botRectY + botRectH, debugColor);
+        }
+        for (float y = botRectY; y <= botRectY + botRectH; y += step)
+        {
+            m_renderer->drawPoint(botRectX, y, debugColor);
+            m_renderer->drawPoint(botRectX + botRectW, y, debugColor);
+        }
+    }
 }

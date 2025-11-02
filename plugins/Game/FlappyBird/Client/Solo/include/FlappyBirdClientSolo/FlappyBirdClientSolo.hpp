@@ -37,6 +37,7 @@ namespace gme
             {
                 m_engine = &engine;
                 m_appConfig = &appConfig;
+                m_showDebug = &showDebug;
                 setupScenes(showDebug, menuSceneId);
             }
 
@@ -46,6 +47,7 @@ namespace gme
             eng::Engine *m_engine = nullptr;
             utl::cli::AppConfig *m_appConfig = nullptr;
             eng::id m_mainSceneId;
+            bool *m_showDebug = nullptr;
 
             void setupScenes(bool &showDebug, eng::id menuSceneId);
     }; // class FlappyBirdClientSolo
