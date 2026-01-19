@@ -313,12 +313,6 @@ namespace srv
             /// @param context Packet context
             /// @return Handler result
             ///
-            ///
-            /// @security Validate new client connection with capacity checks
-            /// @security Enforce MAX_CLIENTS limit to prevent resource exhaustion
-            /// @security Validate player name format and length via InputValidator
-            /// @security Generate unique session ID for new connections
-            ///
             rnp::HandlerResult handleConnect(const rnp::PacketConnect &packet, const rnp::PacketContext &context);
 
             ///

@@ -9,6 +9,7 @@
 #include "Utils/Event.hpp"
 #include "Utils/EventBus.hpp"
 #include "Utils/Logger.hpp"
+#include "Utils/Security.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -610,7 +611,7 @@ namespace srv
         {
             // Invalid player name - reject connection
             utl::Logger::log("AsioServer: Invalid player name format from " + endpointStr, utl::LogLevel::WARNING);
-            sendError(rnp::ErrorCode::INVALID_PACKET, "Invalid player name", m_senderEndpoint, 0);
+            sendError(rnp::ErrorCode::INVALID_PAYLOAD, "Invalid player name", m_senderEndpoint, 0);
             m_clients.erase(sessionId);
             m_endpointToSession.erase(endpointStr);
             return rnp::HandlerResult::INVALID_PACKET;
@@ -1033,7 +1034,6 @@ namespace srv
                 if (!utl::InputValidator::isValidLobbyName(lobbyName))
                 {
                     utl::Logger::log("AsioServer: Invalid lobby name format", utl::LogLevel::WARNING);
-                    sendLobbyCreateResponse(sessionId, false, 0);
                     return rnp::HandlerResult::INVALID_PACKET;
                 }
             }
