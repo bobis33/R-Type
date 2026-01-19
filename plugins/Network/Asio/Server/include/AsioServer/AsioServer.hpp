@@ -8,6 +8,15 @@
 /// @author R-Type Team
 /// @date 2025
 ///
+/// @security THREAT MODEL:
+///   - Session Hijacking: Mitigated by session ID validation + ping/pong timeout detection
+///   - Packet Spoofing: Future mitigation via HMAC message verification
+///   - DDoS Attacks: Future mitigation via per-client rate limiting (100 pps)
+///   - MITM Attacks: Future mitigation via TLS 1.3 encryption on transport layer
+///   - Replay Attacks: Future mitigation via packet sequence numbers + timestamps
+///   - Buffer Overflow: Mitigated via bounds checking in all network handlers
+///   - Input Injection: Mitigated via InputValidator whitelist validation
+///
 
 #pragma once
 
@@ -34,6 +43,7 @@ namespace srv
     /// @brief Represents an active client connection session
     /// @details Stores all relevant information about a connected client including
     ///          network endpoint, authentication state, latency metrics, and lobby membership.
+    /// @security Session data is protected by mutex synchronization on m_clients map
     ///
     struct ClientSession
     {
@@ -302,6 +312,12 @@ namespace srv
             /// @param packet Connect packet
             /// @param context Packet context
             /// @return Handler result
+            ///
+            ///
+            /// @security Validate new client connection with capacity checks
+            /// @security Enforce MAX_CLIENTS limit to prevent resource exhaustion
+            /// @security Validate player name format and length via InputValidator
+            /// @security Generate unique session ID for new connections
             ///
             rnp::HandlerResult handleConnect(const rnp::PacketConnect &packet, const rnp::PacketContext &context);
 

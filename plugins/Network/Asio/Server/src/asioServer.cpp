@@ -603,7 +603,20 @@ namespace srv
         client.sessionId = sessionId;
         client.endpoint = m_senderEndpoint;
         client.lastSeen = context.receiveTime;
-        client.playerName = std::string(packet.playerName.data(), packet.nameLen);
+
+        // Security: Validate player name format and length
+        std::string rawPlayerName(packet.playerName.data(), packet.nameLen);
+        if (!utl::InputValidator::isValidPlayerName(rawPlayerName))
+        {
+            // Invalid player name - reject connection
+            utl::Logger::log("AsioServer: Invalid player name format from " + endpointStr, utl::LogLevel::WARNING);
+            sendError(rnp::ErrorCode::INVALID_PACKET, "Invalid player name", m_senderEndpoint, 0);
+            m_clients.erase(sessionId);
+            m_endpointToSession.erase(endpointStr);
+            return rnp::HandlerResult::INVALID_PACKET;
+        }
+
+        client.playerName = rawPlayerName;
         client.clientCaps = packet.clientCaps;
         client.isConnected = true;
 
@@ -1010,11 +1023,19 @@ namespace srv
                 return rnp::HandlerResult::PROCESSING_ERROR;
             }
 
-            // Extract lobby name
+            // Extract and validate lobby name
             std::string lobbyName;
             if (packet.nameLen > 0 && packet.nameLen <= 31)
             {
                 lobbyName = std::string(packet.lobbyName.data(), packet.nameLen);
+
+                // Security: Validate lobby name format
+                if (!utl::InputValidator::isValidLobbyName(lobbyName))
+                {
+                    utl::Logger::log("AsioServer: Invalid lobby name format", utl::LogLevel::WARNING);
+                    sendLobbyCreateResponse(sessionId, false, 0);
+                    return rnp::HandlerResult::INVALID_PACKET;
+                }
             }
             else
             {
