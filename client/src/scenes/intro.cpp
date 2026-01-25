@@ -53,9 +53,6 @@ cli::Intro::Intro(const eng::id assignedId, const std::shared_ptr<eng::IRenderer
             }
         });
 
-    m_soundEntity =
-        registry.createEntity().with<ecs::Audio>("game_begin", "assets/audio/elephant.mp3", 20.0F, false, true).build();
-
     auto [width, height] = renderer->getWindowSize();
     m_logoEntity = registry.createEntity()
                        .with<ecs::Transform>("logo_transform", width * 0.37F, height * 0.2F)

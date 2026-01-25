@@ -40,7 +40,6 @@ namespace cli
             float m_elapsedTime = 0.F;
 
             ecs::Entity m_logoEntity = 0;
-            ecs::Entity m_soundEntity = 0;
             utl::Clock m_clock;
     }; // class Intro
 } // namespace cli
