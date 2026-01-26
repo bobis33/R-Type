@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 10
     steps:
 
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6.0.2
         with:
           ref: ${{ github.head_ref }}
           repository: '${{ github.repository }}'
